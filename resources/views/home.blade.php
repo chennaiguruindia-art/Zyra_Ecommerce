@@ -34,8 +34,8 @@
                 <!-- Trust mini-bar -->
                 <div class="d-flex align-items-center gap-4 mt-4 pt-2 text-muted small justify-content-center justify-content-lg-start">
                     <div><i class="bi bi-star-fill text-warning me-1"></i> 4.9/5 Rating</div>
-                    <div><i class="bi bi-truck text-dark me-1"></i> Free Shipping Over ₹999</div>
-                    <div><i class="bi bi-arrow-clockwise text-dark me-1"></i> Easy 15-Day Return</div>
+                    <div><i class="bi bi-truck text-dark me-1"></i> Free Shipping on All Orders</div>
+                    <div><i class="bi bi-arrow-clockwise text-dark me-1"></i> Secure Delivery</div>
                 </div>
             </div>
 

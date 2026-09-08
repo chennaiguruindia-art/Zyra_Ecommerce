@@ -2,7 +2,7 @@
 <div class="zyra-announcement-bar text-center">
     <div class="container d-flex justify-content-between align-items-center">
         <span class="d-none d-md-inline-block"><i class="bi bi-geo-alt me-1"></i> Pan-India Express Delivery</span>
-        <span class="mx-auto mx-md-0 fw-semibold">Free Shipping on Orders Above ₹999 | Easy 15-Day Returns</span>
+        <span class="mx-auto mx-md-0 fw-semibold">Free Shipping on All Orders</span>
         <span class="d-none d-md-inline-block">
             <a href="{{ route('seller.dashboard') }}" class="text-white text-decoration-none fw-semibold">
                 <i class="bi bi-shop me-1 text-warning"></i> Seller Hub
@@ -84,6 +84,7 @@
                                 </span>
                             </li>
                             <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('profile.edit') }}"><i class="bi bi-person-gear"></i> My Profile</a></li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('my-orders') }}"><i class="bi bi-receipt"></i> My Orders</a></li>
                             <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('wishlist') }}"><i class="bi bi-heart"></i> My Wishlist</a></li>
                             <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('cart') }}"><i class="bi bi-bag"></i> My Cart</a></li>
                             @if(auth()->user()->isSeller())
@@ -192,6 +193,7 @@
                     </div>
                     <div class="d-flex gap-2">
                         <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-outline-dark flex-grow-1">Profile</a>
+                        <a href="{{ route('my-orders') }}" class="btn btn-sm btn-outline-dark flex-grow-1">Orders</a>
                         <form method="POST" action="{{ route('logout') }}" class="m-0">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-outline-danger">Sign Out</button>

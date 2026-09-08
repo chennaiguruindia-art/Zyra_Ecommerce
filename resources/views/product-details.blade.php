@@ -177,7 +177,7 @@
                 <div class="col-6"><i class="bi bi-arrow-counterclockwise text-dark me-1"></i> 15 Days Easy Returns</div>
                 <div class="col-6"><i class="bi bi-shield-check text-dark me-1"></i> 100% Original Products</div>
                 <div class="col-6"><i class="bi bi-cash-coin text-dark me-1"></i> Cash on Delivery Available</div>
-                <div class="col-6"><i class="bi bi-truck text-dark me-1"></i> Free Shipping on ₹999+</div>
+                <div class="col-6"><i class="bi bi-truck text-dark me-1"></i> Free Shipping</div>
             </div>
 
         </div>
@@ -285,12 +285,11 @@
                         <ul class="small text-muted ps-3">
                             <li>Metro Cities: 2–4 business days delivery</li>
                             <li>Rest of India: 4–7 business days delivery</li>
-                            <li>Free standard shipping on all orders over ₹999</li>
-                            <li>₹99 flat delivery charge on orders below ₹999</li>
+                            <li>Free standard shipping on all orders</li>
                         </ul>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="fw-bold mb-2"><i class="bi bi-arrow-repeat me-1"></i> Easy 15-Day Return & Exchange</h6>
+                        <h6 class="fw-bold mb-2"><i class="bi bi-arrow-repeat me-1"></i> Secure Delivery</h6>
                         <p class="small text-muted mb-2">We want you to love your purchase. If the fit is not right, simply initiate an exchange from your order portal.</p>
                         <ul class="small text-muted ps-3">
                             <li>Reverse pickup provided at no extra charge</li>

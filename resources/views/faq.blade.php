@@ -31,7 +31,7 @@
                     </h2>
                     <div id="collapseShipping" class="accordion-collapse collapse show" aria-labelledby="headingShipping" data-bs-parent="#zyraFaqAccordion">
                         <div class="accordion-body text-muted small leading-relaxed">
-                            We offer <strong>Free Standard Shipping</strong> across India on all orders above ₹999. For orders below ₹999, a flat shipping rate of ₹99 applies.<br><br>
+                            We offer <strong>Free Standard Shipping</strong> across India on all orders.<br><br>
                             &bull; <strong>Metro Cities (Delhi, Mumbai, Bengaluru, Chennai, Kolkata, Hyderabad):</strong> 2–4 business days.<br>
                             &bull; <strong>Rest of India:</strong> 4–7 business days.<br>
                             Tracking links are dispatched via SMS & Email as soon as your order leaves our Mumbai warehouse.

@@ -43,7 +43,7 @@
                 <div class="alert alert-light border mt-3 d-flex align-items-center gap-2 small">
                     <i class="bi bi-truck text-dark fs-5"></i>
                     <div>
-                        <strong>Free Express Delivery</strong> on orders above ₹999. Orders below ₹999 incur standard ₹99 shipping.
+                        <strong>Free Express Delivery</strong> on all orders.
                     </div>
                 </div>
             </div>

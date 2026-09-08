@@ -23,6 +23,7 @@
     --zyra-success: #2e7d32;
 
     --zyra-font-heading: 'Playfair Display', Georgia, serif;
+    --zyra-font-display: 'Cormorant Garamond', 'Times New Roman', serif;
     --zyra-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
     --zyra-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -211,11 +212,12 @@ img {
 }
 
 .zyra-nav-link {
-    font-size: 0.88rem;
-    font-weight: 500;
+    font-family: var(--zyra-font-display);
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--zyra-text-main);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     padding: 0.75rem 0.9rem;
     position: relative;
     transition: var(--zyra-transition);
@@ -739,12 +741,14 @@ img {
 }
 
 .zyra-product-title {
-    font-size: 0.96rem;
-    font-family: var(--zyra-font-sans);
+    font-family: var(--zyra-font-display);
+    font-size: 1.18rem;
     font-weight: 600;
-    line-height: 1.35;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
     margin-bottom: 0.45rem;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;

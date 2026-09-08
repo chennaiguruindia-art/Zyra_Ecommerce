@@ -15,4 +15,15 @@ class OrderController extends Controller
 
         return view('order-success', compact('order'));
     }
+
+    public function myOrders()
+    {
+        $orders = Order::query()
+            ->where('user_id', auth()->id())
+            ->with('items')
+            ->latest()
+            ->get();
+
+        return view('my-orders', compact('orders'));
+    }
 }

@@ -77,6 +77,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Order History -->
+    @include('profile.partials.my-orders', ['orders' => $orders])
 </div>
 @endsection
 

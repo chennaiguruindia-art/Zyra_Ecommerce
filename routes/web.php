@@ -67,13 +67,17 @@ Route::get('/nightwear', [ShopController::class, 'shortcut'])->defaults('slug', 
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.details');
 Route::get('/product/{id}/quick-view', [ProductController::class, 'quickView'])->name('product.quick-view');
 
-// Authenticated customer routes (Cart, Wishlist, Checkout)
+// Authenticated customer routes (Checkout placement only; cart & wishlist are public)
 Route::middleware('auth')->group(function () {
-    Route::get('/wishlist', fn () => view('wishlist'))->name('wishlist');
-    Route::get('/cart', fn () => view('cart'))->name('cart');
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.place-order');
+    Route::post('/checkout/payment/verify', [CheckoutController::class, 'verifyPayment'])->name('checkout.payment.verify');
 });
+
+Route::middleware('auth')->get('/my-orders', [OrderController::class, 'myOrders'])->name('my-orders');
+
+Route::get('/wishlist', fn () => view('wishlist'))->name('wishlist');
+Route::get('/cart', fn () => view('cart'))->name('cart');
 
 Route::get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
 Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');

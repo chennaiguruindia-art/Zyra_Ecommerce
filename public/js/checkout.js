@@ -93,7 +93,7 @@ const ZyraCheckout = {
         });
         itemsContainer.innerHTML = html;
 
-        const shipping = subtotal === 0 || subtotal >= 999 ? 0 : 99;
+        const shipping = 0;
         const total = subtotal + shipping;
         if (subtotalEl) subtotalEl.textContent = `₹${subtotal}`;
         if (shippingEl) shippingEl.textContent = shipping === 0 ? 'FREE' : `₹${shipping}`;
@@ -111,13 +111,37 @@ const ZyraCheckout = {
                 if (parent) {
                     parent.classList.add('border-primary', 'bg-light');
                 }
-
-                const method = e.target.value;
-                const cardDetails = document.getElementById('cardDetailsFields');
-                const upiDetails = document.getElementById('upiDetailsFields');
-                if (cardDetails) cardDetails.style.display = method === 'card' ? 'block' : 'none';
-                if (upiDetails) upiDetails.style.display = method === 'upi' ? 'block' : 'none';
             });
+        });
+    },
+
+    startRazorpay(config) {
+        return new Promise((resolve, reject) => {
+            if (typeof window.Razorpay === 'undefined') {
+                reject(new Error('Razorpay checkout is unavailable. Please refresh and try again.'));
+                return;
+            }
+
+            const options = {
+                key: config.key_id,
+                amount: config.amount,
+                currency: config.currency || 'INR',
+                name: config.name || 'ZYRA Fashion',
+                description: config.description || '',
+                order_id: config.order_id,
+                prefill: config.prefill || {},
+                theme: config.theme || { color: '#18181b' },
+                handler: (response) => resolve(response),
+                modal: {
+                    ondismiss: () => reject(new Error('dismissed'))
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (response) => {
+                reject(new Error(response?.error?.description || 'Payment failed. Please try again.'));
+            });
+            rzp.open();
         });
     },
 
@@ -148,10 +172,9 @@ const ZyraCheckout = {
             const state = document.getElementById('state')?.value.trim();
             const pincode = document.getElementById('pincode')?.value.trim();
             const paymentMethodEl = document.querySelector('input[name="paymentMethod"]:checked');
-            const paymentMethod = paymentMethodEl ? paymentMethodEl.value : 'cod';
+            const paymentMethod = paymentMethodEl ? paymentMethodEl.value : 'upi';
 
             const paymentLabels = {
-                'cod': 'Cash on Delivery (COD)',
                 'upi': 'UPI (Google Pay / PhonePe / Paytm)',
                 'card': 'Credit / Debit Card',
                 'netbanking': 'Net Banking'
@@ -215,18 +238,23 @@ const ZyraCheckout = {
                 })
                 .then(data => {
                     if (!data) return;
-                    if (data.success) {
-                        orderData.orderId = data.order_number;
-                        localStorage.setItem(this.ORDER_KEY, JSON.stringify(orderData));
-                        localStorage.removeItem('zyra_cart');
-                        window.location.href = data.redirect || ('/order-success/' + data.order_number);
-                    } else {
+                    if (!data.success) {
                         placeOrderBtn.disabled = false;
                         placeOrderBtn.innerHTML = `Place Order <i class="bi bi-check-lg ms-1"></i>`;
                         if (window.ZyraApp) {
                             window.ZyraApp.showToast(data.message || 'Error processing order. Please try again.', 'danger');
                         }
+                        return;
                     }
+
+                    if (data.requires_payment) {
+                        return this.completeOnlinePayment(data, placeOrderBtn, orderData);
+                    }
+
+                    orderData.orderId = data.order_number;
+                    localStorage.setItem(this.ORDER_KEY, JSON.stringify(orderData));
+                    localStorage.removeItem('zyra_cart');
+                    window.location.href = data.redirect || ('/order-success/' + data.order_number);
                 })
                 .catch(() => {
                     placeOrderBtn.disabled = false;
@@ -236,6 +264,61 @@ const ZyraCheckout = {
                     }
                 });
         });
+    },
+
+    async completeOnlinePayment(data, placeOrderBtn, orderData) {
+        let result;
+        try {
+            result = await this.startRazorpay(data.razorpay);
+        } catch (err) {
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.innerHTML = `Place Order <i class="bi bi-check-lg ms-1"></i>`;
+            if (window.ZyraApp) {
+                const msg = err?.message === 'dismissed'
+                    ? 'Payment was cancelled. You can try again.'
+                    : (err.message || 'Payment could not be completed. Please try again.');
+                window.ZyraApp.showToast(msg, 'danger');
+            }
+            window.location.reload();
+            return;
+        }
+
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Verifying Payment...`;
+
+        try {
+            const verifyRes = await fetch('/checkout/payment/verify', {
+                method: 'POST',
+                headers: this.csrfHeaders(),
+                body: JSON.stringify(result)
+            });
+
+            let data = { success: false };
+            try { data = await verifyRes.json(); } catch (err) {}
+
+            if (!verifyRes.ok || !data.success) {
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.innerHTML = `Place Order <i class="bi bi-check-lg ms-1"></i>`;
+                if (window.ZyraApp) {
+                    window.ZyraApp.showToast(data.message || 'Payment verification failed. Please contact support.', 'danger');
+                }
+                if (data.requires_payment) {
+                    window.location.reload();
+                }
+                return;
+            }
+
+            orderData.orderId = data.order_number;
+            localStorage.setItem(this.ORDER_KEY, JSON.stringify(orderData));
+            localStorage.removeItem('zyra_cart');
+            window.location.href = data.redirect || ('/order-success/' + data.order_number);
+        } catch (err) {
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.innerHTML = `Place Order <i class="bi bi-check-lg ms-1"></i>`;
+            if (window.ZyraApp) {
+                window.ZyraApp.showToast('Payment received but could not be verified. Please contact support.', 'danger');
+            }
+        }
     },
 
     initOrderSuccessPage() {

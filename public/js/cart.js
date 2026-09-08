@@ -271,9 +271,7 @@ const ZyraCart = {
     },
 
     calculateShipping() {
-        const subtotal = this.calculateSubtotal();
-        if (subtotal === 0 || subtotal >= 999) return 0;
-        return 99; // Standard shipping below ₹999
+        return 0;
     },
 
     calculateTotal() {

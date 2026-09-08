@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order extends Model
 {
-    protected $fillable = [
+protected $fillable = [
         'order_number', 'user_id', 'customer_name', 'customer_email', 'customer_phone',
         'shipping_address', 'city', 'state', 'pincode',
+        'razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature', 'razorpay_amount', 'razorpay_status',
         'payment_method', 'payment_status',
         'subtotal', 'discount', 'shipping_cost', 'tax', 'total',
         'coupon_code', 'order_status', 'notes',
@@ -24,9 +25,14 @@ class Order extends Model
         'total' => 'decimal:2',
     ];
 
-    public function items(): HasMany
+public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function razorpayTransactions(): HasMany
+    {
+        return $this->hasMany(RazorpayTransaction::class);
     }
 
     public function user(): BelongsTo

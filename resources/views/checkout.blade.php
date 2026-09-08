@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Secure Checkout | ZYRA Fashion')
-@section('meta_description', 'Complete your order securely with Cash on Delivery, UPI, Cards, or Net Banking.')
+@section('meta_description', 'Complete your order securely with UPI, Cards, or Net Banking via Razorpay.')
 
 @section('content')
 
@@ -104,33 +104,19 @@
                         <span class="badge bg-dark rounded-circle me-2 p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">4</span>
                         Payment Options
                     </h5>
-                    <p class="small text-muted">Select your preferred payment method. (Static prototype - no payment deducted)</p>
+                    <p class="small text-muted">Select your preferred payment method. Online payments are securely processed via Razorpay (UPI, Cards & Net Banking).</p>
 
                     <div class="d-flex flex-column gap-2 mb-3">
-                        <!-- Cash on Delivery -->
+                        <!-- UPI -->
                         <div class="payment-method-box border rounded p-3 border-primary bg-light">
                             <label class="d-flex align-items-center justify-content-between w-100 cursor-pointer m-0">
                                 <div class="d-flex align-items-center gap-2">
-                                    <input type="radio" name="paymentMethod" value="cod" checked class="form-check-input mt-0">
-                                    <strong>Cash on Delivery (COD)</strong>
-                                </div>
-                                <i class="bi bi-cash-stack fs-5 text-success"></i>
-                            </label>
-                            <div class="small text-muted ps-4 pt-1">Pay with cash or QR scan at your doorstep upon arrival.</div>
-                        </div>
-
-                        <!-- UPI -->
-                        <div class="payment-method-box border rounded p-3">
-                            <label class="d-flex align-items-center justify-content-between w-100 cursor-pointer m-0">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="radio" name="paymentMethod" value="upi" class="form-check-input mt-0">
+                                    <input type="radio" name="paymentMethod" value="upi" checked class="form-check-input mt-0">
                                     <strong>UPI (Google Pay, PhonePe, Paytm)</strong>
                                 </div>
                                 <i class="bi bi-qr-code-scan fs-5 text-primary"></i>
                             </label>
-                            <div id="upiDetailsFields" class="ps-4 pt-2" style="display: none;">
-                                <input type="text" class="form-control form-control-sm" placeholder="e.g. mobile@upi or name@okhdfcbank" style="max-width: 280px;">
-                            </div>
+                            <div class="small text-muted ps-4 pt-1"><i class="bi bi-lock-fill me-1"></i>Securely pay at the Razorpay checkout.</div>
                         </div>
 
                         <!-- Credit/Debit Card -->
@@ -142,19 +128,7 @@
                                 </div>
                                 <i class="bi bi-credit-card fs-5 text-dark"></i>
                             </label>
-                            <div id="cardDetailsFields" class="ps-4 pt-3" style="display: none;">
-                                <div class="row g-2">
-                                    <div class="col-12">
-                                        <input type="text" class="form-control form-control-sm" placeholder="Card Number" maxlength="19" value="4532 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 8921">
-                                    </div>
-                                    <div class="col-6">
-                                        <input type="text" class="form-control form-control-sm" placeholder="MM/YY" maxlength="5" value="12/28">
-                                    </div>
-                                    <div class="col-6">
-                                        <input type="password" class="form-control form-control-sm" placeholder="CVV" maxlength="3" value="123">
-                                    </div>
-                                </div>
-                            </div>
+                            <div class="small text-muted ps-4 pt-1"><i class="bi bi-lock-fill me-1"></i>Securely pay at the Razorpay checkout.</div>
                         </div>
 
                         <!-- Net Banking -->
@@ -166,6 +140,7 @@
                                 </div>
                                 <i class="bi bi-bank fs-5 text-secondary"></i>
                             </label>
+                            <div class="small text-muted ps-4 pt-1"><i class="bi bi-lock-fill me-1"></i>Securely pay at the Razorpay checkout.</div>
                         </div>
                     </div>
                 </div>
@@ -237,7 +212,10 @@
 @endsection
 
 @push('scripts')
+<div id="zyraServerCart" data-cart='@json($cartItems ?? [])' hidden></div>
+<meta name="razorpay-key" content="{{ $razorpayKey ?? '' }}">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-    window.ZYRA_SERVER_CART = @json($cartItems ?? []);
+    window.ZYRA_SERVER_CART = JSON.parse(document.getElementById('zyraServerCart')?.dataset.cart || '[]');
 </script>
 @endpush
