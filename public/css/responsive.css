@@ -1,0 +1,194 @@
+/* ==========================================================================
+   ZYRA - Responsive Media Queries & Mobile Optimizations
+   Breakpoints aligned with Bootstrap 5
+   ========================================================================== */
+
+/* Large Desktop (>= 1200px) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1240px;
+    }
+}
+
+/* Medium Desktop & Tablet Landscape (992px to 1199px) */
+@media (max-width: 1199.98px) {
+    .zyra-hero-title {
+        font-size: 2.8rem;
+    }
+    .zyra-hero-img-box img {
+        height: 460px;
+    }
+    .zyra-promo-title {
+        font-size: 2.3rem;
+    }
+    .zyra-gallery-main-view img {
+        height: 480px;
+    }
+}
+
+/* Tablet Portrait & Small Laptops (< 992px) */
+@media (max-width: 991.98px) {
+    .zyra-hero-section {
+        padding: 3rem 0 2rem;
+        text-align: center;
+    }
+    .zyra-hero-desc {
+        margin: 0 auto 1.5rem;
+    }
+    .zyra-hero-img-box {
+        margin-top: 2rem;
+        max-width: 420px;
+    }
+    .zyra-hero-img-box img {
+        height: 420px;
+    }
+    .zyra-hero-badge-float {
+        left: 10px;
+        bottom: 15px;
+    }
+    .zyra-filter-sidebar-wrapper {
+        margin-bottom: 2rem;
+    }
+    .header-search-dropdown {
+        width: 320px;
+    }
+    .zyra-footer {
+        padding: 3.5rem 0 1.5rem;
+    }
+    .zyra-footer-bottom {
+        margin-top: 2.5rem;
+    }
+    .zyra-product-card .zyra-card-actions {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Devices (< 768px) */
+@media (max-width: 767.98px) {
+    .zyra-brand-logo {
+        font-size: 1.65rem;
+        letter-spacing: 0.12em;
+    }
+    .zyra-announcement-bar {
+        font-size: 0.72rem;
+        padding: 0.4rem 0;
+    }
+    .zyra-hero-title {
+        font-size: 2.2rem;
+    }
+    .zyra-hero-img-box {
+        max-width: 100%;
+    }
+    .zyra-hero-img-box img {
+        height: 360px;
+    }
+    .zyra-promo-banner {
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+    }
+    .zyra-promo-title {
+        font-size: 1.85rem;
+    }
+    .zyra-category-img-wrap {
+        height: 220px;
+    }
+    .zyra-category-title {
+        font-size: 1.15rem;
+    }
+    .zyra-product-body {
+        padding: 0.85rem 0.65rem;
+    }
+    .zyra-product-title {
+        font-size: 0.86rem;
+        min-height: 2.4rem;
+    }
+    .zyra-current-price {
+        font-size: 0.98rem;
+    }
+    .zyra-old-price {
+        font-size: 0.78rem;
+    }
+    .zyra-discount-tag {
+        font-size: 0.7rem;
+    }
+    .btn-card-quickview {
+        font-size: 0.7rem;
+        padding: 0.45rem 0.6rem;
+    }
+    .btn-card-addcart {
+        width: 32px;
+        height: 32px;
+        font-size: 0.78rem;
+    }
+    .zyra-gallery-main-view img {
+        height: 380px;
+    }
+    .zyra-thumb-item {
+        width: 65px;
+        height: 75px;
+    }
+    .zyra-toast-container {
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+    }
+    .zyra-toast {
+        min-width: unset;
+        width: 100%;
+    }
+    .header-search-dropdown {
+        position: fixed;
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+    }
+    .zyra-cart-table thead {
+        display: none;
+    }
+    .zyra-cart-table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+    }
+    .zyra-cart-table tbody td {
+        display: block;
+        padding: 0.5rem;
+        text-align: right;
+    }
+    .zyra-cart-table tbody td:first-child {
+        text-align: left;
+    }
+    .zyra-cart-table tbody td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: 600;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        color: var(--zyra-text-muted);
+    }
+    .newsletter-input-group input {
+        padding-right: 1.25rem;
+        margin-bottom: 0.75rem;
+        height: 48px;
+    }
+    .newsletter-input-group .btn-subscribe {
+        position: static;
+        width: 100%;
+        height: 46px;
+    }
+}
+
+/* Extra Small Phones (< 576px) */
+@media (max-width: 575.98px) {
+    .zyra-hero-title {
+        font-size: 1.95rem;
+    }
+    .zyra-category-img-wrap {
+        height: 180px;
+    }
+    .zyra-product-thumb {
+        padding-top: 135%;
+    }
+}

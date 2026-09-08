@@ -1,0 +1,70 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Category;
+use App\Models\Subcategory;
+
+class CategorySeeder extends Seeder
+{
+    public function run(): void
+    {
+        $categories = [
+            [
+                'name' => 'Tops',
+                'slug' => 'tops',
+                'description' => 'Chic crop tops, casual shirts, office wear & statement party tops.',
+                'image' => 'https://images.unsplash.com/photo-1534126511673-b6899657816a?auto=format&fit=crop&w=800&q=80',
+                'sort_order' => 1,
+                'subcategories' => ['Casual Tops', 'Crop Tops', 'Printed Tops', 'Office Wear Tops', 'Party Wear Tops'],
+            ],
+            [
+                'name' => 'Leggings',
+                'slug' => 'leggings',
+                'description' => 'Ultra-stretchable, breathable 4-way cotton, ankle-length & festive churidars.',
+                'image' => 'https://images.unsplash.com/photo-1506619216599-9d16d0903dfd?auto=format&fit=crop&w=800&q=80',
+                'sort_order' => 2,
+                'subcategories' => ['Cotton Leggings', 'Ankle Length Leggings', 'Printed Leggings', 'Stretch Leggings', 'Basic Leggings'],
+            ],
+            [
+                'name' => 'Kurtis',
+                'slug' => 'kurtis',
+                'description' => 'Handcrafted block prints, graceful Anarkalis, and everyday office straight kurtis.',
+                'image' => 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+                'sort_order' => 3,
+                'subcategories' => ['Cotton Kurtis', 'Printed Kurtis', 'Anarkali Kurtis', 'Straight Kurtis', 'Office Wear Kurtis', 'Party Wear Kurtis'],
+            ],
+            [
+                'name' => 'Maxi Dresses',
+                'slug' => 'maxi',
+                'description' => 'Flowing tiered silhouettes, romantic bohemian florals, and evening party maxis.',
+                'image' => 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=800&q=80',
+                'sort_order' => 4,
+                'subcategories' => ['Casual Maxi', 'Floral Maxi', 'Printed Maxi', 'Party Maxi', 'Ankle Length Maxi'],
+            ],
+            [
+                'name' => 'Nightwear',
+                'slug' => 'nightwear',
+                'description' => 'Pure modal cotton PJ sets, cozy button-down night suits, and satin slips.',
+                'image' => 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80',
+                'sort_order' => 5,
+                'subcategories' => ['Night Suits', 'Night Dresses', 'Cotton Nightwear', 'Printed Nightwear', 'Lounge Wear'],
+            ],
+        ];
+
+        foreach ($categories as $catData) {
+            $subcategoryNames = $catData['subcategories'];
+            unset($catData['subcategories']);
+            $cat = Category::create($catData);
+            foreach ($subcategoryNames as $i => $subName) {
+                Subcategory::create([
+                    'category_id' => $cat->id,
+                    'name' => $subName,
+                    'slug' => \Illuminate\Support\Str::slug($subName),
+                    'sort_order' => $i + 1,
+                ]);
+            }
+        }
+    }
+}
