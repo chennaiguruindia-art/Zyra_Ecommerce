@@ -15,6 +15,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\GlobalSettingController;
 use App\Http\Controllers\InstagramController;
 use App\Http\Controllers\SellerController;
+use App\Http\Controllers\ProfileController;
 
 Route::middleware('auth')->get('/dashboard', function () {
     $user = Auth::user();
@@ -66,20 +67,24 @@ Route::get('/nightwear', [ShopController::class, 'shortcut'])->defaults('slug', 
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.details');
 Route::get('/product/{id}/quick-view', [ProductController::class, 'quickView'])->name('product.quick-view');
 
-Route::get('/wishlist', fn () => view('wishlist'))->name('wishlist');
+// Authenticated customer routes (Cart, Wishlist, Checkout)
+Route::middleware('auth')->group(function () {
+    Route::get('/wishlist', fn () => view('wishlist'))->name('wishlist');
+    Route::get('/cart', fn () => view('cart'))->name('cart');
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.place-order');
+});
+
 Route::get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
 Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
-Route::get('/cart', fn () => view('cart'))->name('cart');
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/sync', [CartController::class, 'sync'])->name('cart.sync');
 Route::get('/cart/items', [CartController::class, 'items'])->name('cart.items');
 Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/apply-coupon', [CartController::class, 'applyCoupon'])->name('cart.apply-coupon');
 Route::post('/cart/remove-coupon', [CartController::class, 'removeCoupon'])->name('cart.remove-coupon');
-
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.place-order');
 
 Route::get('/order-success/{order_number}', [OrderController::class, 'success'])->name('order.success');
 Route::get('/order-success', fn () => view('order-success'))->name('order.success.fallback');
@@ -90,3 +95,9 @@ Route::get('/search/live', [SearchController::class, 'live'])->name('search.live
 Route::get('/about', fn () => view('about'))->name('about');
 Route::get('/contact', fn () => view('contact'))->name('contact');
 Route::get('/faq', fn () => view('faq'))->name('faq');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});

@@ -13,14 +13,52 @@ class CheckoutController extends Controller
 {
     public function index()
     {
-        return view('checkout');
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('message', 'Please login to proceed to checkout.');
+        }
+
+        $user = auth()->user();
+        $latestOrder = Order::where('user_id', $user->id)->latest()->first();
+
+        $nameParts = explode(' ', trim($user->name));
+        $firstName = $nameParts[0] ?? '';
+        $lastName = count($nameParts) > 1 ? implode(' ', array_slice($nameParts, 1)) : '';
+
+        $customer = [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $user->email,
+            'phone' => $user->phone_number ?? $latestOrder?->customer_phone ?? '',
+            'address' => $user->address ?? $latestOrder?->shipping_address ?? '',
+            'apartment' => $user->nearby_area ?? '',
+            'city' => $user->district ?? $latestOrder?->city ?? '',
+            'state' => $user->state ?? $latestOrder?->state ?? '',
+            'pincode' => $user->pincode ?? $latestOrder?->pincode ?? '',
+        ];
+
+        $cartItems = (new CartController())->resolvedCart();
+        $cartSubtotal = 0;
+        foreach ($cartItems as $item) {
+            $cartSubtotal += ((float) ($item['price'] ?? 0)) * ((int) ($item['quantity'] ?? 1));
+        }
+        $cartShipping = ($cartSubtotal === 0 || $cartSubtotal >= 999) ? 0 : 99;
+        $cartTotal = $cartSubtotal + $cartShipping;
+
+        return view('checkout', [
+            'user' => $user,
+            'customer' => $customer,
+            'cartItems' => $cartItems,
+            'cartSubtotal' => $cartSubtotal,
+            'cartShipping' => $cartShipping,
+            'cartTotal' => $cartTotal,
+        ]);
     }
 
     public function placeOrder(Request $request)
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
+            'last_name' => 'nullable|string|max:100',
             'email' => 'required|email',
             'phone' => 'required|string|max:20',
             'address' => 'required|string|max:500',
@@ -29,25 +67,31 @@ class CheckoutController extends Controller
             'state' => 'required|string|max:100',
             'pincode' => 'required|string|max:10',
             'payment_method' => 'required|in:cod,upi,card,netbanking',
-            'items' => 'required|array|min:1',
-            'items.*.id' => 'required|integer',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items' => 'nullable|array',
+            'items.*.id' => 'required_with:items|integer',
+            'items.*.quantity' => 'nullable|integer|min:1',
             'items.*.size' => 'nullable|string',
             'items.*.color' => 'nullable|string',
             'coupon_code' => 'nullable|string',
         ]);
 
         $order = DB::transaction(function () use ($data, $request) {
+            $cartItems = array_values(session()->get('cart', []));
+            if (empty($cartItems) && !empty($data['items'])) {
+                (new CartController())->replaceCartFromItems($data['items']);
+                $cartItems = array_values(session()->get('cart', []));
+            }
+
             $subtotal = 0;
             $lineItems = [];
 
-            foreach ($data['items'] as $item) {
-                $product = Product::query()->find($item['id']);
+            foreach ($cartItems as $item) {
+                $product = Product::query()->find($item['id'] ?? 0);
                 if (!$product) {
                     continue;
                 }
 
-                $qty = (int) $item['quantity'];
+                $qty = (int) ($item['quantity'] ?? 1);
                 $price = (float) $product->price;
                 $lineTotal = $price * $qty;
                 $subtotal += $lineTotal;

@@ -49,12 +49,79 @@ class CartController extends Controller
         return response()->json([
             'success' => true,
             'message' => '"' . $product->name . '" added to cart!',
-            'cart' => array_values($cart),
-            'count' => array_sum(array_column($cart, 'quantity')),
+            'cart' => $this->resolvedCart(),
+            'count' => array_sum(array_column($this->resolvedCart(), 'quantity')),
         ]);
     }
 
+    public function sync(Request $request)
+    {
+        $data = $request->validate([
+            'items' => 'nullable|array',
+            'items.*.id' => 'required|integer',
+            'items.*.quantity' => 'nullable|integer|min:1',
+            'items.*.size' => 'nullable|string',
+            'items.*.color' => 'nullable|string',
+        ]);
+
+        $items = $data['items'] ?? [];
+        if (!empty($items)) {
+            $this->replaceCartFromItems($items);
+        }
+
+        return response()->json([
+            'success' => true,
+            'cart' => $this->resolvedCart(),
+            'count' => array_sum(array_column($this->resolvedCart(), 'quantity')),
+        ]);
+    }
+
+    public function replaceCartFromItems(array $items): void
+    {
+        $cart = [];
+
+        foreach ($items as $item) {
+            $product = Product::query()
+                ->with(['category', 'sizes', 'colors', 'images'])
+                ->find($item['id'] ?? 0);
+
+            if (!$product) {
+                continue;
+            }
+
+            $catalog = $product->toCatalogArray();
+            $size = $item['size'] ?? ($catalog['sizes'][0] ?? 'M');
+            $color = $item['color'] ?? ($catalog['colors'][0] ?? 'Standard');
+            $qty = max(1, (int) ($item['quantity'] ?? 1));
+            $key = $product->id . '|' . $size . '|' . $color;
+
+            if (isset($cart[$key])) {
+                $cart[$key]['quantity'] += $qty;
+                continue;
+            }
+
+            $cart[$key] = [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => (float) $product->price,
+                'old_price' => $product->old_price ? (float) $product->old_price : null,
+                'image' => $catalog['image'],
+                'category' => $catalog['category'],
+                'size' => $size,
+                'color' => $color,
+                'quantity' => $qty,
+            ];
+        }
+
+        session(['cart' => $cart]);
+    }
+
     public function items()
+    {
+        return response()->json(['items' => $this->resolvedCart()]);
+    }
+
+    public function resolvedCart(): array
     {
         $cart = array_values(session()->get('cart', []));
 
@@ -68,7 +135,7 @@ class CartController extends Controller
             }
         }
 
-        return response()->json(['items' => $cart]);
+        return $cart;
     }
 
     public function update(Request $request)

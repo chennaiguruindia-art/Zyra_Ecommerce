@@ -62,10 +62,64 @@
                     <span class="zyra-badge-count wishlist-count-badge" style="display: none;">0</span>
                 </a>
 
-                <!-- Account Modal / Link -->
-                <a href="#" class="icon-btn d-none d-sm-inline-flex" title="My Account" data-bs-toggle="modal" data-bs-target="#zyraAccountModal">
-                    <i class="bi bi-person"></i>
-                </a>
+                <!-- User Profile & Authentication Section -->
+                <div class="dropdown zyra-auth-dropdown">
+                    @auth
+                        <button class="btn btn-link text-decoration-none d-flex align-items-center gap-2 p-1 text-dark dropdown-toggle" type="button" id="headerUserDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid #e5e5e5; border-radius: 50px; padding: 4px 10px !important;">
+                            @if (auth()->user()->avatar_url)
+                                <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" style="width: 28px; height: 28px; object-fit: cover; border-radius: 50%;">
+                            @else
+                                <span class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                </span>
+                            @endif
+                            <span class="small fw-semibold d-none d-md-inline text-truncate" style="max-width: 100px;">{{ explode(' ', auth()->user()->name)[0] }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 py-2 mt-2" aria-labelledby="headerUserDropdown" style="min-width: 220px; border-radius: 12px;">
+                            <li class="px-3 py-2 border-bottom bg-light">
+                                <div class="fw-bold small text-dark">{{ auth()->user()->name }}</div>
+                                <div class="text-muted text-truncate" style="font-size: 0.75rem;">{{ auth()->user()->email }}</div>
+                                <span class="badge {{ auth()->user()->isSeller() ? 'bg-warning text-dark' : 'bg-dark text-white' }} mt-1" style="font-size: 0.65rem;">
+                                    {{ auth()->user()->isSeller() ? 'Seller' : 'Verified Customer' }}
+                                </span>
+                            </li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('profile.edit') }}"><i class="bi bi-person-gear"></i> My Profile</a></li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('wishlist') }}"><i class="bi bi-heart"></i> My Wishlist</a></li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('cart') }}"><i class="bi bi-bag"></i> My Cart</a></li>
+                            @if(auth()->user()->isSeller())
+                                <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2 text-primary" href="{{ route('seller.dashboard') }}"><i class="bi bi-shop"></i> Seller Hub</a></li>
+                            @endif
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}" class="m-0">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item small py-2 text-danger d-flex align-items-center gap-2 border-0 bg-transparent w-100">
+                                        <i class="bi bi-box-arrow-right"></i> Sign Out
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    @else
+                        <button class="btn btn-link text-decoration-none d-flex align-items-center gap-1 p-1 text-dark dropdown-toggle" type="button" id="headerGuestDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person fs-5"></i>
+                            <span class="small fw-semibold d-none d-md-inline">Sign In</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 p-3 mt-2" aria-labelledby="headerGuestDropdown" style="min-width: 240px; border-radius: 12px;">
+                            <li class="mb-2">
+                                <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">Welcome to ZYRA</h6>
+                                <p class="text-muted" style="font-size: 0.75rem; margin-bottom: 12px;">Login to manage orders, wishlist & fast checkout.</p>
+                                <div class="d-grid gap-2">
+                                    <a href="{{ route('login') }}" class="btn btn-zyra-primary btn-sm py-2">Login / Sign In</a>
+                                    <a href="{{ route('register') }}" class="btn btn-zyra-outline btn-sm py-2">Create Account</a>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider my-2"></li>
+                            <li><a class="dropdown-item small py-1 px-1 text-muted d-flex align-items-center gap-2" href="{{ route('wishlist') }}"><i class="bi bi-heart"></i> My Wishlist</a></li>
+                            <li><a class="dropdown-item small py-1 px-1 text-muted d-flex align-items-center gap-2" href="{{ route('cart') }}"><i class="bi bi-bag"></i> My Cart</a></li>
+                            <li><a class="dropdown-item small py-1 px-1 text-muted d-flex align-items-center gap-2" href="{{ route('seller.dashboard') }}"><i class="bi bi-shop"></i> Seller Portal</a></li>
+                        </ul>
+                    @endauth
+                </div>
 
                 <!-- Cart Icon with Dynamic Badge (triggers Mini Cart) -->
                 <button type="button" class="icon-btn" data-bs-toggle="offcanvas" data-bs-target="#zyraMiniCart" aria-controls="zyraMiniCart" title="Shopping Cart">
@@ -121,6 +175,40 @@
         </ul>
 
         <div class="d-grid gap-2 mb-4">
+            @auth
+                <div class="p-3 bg-light rounded-3 mb-2">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        @if (auth()->user()->avatar_url)
+                            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 50%;">
+                        @else
+                            <span class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 0.9rem;">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </span>
+                        @endif
+                        <div>
+                            <div class="fw-bold small text-dark">{{ auth()->user()->name }}</div>
+                            <div class="text-muted small" style="font-size: 0.75rem;">{{ auth()->user()->email }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-outline-dark flex-grow-1">Profile</a>
+                        <form method="POST" action="{{ route('logout') }}" class="m-0">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Sign Out</button>
+                        </form>
+                    </div>
+                </div>
+            @else
+                <div class="p-3 bg-light rounded-3 mb-2 text-center">
+                    <div class="fw-bold small mb-1">Welcome to ZYRA</div>
+                    <p class="text-muted small mb-2" style="font-size: 0.75rem;">Login for faster checkout & saved items</p>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('login') }}" class="btn btn-sm btn-zyra-primary flex-grow-1">Sign In</a>
+                        <a href="{{ route('register') }}" class="btn btn-sm btn-zyra-outline flex-grow-1">Register</a>
+                    </div>
+                </div>
+            @endauth
+
             <a href="{{ route('wishlist') }}" class="btn btn-outline-dark btn-sm d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-heart me-2"></i> My Wishlist</span>
                 <span class="badge bg-secondary wishlist-count-badge">0</span>
@@ -133,32 +221,6 @@
                 <span><i class="bi bi-shop me-2 text-warning"></i> Seller Hub</span>
                 <span class="badge bg-warning text-dark">Partner Portal</span>
             </a>
-        </div>
-
-        <div class="border-top pt-3 small text-muted">
-            <p class="mb-1"><i class="bi bi-telephone me-2"></i> +91 98765 43210</p>
-            <p class="mb-1"><i class="bi bi-envelope me-2"></i> care@zyrafashion.com</p>
-            <p class="mb-0"><i class="bi bi-clock me-2"></i> Mon - Sat: 9:00 AM - 8:00 PM</p>
-        </div>
-    </div>
-</div>
-
-<!-- Account Preview Modal -->
-<div class="modal fade" id="zyraAccountModal" tabindex="-1" aria-labelledby="zyraAccountModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content text-center p-3">
-            <div class="modal-header border-0 pb-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pt-0">
-                <div class="fs-1 text-muted mb-2"><i class="bi bi-person-circle"></i></div>
-                <h5 class="fw-bold mb-1">Welcome to ZYRA</h5>
-                <p class="text-muted small mb-3">Login to track orders, save shipping addresses, and manage your wishlist.</p>
-                <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-zyra-primary" onclick="ZyraApp.showToast('Login/Auth enabled in Phase 2 with MySQL backend.', 'info')">Sign In</button>
-                    <button type="button" class="btn btn-zyra-outline" onclick="ZyraApp.showToast('Registration enabled in Phase 2 with MySQL backend.', 'info')">Create Account</button>
-                </div>
-            </div>
         </div>
     </div>
 </div>

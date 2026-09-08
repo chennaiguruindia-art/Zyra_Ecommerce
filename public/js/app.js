@@ -29,6 +29,20 @@ window.ZyraApp = {
         });
     },
 
+    // Login guard: browsing is public; purchase/login actions require an account.
+    isLoggedIn() {
+        return document.body.getAttribute('data-auth') === 'true';
+    },
+
+    requireLogin(message = 'Please login to continue.') {
+        if (this.isLoggedIn()) return true;
+        this.showToast(message, 'warning');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 900);
+        return false;
+    },
+
     // Toast Notification Manager
     showToast(message, type = 'success') {
         let container = document.getElementById('zyraToastContainer');

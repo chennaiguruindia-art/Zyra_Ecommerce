@@ -33,6 +33,12 @@ const ZyraWishlist = {
     toggleWishlist(productId, buttonEl = null) {
         const id = parseInt(productId);
         let list = this.getWishlist();
+
+        // Only adding requires login; removing a saved item is always allowed.
+        if (list.indexOf(id) === -1 && window.ZyraApp && !window.ZyraApp.requireLogin('Please login to save items to your wishlist.')) {
+            return false;
+        }
+
         const product = window.ZyraDB ? window.ZyraDB.getProductById(id) : null;
         const productName = product ? product.name : 'Product';
 

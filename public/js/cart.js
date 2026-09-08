@@ -26,8 +26,20 @@ const ZyraCart = {
         }
     },
 
-    addToCart(productId, size = 'M', color = null, quantity = 1) {
-        const product = window.ZyraDB ? window.ZyraDB.getProductById(productId) : null;
+    addToCart(productId, size = 'M', color = null, quantity = 1, productData = null) {
+        let product = productData;
+        if (!product && window.ZYRA_CURRENT_PRODUCT && parseInt(window.ZYRA_CURRENT_PRODUCT.id) === parseInt(productId)) {
+            product = window.ZYRA_CURRENT_PRODUCT;
+        }
+
+        if (!product && window.ZyraDB) {
+            product = window.ZyraDB.getProductById(productId);
+        }
+
+        if (!product && typeof ZYRA_PRODUCTS !== 'undefined') {
+            product = ZYRA_PRODUCTS.find(p => parseInt(p.id) === parseInt(productId));
+        }
+
         if (!product) {
             window.ZyraApp && window.ZyraApp.showToast('Product not found', 'danger');
             return false;
@@ -39,19 +51,19 @@ const ZyraCart = {
 
         let cart = this.getCart();
         const existingIndex = cart.findIndex(item => 
-            item.id === product.id && item.size === selectedSize && item.color === selectedColor
+            parseInt(item.id) === parseInt(product.id) && item.size === selectedSize && item.color === selectedColor
         );
 
         if (existingIndex > -1) {
             cart[existingIndex].quantity += qty;
         } else {
             cart.push({
-                id: product.id,
+                id: parseInt(product.id),
                 name: product.name,
-                price: product.price,
-                old_price: product.old_price,
+                price: parseFloat(product.price) || 0,
+                old_price: product.old_price ? parseFloat(product.old_price) : null,
                 image: product.image,
-                category: product.category,
+                category: product.category || 'Apparel',
                 size: selectedSize,
                 color: selectedColor,
                 quantity: qty
@@ -59,10 +71,11 @@ const ZyraCart = {
         }
 
         this.saveCart(cart);
+        this.syncCartToServer();
 
         // Notify user
         if (window.ZyraApp) {
-            window.ZyraApp.showToast(`"${product.name}" added to cart!`, 'success');
+            window.ZyraApp.showToast(`"${product.name}" added to bag!`, 'success');
         }
 
         // Trigger offcanvas mini-cart open
@@ -80,6 +93,7 @@ const ZyraCart = {
         if (index >= 0 && index < cart.length) {
             const removedItem = cart.splice(index, 1)[0];
             this.saveCart(cart);
+            this.syncCartToServer();
             if (window.ZyraApp) {
                 window.ZyraApp.showToast(`Removed "${removedItem.name}" from cart`, 'info');
             }
@@ -95,6 +109,7 @@ const ZyraCart = {
             } else {
                 cart[index].quantity = qty;
                 this.saveCart(cart);
+                this.syncCartToServer();
             }
         }
     },
@@ -102,6 +117,64 @@ const ZyraCart = {
     clearCart() {
         localStorage.removeItem(this.STORAGE_KEY);
         this.saveCart([]);
+    },
+
+    csrfHeaders() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        };
+    },
+
+    syncCartToServer() {
+        const items = this.getCart();
+        if (!items.length) {
+            return Promise.resolve(null);
+        }
+
+        return fetch('/cart/sync', {
+            method: 'POST',
+            headers: this.csrfHeaders(),
+            body: JSON.stringify({ items })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data && Array.isArray(data.cart) && data.cart.length > 0) {
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data.cart));
+                    this.updateHeaderBadge();
+                    this.renderMiniCart();
+                    if (window.location.pathname.includes('/cart')) {
+                        this.renderCartPage();
+                    }
+                }
+                return data;
+            })
+            .catch(() => null);
+    },
+
+    goToCheckout(href) {
+        const target = href || '/checkout';
+        if (window.ZyraApp && !window.ZyraApp.isLoggedIn()) {
+            window.ZyraApp.requireLogin('Please login to proceed to checkout.');
+            return;
+        }
+
+        this.syncCartToServer().finally(() => {
+            window.location.href = target;
+        });
+    },
+
+    bindCheckoutLinks() {
+        document.querySelectorAll('a[href*="/checkout"]').forEach(link => {
+            if (link.dataset.checkoutBound === '1') return;
+            link.dataset.checkoutBound = '1';
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.goToCheckout(link.getAttribute('href'));
+            });
+        });
     },
 
     calculateSubtotal() {
@@ -118,9 +191,14 @@ const ZyraCart = {
         }
     },
 
+    isCouponEntry() {
+        return window.ZyraApp ? window.ZyraApp.requireLogin('Please login to apply coupon codes.') : true;
+    },
+
     applyCoupon(code) {
         const cleanCode = code ? code.trim().toUpperCase() : '';
         if (!cleanCode) return false;
+        if (!this.isCouponEntry()) return false;
 
         const subtotal = this.calculateSubtotal();
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -365,8 +443,12 @@ const ZyraCart = {
         if (window.location.pathname.includes('/cart')) {
             this.renderCartPage();
         }
+        this.bindCheckoutLinks();
+        this.syncCartToServer();
     }
 };
+
+window.ZyraCart = ZyraCart;
 
 document.addEventListener('DOMContentLoaded', () => {
     ZyraCart.init();

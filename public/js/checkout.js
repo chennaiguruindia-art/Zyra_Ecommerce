@@ -1,5 +1,7 @@
 /**
- * ZYRA - Checkout & Order Success Controller
+ * ZYRA Checkout
+ * Order review is rendered by Laravel from the server cart.
+ * This file only syncs the bag into the session, then handles payment + place order.
  */
 
 const ZyraCheckout = {
@@ -13,61 +15,89 @@ const ZyraCheckout = {
         }
     },
 
-    initCheckoutPage() {
-        if (!window.ZyraCart) return;
+    csrfHeaders() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        };
+    },
 
-        const cart = window.ZyraCart.getCart();
-        if (cart.length === 0) {
-            window.location.href = '/cart';
+    readBrowserCart() {
+        try {
+            const raw = localStorage.getItem('zyra_cart');
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];
+        }
+    },
+
+    initCheckoutPage() {
+        const serverCart = Array.isArray(window.ZYRA_SERVER_CART) ? window.ZYRA_SERVER_CART : [];
+        const browserCart = this.readBrowserCart();
+        const alreadyTried = new URLSearchParams(window.location.search).get('cart_sync') === '1';
+
+        // Copy shopping-bag items into the Laravel session, then reload checkout from the server.
+        if (serverCart.length === 0 && browserCart.length > 0 && !alreadyTried) {
+            fetch('/cart/sync', {
+                method: 'POST',
+                headers: this.csrfHeaders(),
+                body: JSON.stringify({ items: browserCart })
+            })
+                .then(() => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('cart_sync', '1');
+                    window.location.replace(url.toString());
+                })
+                .catch(() => {
+                    this.fillOrderReview(browserCart);
+                    this.bindPaymentSelectors();
+                    this.bindPlaceOrder();
+                });
             return;
         }
 
-        this.renderCheckoutSummary();
+        if (serverCart.length === 0 && browserCart.length > 0) {
+            this.fillOrderReview(browserCart);
+        }
+
         this.bindPaymentSelectors();
         this.bindPlaceOrder();
     },
 
-    renderCheckoutSummary() {
-        const cart = window.ZyraCart.getCart();
+    fillOrderReview(cart) {
         const itemsContainer = document.getElementById('checkoutItemsList');
         const subtotalEl = document.getElementById('checkoutSubtotal');
-        const discountEl = document.getElementById('checkoutDiscount');
-        const discountRow = document.getElementById('checkoutDiscountRow');
         const shippingEl = document.getElementById('checkoutShipping');
         const totalEl = document.getElementById('checkoutTotal');
+        if (!itemsContainer || !Array.isArray(cart) || cart.length === 0) return;
 
-        if (itemsContainer) {
-            let html = '';
-            cart.forEach(item => {
-                html += `
-                    <div class="d-flex align-items-center gap-3 py-2 border-bottom">
-                        <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;">
-                        <div class="flex-grow-1 overflow-hidden">
-                            <div class="text-truncate fw-semibold small">${item.name}</div>
-                            <small class="text-muted">Qty: ${item.quantity} | Size: ${item.size} | Color: ${item.color}</small>
-                        </div>
-                        <div class="fw-bold small text-nowrap">₹${item.price * item.quantity}</div>
+        let subtotal = 0;
+        let html = '';
+        cart.forEach(item => {
+            const price = parseFloat(item.price) || 0;
+            const qty = parseInt(item.quantity, 10) || 1;
+            const itemTotal = price * qty;
+            subtotal += itemTotal;
+            html += `
+                <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                    <img src="${item.image || ''}" alt="${item.name || 'Item'}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="text-truncate fw-semibold small">${item.name || 'Item'}</div>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Qty: ${qty} | Size: ${item.size || 'M'} | Color: ${item.color || 'Standard'}</small>
                     </div>
-                `;
-            });
-            itemsContainer.innerHTML = html;
-        }
+                    <div class="fw-bold small text-nowrap">₹${itemTotal}</div>
+                </div>
+            `;
+        });
+        itemsContainer.innerHTML = html;
 
-        const subtotal = window.ZyraCart.calculateSubtotal();
-        const discount = window.ZyraCart.calculateDiscount();
-        const shipping = window.ZyraCart.calculateShipping();
-        const total = window.ZyraCart.calculateTotal();
-
+        const shipping = subtotal === 0 || subtotal >= 999 ? 0 : 99;
+        const total = subtotal + shipping;
         if (subtotalEl) subtotalEl.textContent = `₹${subtotal}`;
         if (shippingEl) shippingEl.textContent = shipping === 0 ? 'FREE' : `₹${shipping}`;
         if (totalEl) totalEl.textContent = `₹${total}`;
-
-        if (discount > 0) {
-            if (discountRow) discountRow.style.display = 'flex';
-            if (discountEl) discountEl.textContent = `-₹${discount}`;
-        } else {
-            if (discountRow) discountRow.style.display = 'none';
-        }
     },
 
     bindPaymentSelectors() {
@@ -82,7 +112,6 @@ const ZyraCheckout = {
                     parent.classList.add('border-primary', 'bg-light');
                 }
 
-                // Show conditional sub-panels (UPI vs Card)
                 const method = e.target.value;
                 const cardDetails = document.getElementById('cardDetailsFields');
                 const upiDetails = document.getElementById('upiDetailsFields');
@@ -101,7 +130,6 @@ const ZyraCheckout = {
         placeOrderBtn.addEventListener('click', (e) => {
             e.preventDefault();
 
-            // Validate standard HTML5 inputs
             if (!form.checkValidity()) {
                 form.reportValidity();
                 if (window.ZyraApp) {
@@ -110,7 +138,6 @@ const ZyraCheckout = {
                 return;
             }
 
-            // Prepare Order Object
             const firstName = document.getElementById('firstName')?.value.trim();
             const lastName = document.getElementById('lastName')?.value.trim();
             const email = document.getElementById('email')?.value.trim();
@@ -130,117 +157,95 @@ const ZyraCheckout = {
                 'netbanking': 'Net Banking'
             };
 
-            const cart = window.ZyraCart.getCart();
-            const subtotal = window.ZyraCart.calculateSubtotal();
-            const discount = window.ZyraCart.calculateDiscount();
-            const shipping = window.ZyraCart.calculateShipping();
-            const total = window.ZyraCart.calculateTotal();
-
-            const orderId = 'ZYRA-' + Math.floor(100000 + Math.random() * 900000);
-            const orderDate = new Date().toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
-
-            const orderData = {
-                orderId: orderId,
-                orderDate: orderDate,
-                customer: {
-                    name: `${firstName} ${lastName}`,
-                    email: email,
-                    phone: phone
-                },
-                shippingAddress: {
-                    address: address,
-                    apartment: apartment,
-                    city: city,
-                    state: state,
-                    pincode: pincode
-                },
-                paymentMethod: paymentLabels[paymentMethod] || paymentMethod,
-                items: cart,
-                subtotal: subtotal,
-                discount: discount,
-                shipping: shipping,
-                total: total
-            };
-
-            // Extract applied coupon if any
+            const items = this.readBrowserCart();
             let couponCode = '';
             try {
                 const couponData = localStorage.getItem('zyra_coupon');
                 if (couponData) {
-                    const parsed = JSON.parse(couponData);
-                    couponCode = parsed.code || '';
+                    couponCode = JSON.parse(couponData).code || '';
                 }
-            } catch(e) {}
+            } catch (err) {}
 
-            // Send AJAX POST to Laravel /checkout/place-order
+            const orderData = {
+                orderId: '',
+                orderDate: new Date().toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                }),
+                customer: { name: `${firstName} ${lastName}`, email, phone },
+                shippingAddress: { address, apartment, city, state, pincode },
+                paymentMethod: paymentLabels[paymentMethod] || paymentMethod,
+                items,
+                total: document.getElementById('checkoutTotal')?.textContent || ''
+            };
+
             placeOrderBtn.disabled = true;
             placeOrderBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Processing Order...`;
 
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
             fetch('/checkout/place-order', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
+                headers: this.csrfHeaders(),
                 body: JSON.stringify({
                     first_name: firstName,
                     last_name: lastName,
-                    email: email,
-                    phone: phone,
-                    address: address,
-                    apartment: apartment,
-                    city: city,
-                    state: state,
-                    pincode: pincode,
+                    email,
+                    phone,
+                    address,
+                    apartment,
+                    city,
+                    state,
+                    pincode,
                     payment_method: paymentMethod,
-                    items: cart,
+                    items,
                     coupon_code: couponCode,
                     notes: ''
                 })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    orderData.orderId = data.order_number;
-                    localStorage.setItem(this.ORDER_KEY, JSON.stringify(orderData));
-                    window.ZyraCart.clearCart();
-                    window.location.href = data.redirect || ('/order-success/' + data.order_number);
-                } else {
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.innerHTML = `<span>Place Order</span> <i class="bi bi-arrow-right"></i>`;
-                    if (window.ZyraApp) {
-                        window.ZyraApp.showToast(data.message || 'Error processing order. Please try again.', 'danger');
+                .then(res => {
+                    if (res.status === 401 || res.status === 403) {
+                        placeOrderBtn.disabled = false;
+                        placeOrderBtn.innerHTML = `Place Order <i class="bi bi-check-lg ms-1"></i>`;
+                        if (window.ZyraApp) {
+                            window.ZyraApp.requireLogin('Please login to complete your purchase.');
+                        }
+                        return null;
                     }
-                }
-            })
-            .catch(err => {
-                console.warn('Backend order placement fallback:', err);
-                localStorage.setItem(this.ORDER_KEY, JSON.stringify(orderData));
-                window.ZyraCart.clearCart();
-                window.location.href = '/order-success';
-            });
+                    return res.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    if (data.success) {
+                        orderData.orderId = data.order_number;
+                        localStorage.setItem(this.ORDER_KEY, JSON.stringify(orderData));
+                        localStorage.removeItem('zyra_cart');
+                        window.location.href = data.redirect || ('/order-success/' + data.order_number);
+                    } else {
+                        placeOrderBtn.disabled = false;
+                        placeOrderBtn.innerHTML = `Place Order <i class="bi bi-check-lg ms-1"></i>`;
+                        if (window.ZyraApp) {
+                            window.ZyraApp.showToast(data.message || 'Error processing order. Please try again.', 'danger');
+                        }
+                    }
+                })
+                .catch(() => {
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.innerHTML = `Place Order <i class="bi bi-check-lg ms-1"></i>`;
+                    if (window.ZyraApp) {
+                        window.ZyraApp.showToast('Could not place the order. Please try again.', 'danger');
+                    }
+                });
         });
     },
 
     initOrderSuccessPage() {
         const orderDataRaw = localStorage.getItem(this.ORDER_KEY);
         if (!orderDataRaw) {
-            // Default mock order if visited directly
-            const orderIdEl = document.getElementById('successOrderId');
-            if (orderIdEl) orderIdEl.textContent = 'ZYRA-' + Math.floor(100000 + Math.random() * 900000);
             return;
         }
 
         try {
             const order = JSON.parse(orderDataRaw);
-
             const orderIdEl = document.getElementById('successOrderId');
             const orderDateEl = document.getElementById('successOrderDate');
             const paymentEl = document.getElementById('successPaymentMethod');
@@ -251,7 +256,7 @@ const ZyraCheckout = {
             if (orderIdEl) orderIdEl.textContent = order.orderId;
             if (orderDateEl) orderDateEl.textContent = order.orderDate;
             if (paymentEl) paymentEl.textContent = order.paymentMethod;
-            if (totalEl) totalEl.textContent = `₹${order.total}`;
+            if (totalEl && order.total) totalEl.textContent = order.total;
 
             if (addressEl && order.shippingAddress) {
                 const a = order.shippingAddress;
@@ -286,6 +291,8 @@ const ZyraCheckout = {
         }
     }
 };
+
+window.ZyraCheckout = ZyraCheckout;
 
 document.addEventListener('DOMContentLoaded', () => {
     ZyraCheckout.init();

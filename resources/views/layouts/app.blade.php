@@ -32,7 +32,7 @@
 
     @stack('styles')
 </head>
-<body>
+<body data-auth="{{ auth()->check() ? 'true' : 'false' }}">
 
     <!-- Header Component -->
     @include('components.header')
@@ -59,11 +59,11 @@
 
     <!-- Static Dataset & Application Modules -->
     <script src="{{ asset('js/products.js') }}"></script>
-    <script src="{{ asset('js/cart.js') }}"></script>
-    <script src="{{ asset('js/wishlist.js') }}"></script>
-    <script src="{{ asset('js/search.js') }}"></script>
-    <script src="{{ asset('js/checkout.js') }}"></script>
     <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{ asset('js/cart.js') }}?v=20260908d"></script>
+    <script src="{{ asset('js/wishlist.js') }}"></script>
+    <script src="{{ asset('js/checkout.js') }}?v=20260908d"></script>
+    <script src="{{ asset('js/search.js') }}"></script>
 
     @stack('scripts')
 </body>

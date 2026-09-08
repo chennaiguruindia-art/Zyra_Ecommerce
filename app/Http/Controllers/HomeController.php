@@ -30,6 +30,7 @@ class HomeController extends Controller
         $promoBanner = Banner::query()->active()->where('position', 'promo')->first();
 
         $instagramItems = InstagramItem::query()
+            ->where('status', 1)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()

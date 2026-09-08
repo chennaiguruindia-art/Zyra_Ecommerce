@@ -33,6 +33,12 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'address' => ['required', 'string', 'max:500'],
+            'nearby_area' => ['required', 'string', 'max:255'],
+            'pincode' => ['required', 'digits:6'],
+            'state' => ['required', 'string', 'max:255'],
+            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10}$/', 'unique:'.User::class],
+            'district' => ['required', 'string', 'max:255'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'in:customer,seller'],
         ]);
@@ -40,6 +46,12 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'address' => $request->address,
+            'nearby_area' => $request->nearby_area,
+            'pincode' => $request->pincode,
+            'state' => $request->state,
+            'phone_number' => $request->phone_number,
+            'district' => $request->district,
             'role' => $request->role,
             'password' => Hash::make($request->password),
         ]);
@@ -52,6 +64,6 @@ class RegisteredUserController extends Controller
             return redirect(route('seller.dashboard', absolute: false));
         }
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->intended(route('home', absolute: false));
     }
 }

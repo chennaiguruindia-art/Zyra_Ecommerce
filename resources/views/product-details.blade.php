@@ -137,7 +137,7 @@
                     const size = document.querySelector('.pd-size-btn.active')?.getAttribute('data-size') || 'M';
                     const color = document.querySelector('.pd-color-swatch.active')?.getAttribute('data-color') || 'Standard';
                     const qty = parseInt(document.getElementById('pdQuantityInput')?.value) || 1;
-                    ZyraCart.addToCart({{ $product['id'] }}, size, color, qty);
+                    ZyraCart.addToCart({{ (int) $product['id'] }}, size, color, qty);
                 ">
                     <i class="bi bi-bag-plus me-1"></i> Add to Cart
                 </button>
@@ -147,8 +147,9 @@
                     const size = document.querySelector('.pd-size-btn.active')?.getAttribute('data-size') || 'M';
                     const color = document.querySelector('.pd-color-swatch.active')?.getAttribute('data-color') || 'Standard';
                     const qty = parseInt(document.getElementById('pdQuantityInput')?.value) || 1;
-                    ZyraCart.addToCart({{ $product['id'] }}, size, color, qty);
-                    setTimeout(() => window.location.href = '{{ route('checkout') }}', 200);
+                    if (ZyraCart.addToCart({{ (int) $product['id'] }}, size, color, qty)) {
+                        setTimeout(() => window.location.href = '{{ route('checkout') }}', 300);
+                    }
                 ">
                     Buy Now
                 </button>
@@ -409,3 +410,9 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    window.ZYRA_CURRENT_PRODUCT = @json($product);
+</script>
+@endpush

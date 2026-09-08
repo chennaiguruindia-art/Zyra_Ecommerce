@@ -26,19 +26,19 @@
                     <div class="row g-3">
                         <div class="col-sm-6">
                             <label for="firstName" class="form-label small fw-semibold">First Name *</label>
-                            <input type="text" id="firstName" class="form-control" placeholder="e.g. Aditi" required value="Aditi">
+                            <input type="text" id="firstName" class="form-control" placeholder="e.g. Aditi" required value="{{ old('first_name', $customer['first_name'] ?? '') }}">
                         </div>
                         <div class="col-sm-6">
-                            <label for="lastName" class="form-label small fw-semibold">Last Name *</label>
-                            <input type="text" id="lastName" class="form-control" placeholder="e.g. Sharma" required value="Sharma">
+                            <label for="lastName" class="form-label small fw-semibold">Last Name</label>
+                            <input type="text" id="lastName" class="form-control" placeholder="e.g. Sharma" value="{{ old('last_name', $customer['last_name'] ?? '') }}">
                         </div>
                         <div class="col-sm-6">
                             <label for="email" class="form-label small fw-semibold">Email Address *</label>
-                            <input type="email" id="email" class="form-control" placeholder="aditi@example.com" required value="aditi@example.com">
+                            <input type="email" id="email" class="form-control" placeholder="aditi@example.com" required value="{{ old('email', $customer['email'] ?? '') }}">
                         </div>
                         <div class="col-sm-6">
                             <label for="phone" class="form-label small fw-semibold">Phone Number *</label>
-                            <input type="tel" id="phone" class="form-control" placeholder="10-digit mobile number" pattern="[0-9]{10}" required value="9876543210">
+                            <input type="tel" id="phone" class="form-control" placeholder="10-digit mobile number" pattern="[0-9]{10}" required value="{{ old('phone', $customer['phone'] ?? '') }}">
                         </div>
                     </div>
                 </div>
@@ -52,32 +52,29 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="address" class="form-label small fw-semibold">Street Address *</label>
-                            <input type="text" id="address" class="form-control" placeholder="House/Flat No., Street, Landmark" required value="Flat 402, Lotus Residency, MG Road">
+                            <input type="text" id="address" class="form-control" placeholder="House/Flat No., Street, Landmark" required value="{{ old('address', $customer['address'] ?? '') }}">
                         </div>
                         <div class="col-12">
                             <label for="apartment" class="form-label small fw-semibold">Apartment, Suite, Unit (Optional)</label>
-                            <input type="text" id="apartment" class="form-control" placeholder="Apartment name, Tower, etc." value="Tower B">
+                            <input type="text" id="apartment" class="form-control" placeholder="Apartment name, Tower, etc." value="{{ old('apartment', $customer['apartment'] ?? '') }}">
                         </div>
                         <div class="col-sm-4">
                             <label for="city" class="form-label small fw-semibold">City *</label>
-                            <input type="text" id="city" class="form-control" placeholder="e.g. Bengaluru" required value="Bengaluru">
+                            <input type="text" id="city" class="form-control" placeholder="e.g. Bengaluru" required value="{{ old('city', $customer['city'] ?? '') }}">
                         </div>
                         <div class="col-sm-4">
                             <label for="state" class="form-label small fw-semibold">State *</label>
+                            @php $currentState = old('state', $customer['state'] ?? ''); @endphp
                             <select id="state" class="form-select" required>
-                                <option value="Karnataka" selected>Karnataka</option>
-                                <option value="Maharashtra">Maharashtra</option>
-                                <option value="Delhi NCR">Delhi NCR</option>
-                                <option value="Tamil Nadu">Tamil Nadu</option>
-                                <option value="Telangana">Telangana</option>
-                                <option value="Gujarat">Gujarat</option>
-                                <option value="West Bengal">West Bengal</option>
-                                <option value="Rajasthan">Rajasthan</option>
+                                <option value="" {{ empty($currentState) ? 'selected' : '' }} disabled>Select State</option>
+                                @foreach(['Karnataka', 'Maharashtra', 'Delhi NCR', 'Tamil Nadu', 'Telangana', 'Gujarat', 'West Bengal', 'Rajasthan', 'Kerala', 'Uttar Pradesh', 'Punjab', 'Andhra Pradesh'] as $st)
+                                    <option value="{{ $st }}" {{ $currentState === $st ? 'selected' : '' }}>{{ $st }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-sm-4">
                             <label for="pincode" class="form-label small fw-semibold">PIN Code *</label>
-                            <input type="text" id="pincode" class="form-control" placeholder="6 digits" maxlength="6" pattern="[0-9]{6}" required value="560001">
+                            <input type="text" id="pincode" class="form-control" placeholder="6 digits" maxlength="6" pattern="[0-9]{6}" required value="{{ old('pincode', $customer['pincode'] ?? '') }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-semibold">Country</label>
@@ -183,12 +180,27 @@
 
                 <!-- Items Container -->
                 <div id="checkoutItemsList" class="mb-3 max-h-64 overflow-auto pe-1">
-                    <!-- Populated by checkout.js -->
+                    @forelse(($cartItems ?? []) as $item)
+                        <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                            <img src="{{ $item['image'] ?? '' }}" alt="{{ $item['name'] ?? 'Item' }}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;">
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="text-truncate fw-semibold small">{{ $item['name'] ?? 'Item' }}</div>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Qty: {{ $item['quantity'] ?? 1 }} | Size: {{ $item['size'] ?? 'M' }} | Color: {{ $item['color'] ?? 'Standard' }}</small>
+                            </div>
+                            <div class="fw-bold small text-nowrap">₹{{ ((float) ($item['price'] ?? 0)) * ((int) ($item['quantity'] ?? 1)) }}</div>
+                        </div>
+                    @empty
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-bag-x fs-2 d-block mb-2"></i>
+                            <p class="small mb-2">Your shopping bag is empty.</p>
+                            <a href="{{ route('shop') }}" class="btn btn-sm btn-zyra-primary">Explore Collection</a>
+                        </div>
+                    @endforelse
                 </div>
 
                 <div class="zyra-summary-row">
                     <span class="text-muted">Subtotal</span>
-                    <span id="checkoutSubtotal" class="fw-semibold">₹0</span>
+                    <span id="checkoutSubtotal" class="fw-semibold">₹{{ $cartSubtotal ?? 0 }}</span>
                 </div>
 
                 <div class="zyra-summary-row text-success" id="checkoutDiscountRow" style="display: none;">
@@ -198,12 +210,12 @@
 
                 <div class="zyra-summary-row">
                     <span class="text-muted">Delivery</span>
-                    <span id="checkoutShipping" class="fw-semibold">FREE</span>
+                    <span id="checkoutShipping" class="fw-semibold">{{ ($cartShipping ?? 0) === 0 ? 'FREE' : '₹' . $cartShipping }}</span>
                 </div>
 
                 <div class="zyra-summary-row total-row">
                     <span>Total Amount</span>
-                    <span id="checkoutTotal" class="fw-bold fs-4">₹0</span>
+                    <span id="checkoutTotal" class="fw-bold fs-4">₹{{ $cartTotal ?? 0 }}</span>
                 </div>
 
                 <!-- Place Order Button -->
@@ -223,3 +235,9 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    window.ZYRA_SERVER_CART = @json($cartItems ?? []);
+</script>
+@endpush

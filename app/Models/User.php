@@ -21,13 +21,29 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'address',
+        'nearby_area',
+        'pincode',
+        'state',
+        'phone_number',
+        'district',
         'role',
         'password',
+        'avatar',
     ];
 
     public function isSeller(): bool
     {
         return $this->role === 'seller';
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar) {
+            return null;
+        }
+
+        return asset('storage/' . $this->avatar);
     }
 
     /**

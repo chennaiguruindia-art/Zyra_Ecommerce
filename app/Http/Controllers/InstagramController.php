@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\InstagramItem;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class InstagramController extends Controller
 {
     public function index(Request $request)
     {
         $items = InstagramItem::query()
+            ->where('status', 1)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
@@ -29,16 +29,24 @@ class InstagramController extends Controller
             'url' => ['required', 'url', 'regex:/^https?:\/\/(www\.)?instagram\.com\/(p|reel|tv)\//i'],
         ]);
 
-        $exists = InstagramItem::query()->where('url', $data['url'])->exists();
+        $last = InstagramItem::query()->max('sort_order') ?? 0;
 
-        if ($exists) {
+        $previous = InstagramItem::query()->where('url', $data['url'])->first();
+
+        if ($previous && $previous->status === 0) {
+            $previous->update(['status' => 1, 'sort_order' => $last + 1]);
+
+            return back()->with('instagram_status', 'added');
+        }
+
+        if ($previous) {
             return back()->with('instagram_status', 'already')->withInput();
         }
 
-        $last = InstagramItem::query()->max('sort_order') ?? 0;
         InstagramItem::create([
             'url' => $data['url'],
             'sort_order' => $last + 1,
+            'status' => 1,
         ]);
 
         return back()->with('instagram_status', 'added');
@@ -46,7 +54,8 @@ class InstagramController extends Controller
 
     public function destroy(int $id)
     {
-        InstagramItem::query()->findOrFail($id)->delete();
+        $item = InstagramItem::query()->findOrFail($id);
+        $item->update(['status' => 0]);
 
         return back()->with('instagram_status', 'removed');
     }

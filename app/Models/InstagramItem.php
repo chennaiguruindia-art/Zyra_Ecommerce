@@ -11,5 +11,6 @@ class InstagramItem extends Model
     protected $fillable = [
         'url',
         'sort_order',
+        'status',
     ];
 }
