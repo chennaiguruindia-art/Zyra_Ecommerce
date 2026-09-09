@@ -11,10 +11,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             SizeAndColorSeeder::class,
-            ProductSeeder::class,
             CouponSeeder::class,
             BannerSeeder::class,
-            OrderSeeder::class,
         ]);
     }
 }

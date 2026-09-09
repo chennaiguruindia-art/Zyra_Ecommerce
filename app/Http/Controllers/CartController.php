@@ -18,16 +18,35 @@ class CartController extends Controller
         ]);
 
         $product = Product::query()->with(['category', 'sizes', 'colors', 'images'])->findOrFail($data['product_id']);
+        $qty = (int) ($data['quantity'] ?? 1);
+        $size = $data['size'] ?? null;
 
-        if (!$product->in_stock || $product->stock_units < ($data['quantity'] ?? 1)) {
+        if (!$product->in_stock) {
             return response()->json(['success' => false, 'message' => 'This item is currently out of stock.'], 422);
+        }
+
+        // Per-size availability check (falls back to the product total for legacy sizes).
+        $availableForSize = $product->stockForSize($size);
+        if ($availableForSize <= 0) {
+            $sizeLabel = $size ? " Size {$size} is" : 'This item is';
+            return response()->json(['success' => false, 'message' => "{$sizeLabel} currently out of stock."], 422);
         }
 
         $catalog = $product->toCatalogArray();
         $cart = session()->get('cart', []);
-        $key = $product->id . '|' . ($data['size'] ?? 'M') . '|' . ($data['color'] ?? ($catalog['colors'][0] ?? 'Standard'));
+        $key = $product->id . '|' . ($size ?? 'M') . '|' . ($data['color'] ?? ($catalog['colors'][0] ?? 'Standard'));
 
-        $qty = (int) ($data['quantity'] ?? 1);
+        $existingQty = isset($cart[$key]) ? (int) $cart[$key]['quantity'] : 0;
+        if ($existingQty + $qty > $availableForSize) {
+            $left = max(0, $availableForSize - $existingQty);
+            return response()->json([
+                'success' => false,
+                'message' => $left <= 0
+                    ? "No more stock available for size {$size}."
+                    : "Only {$left} unit(s) left in size {$size}.",
+            ], 422);
+        }
+
         if (isset($cart[$key])) {
             $cart[$key]['quantity'] += $qty;
         } else {
@@ -38,7 +57,7 @@ class CartController extends Controller
                 'old_price' => $product->old_price ? (float) $product->old_price : null,
                 'image' => $catalog['image'],
                 'category' => $catalog['category'],
-                'size' => $data['size'] ?? ($catalog['sizes'][0] ?? 'M'),
+                'size' => $size ?? ($catalog['sizes'][0] ?? 'M'),
                 'color' => $data['color'] ?? ($catalog['colors'][0] ?? 'Standard'),
                 'quantity' => $qty,
             ];

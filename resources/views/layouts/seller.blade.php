@@ -93,8 +93,7 @@
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 
-    <!-- Static Dataset & Application Modules -->
-    <script src="{{ asset('js/products.js') }}"></script>
+    <!-- Application Modules -->
     <script src="{{ asset('js/cart.js') }}"></script>
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/seller.js') }}?v=20260909b"></script>

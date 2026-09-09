@@ -48,7 +48,7 @@
                     </h2>
                     <div id="collapseReturns" class="accordion-collapse collapse" aria-labelledby="headingReturns" data-bs-parent="#zyraFaqAccordion">
                         <div class="accordion-body text-muted small leading-relaxed">
-                            We provide a seamless <strong>15-Day Doorstep Exchange & Return Policy</strong>. If an item doesn't fit or meet your expectation, simply WhatsApp our concierge team at <strong>+91 98765 43211</strong> or email <strong>care@zyrafashion.com</strong> with your Order ID.<br><br>
+                            We provide a seamless <strong>15-Day Doorstep Exchange & Return Policy</strong>. If an item doesn't fit or meet your expectation, simply WhatsApp our concierge team at <strong>+91 98765 43211</strong> or email <strong>order@shipwithzyra.in</strong> with your Order ID.<br><br>
                             We will arrange a free reverse pickup from your doorstep. Please ensure the tags remain attached and items are unworn and unwashed.
                         </div>
                     </div>

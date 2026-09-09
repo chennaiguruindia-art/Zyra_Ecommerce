@@ -444,6 +444,47 @@ window.ZyraSeller = {
         }
     },
 
+    updateOrderTracking(dbId, orderDisplayId) {
+        const awb = (document.querySelector(`.trk-awb-${dbId}`)?.value || '').trim();
+        const courier = (document.querySelector(`.trk-courier-${dbId}`)?.value || '').trim();
+
+        if (!awb && !courier) {
+            if (window.ZyraApp) window.ZyraApp.showToast('Enter at least an AWB number.', 'danger');
+            return;
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        fetch(`/seller/orders/${dbId}/tracking`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ awb_code: awb, courier_name: courier })
+        })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    let orders = this.getOrders();
+                    const order = orders.find(o => (o.db_id || o.id) === dbId);
+                    if (order) {
+                        if (awb) order.awb_code = awb;
+                        if (courier) order.courier_name = courier;
+                        if (result.order_status) order.status = result.order_status;
+                        localStorage.setItem(this.ORDERS_KEY, JSON.stringify(orders));
+                    }
+                    if (window.ZyraApp) window.ZyraApp.showToast('Tracking updated — customer can now track this order.', 'success');
+                    this.renderSalesPage();
+                } else {
+                    if (window.ZyraApp) window.ZyraApp.showToast(result.message || 'Could not save tracking.', 'danger');
+                }
+            })
+            .catch(() => {
+                if (window.ZyraApp) window.ZyraApp.showToast('Could not save tracking.', 'danger');
+            });
+    },
+
     // =========================================================================
     // DYNAMIC MULTI-IMAGE MANAGEMENT (MAX 4)
     // =========================================================================
@@ -899,6 +940,15 @@ window.ZyraSeller = {
                             <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
                         </select>
                     </td>
+                    <td style="min-width: 230px;">
+                        <div class="d-flex flex-column gap-1">
+                            <input type="text" class="form-control form-control-sm trk-awb-${o.db_id || o.id}" placeholder="AWB number" value="${o.awb_code || ''}">
+                            <input type="text" class="form-control form-control-sm trk-courier-${o.db_id || o.id}" placeholder="Courier name" value="${o.courier_name || ''}">
+                            <button type="button" class="btn btn-sm btn-outline-dark" onclick="ZyraSeller.updateOrderTracking('${o.db_id || o.id}', '${o.id}')">
+                                <i class="bi bi-truck me-1"></i> Save AWB
+                            </button>
+                        </div>
+                    </td>
                 </tr>
             `;
         });
@@ -919,6 +969,34 @@ window.ZyraSeller = {
         if (elAov) elAov.textContent = `₹${Math.round(totalRev / (orders.length || 1))}`;
     },
 
+    collectSizeStock() {
+        const stockMap = {};
+        document.querySelectorAll('.size-checkbox:checked').forEach(cb => {
+            const label = cb.closest('label');
+            const input = label ? label.querySelector('.size-stock-input') : null;
+            if (input && input.value !== '') {
+                const val = parseInt(input.value, 10);
+                stockMap[cb.value] = Number.isFinite(val) && val >= 0 ? val : 0;
+            }
+        });
+        return stockMap;
+    },
+
+    bindSizeStockTotal() {
+        const stockInput = document.getElementById('productStockInput');
+        if (!stockInput) return;
+        const update = () => {
+            const total = Object.values(this.collectSizeStock()).reduce((a, b) => a + b, 0);
+            if (Object.keys(this.collectSizeStock()).length) {
+                stockInput.value = total;
+            }
+        };
+        document.querySelectorAll('.size-checkbox, .size-stock-input').forEach(el => {
+            el.addEventListener('change', update);
+            el.addEventListener('input', update);
+        });
+    },
+
     initAddProductPage() {
         const form = document.getElementById('sellerAddProductForm');
         if (!form || form.dataset.initialized === 'true') return;
@@ -934,6 +1012,7 @@ window.ZyraSeller = {
         // Initialize colors list
         this.selectedColors = ['Pink', 'White'];
         this.renderColorsList();
+        this.bindSizeStockTotal();
 
         // Bind image file input
         const fileInput = document.getElementById('productFileInput');
@@ -974,6 +1053,10 @@ window.ZyraSeller = {
             }
 
             const checkedSizes = Array.from(document.querySelectorAll('.size-checkbox:checked')).map(c => c.value);
+            const sizeStock = this.collectSizeStock();
+            const totalStock = Object.values(sizeStock).reduce((a, b) => a + b, 0);
+            const stockInput = document.getElementById('productStockInput');
+            if (stockInput && Object.keys(sizeStock).length) stockInput.value = totalStock;
 
             const data = {
                 name: document.getElementById('productNameInput').value.trim(),
@@ -988,6 +1071,7 @@ window.ZyraSeller = {
                 material: document.getElementById('productMaterialInput').value.trim(),
                 description: document.getElementById('productDescriptionInput').value.trim(),
                 sizes: checkedSizes.length ? checkedSizes : ['S', 'M', 'L'],
+                size_stock: sizeStock,
                 colors: this.selectedColors.length ? this.selectedColors : ['Pink', 'White']
             };
 
@@ -1042,6 +1126,19 @@ window.ZyraSeller = {
         this.selectedColors = product.colors && product.colors.length ? [...product.colors] : ['Pink', 'White'];
         this.renderColorsList();
 
+        // Load sizes + per-size stock
+        const productSizes = Array.isArray(product.sizes) ? product.sizes : [];
+        const sizeStockPrefill = product.size_stock || {};
+        document.querySelectorAll('.size-checkbox').forEach(cb => {
+            cb.checked = productSizes.includes(cb.value);
+            const label = cb.closest('label');
+            const input = label ? label.querySelector('.size-stock-input') : null;
+            if (input) {
+                input.value = sizeStockPrefill.hasOwnProperty(cb.value) ? sizeStockPrefill[cb.value] : '';
+            }
+        });
+        this.bindSizeStockTotal();
+
         // Bind file input
         const fileInput = document.getElementById('productFileInput');
         if (fileInput) {
@@ -1070,6 +1167,9 @@ window.ZyraSeller = {
                 }
 
                 const checkedSizes = Array.from(document.querySelectorAll('.size-checkbox:checked')).map(c => c.value);
+                const sizeStock = this.collectSizeStock();
+                const totalStock = Object.values(sizeStock).reduce((a, b) => a + b, 0);
+                if (stockInput && Object.keys(sizeStock).length) stockInput.value = totalStock;
 
                 const data = {
                     name: nameInput.value.trim(),
@@ -1084,6 +1184,7 @@ window.ZyraSeller = {
                     material: matInput.value.trim(),
                     description: descInput.value.trim(),
                     sizes: checkedSizes.length ? checkedSizes : product.sizes,
+                    size_stock: sizeStock,
                     colors: this.selectedColors.length ? this.selectedColors : product.colors
                 };
 

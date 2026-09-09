@@ -72,6 +72,7 @@
                         <th>Payment</th>
                         <th>Date</th>
                         <th>Fulfillment Status</th>
+                        <th>Tracking (AWB)</th>
                     </tr>
                 </thead>
                 <tbody id="sellerOrdersTableBody">

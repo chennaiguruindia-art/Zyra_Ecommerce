@@ -51,19 +51,25 @@ class CategorySeeder extends Seeder
                 'sort_order' => 5,
                 'subcategories' => ['Night Suits', 'Night Dresses', 'Cotton Nightwear', 'Printed Nightwear', 'Lounge Wear'],
             ],
+            [
+                'name' => 'Co-ords',
+                'slug' => 'co-ords',
+                'description' => 'Effortless matching sets designed for polished everyday style.',
+                'image' => 'images/categories/co-ords.jpg',
+                'sort_order' => 6,
+                'subcategories' => ['Casual Co-ords', 'Lounge Co-ords', 'Printed Co-ords', 'Party Co-ords'],
+            ],
         ];
 
         foreach ($categories as $catData) {
             $subcategoryNames = $catData['subcategories'];
             unset($catData['subcategories']);
-            $cat = Category::create($catData);
+            $cat = Category::updateOrCreate(['slug' => $catData['slug']], $catData);
             foreach ($subcategoryNames as $i => $subName) {
-                Subcategory::create([
-                    'category_id' => $cat->id,
-                    'name' => $subName,
-                    'slug' => \Illuminate\Support\Str::slug($subName),
-                    'sort_order' => $i + 1,
-                ]);
+                Subcategory::updateOrCreate(
+                    ['category_id' => $cat->id, 'slug' => \Illuminate\Support\Str::slug($subName)],
+                    ['name' => $subName, 'sort_order' => $i + 1]
+                );
             }
         }
     }

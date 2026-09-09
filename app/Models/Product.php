@@ -49,7 +49,7 @@ class Product extends Model
 
     public function sizes(): BelongsToMany
     {
-        return $this->belongsToMany(Size::class, 'product_size');
+        return $this->belongsToMany(Size::class, 'product_size')->withPivot('stock');
     }
 
     public function colors(): BelongsToMany
@@ -85,6 +85,59 @@ class Product extends Model
     public function getColorCodesAttribute(): array
     {
         return $this->colors->pluck('hex_code')->toArray();
+    }
+
+    /**
+     * Per-size stock map: ['M' => 2, 'S' => 3]. Only sizes that have explicit
+     * per-size stock are included; the rest fall back to the product total.
+     */
+    public function getSizeStockAttribute(): array
+    {
+        $map = [];
+        foreach ($this->sizes as $size) {
+            if ($size->pivot->stock !== null) {
+                $map[$size->name] = (int) $size->pivot->stock;
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * Available stock for a given size. Returns the per-size pivot stock when
+     * configured, otherwise the product-level stock_units (legacy single bucket).
+     */
+    public function stockForSize(?string $size): int
+    {
+        if (!$size) {
+            return (int) $this->stock_units;
+        }
+
+        foreach ($this->sizes as $s) {
+            if ($s->name === $size && $s->pivot->stock !== null) {
+                return max(0, (int) $s->pivot->stock);
+            }
+        }
+
+        return (int) $this->stock_units;
+    }
+
+    /**
+     * Reduce the per-size stock for a given size. No-op when per-size stock is
+     * not configured (legacy sizes use the product-level total).
+     */
+    public function decrementSizeStock(?string $size, int $qty): void
+    {
+        if (!$size) {
+            return;
+        }
+
+        foreach ($this->sizes as $s) {
+            if ($s->name === $size && $s->pivot->stock !== null) {
+                $newStock = max(0, (int) $s->pivot->stock - $qty);
+                $this->sizes()->updateExistingPivot($s->id, ['stock' => $newStock]);
+                return;
+            }
+        }
     }
 
     public function getGalleryUrlsAttribute(): array
@@ -140,6 +193,7 @@ class Product extends Model
             'sizes' => $this->size_names,
             'colors' => $this->color_names,
             'color_codes' => $this->color_codes,
+            'size_stock' => $this->size_stock,
             'badge' => $this->badge ?? '',
             'stock' => (bool) $this->in_stock,
             'stock_units' => (int) $this->stock_units,

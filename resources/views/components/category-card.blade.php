@@ -11,6 +11,7 @@
         'kurtis' => 'images/categories/kurthi.jpg',
         'maxi' => 'images/categories/maxi.jpg',
         'nightwear' => 'images/categories/nightwear.jpg',
+        'co-ords' => 'images/categories/co-ords.jpg',
     ];
     $image = isset($categoryImages[$slug]) ? asset($categoryImages[$slug]) : $image;
     $count = $category['count'] ?? 8;

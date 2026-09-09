@@ -362,6 +362,16 @@ class CheckoutController extends Controller
             ], $razorpay));
 
             foreach ($lineItems as $line) {
+                // Hard per-size stock guard (falls back to product total for legacy sizes).
+                $sizeLabel = $line['size'] ?? 'selected size';
+                $availableForSize = $line['product']->stockForSize($line['size']);
+                if ($availableForSize <= 0) {
+                    abort(422, "Size {$sizeLabel} of \"{$line['product']->name}\" is out of stock.");
+                }
+                if ($line['quantity'] > $availableForSize) {
+                    abort(422, "Only {$availableForSize} unit(s) of \"{$line['product']->name}\" are left in size {$sizeLabel}.");
+                }
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $line['product']->id,
@@ -379,6 +389,8 @@ class CheckoutController extends Controller
                     'stock_units' => $newStock,
                     'in_stock' => $newStock > 0,
                 ]);
+
+                $line['product']->decrementSizeStock($line['size'], $line['quantity']);
             }
 
             session()->forget(['cart', 'coupon']);

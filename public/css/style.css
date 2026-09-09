@@ -198,12 +198,15 @@ img {
 }
 
 .zyra-logo-image-footer {
-    width: 132px;
-    height: 48px;
+    width: 180px;
+    height: auto;
+    max-height: 64px;
     object-fit: contain;
     object-position: center;
-    filter: invert(1);
-    mix-blend-mode: screen;
+}
+
+.zyra-footer-brand {
+    margin-bottom: 1.25rem;
 }
 
 .zyra-brand-logo:hover {
@@ -492,12 +495,12 @@ img {
 .zyra-category-img-wrap img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    object-fit: contain;
+    background-color: #f4f1ed;
 }
 
 .zyra-category-card:hover .zyra-category-img-wrap img {
-    transform: scale(1.08);
+    transform: none;
 }
 
 .zyra-category-overlay {
@@ -1033,8 +1036,8 @@ img {
 
 /* Footer */
 .zyra-footer {
-    background-color: #121212;
-    color: #b0aba3;
+    background-color: #635454;
+    color: white;
     padding: 4.5rem 0 2rem;
     font-size: 0.88rem;
     border-top: 1px solid #292826;
@@ -1073,7 +1076,7 @@ img {
 }
 
 .zyra-footer-links a {
-    color: #b0aba3;
+    color: white;
     transition: var(--zyra-transition);
     display: inline-block;
 }
@@ -1109,11 +1112,16 @@ img {
 }
 
 .zyra-footer-bottom {
-    border-top: 1px solid #242220;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
     margin-top: 3.5rem;
     padding-top: 1.75rem;
+    color: white;
     font-size: 0.8rem;
-    color: #888279;
+}
+
+.zyra-footer .text-muted {
+    color: white !important;
+    opacity: 0.95;
 }
 
 /* Filter Sidebar (Shop Page) */

@@ -112,9 +112,11 @@
                                 <label class="d-flex align-items-center gap-2 border px-3 py-2 rounded bg-light cursor-pointer">
                                     <input type="checkbox" class="size-checkbox" value="{{ $sz }}" checked>
                                     <span class="fw-semibold">{{ $sz }}</span>
+                                    <input type="number" class="form-control form-control-sm size-stock-input" style="width: 70px;" min="0" value="2" title="Stock for {{ $sz }}">
                                 </label>
                             @endforeach
                         </div>
+                        <small class="text-muted d-block mt-2">Set the stock available for each size. Total stock is calculated automatically.</small>
                     </div>
                     <!-- Dynamic Colors with + Icon -->
                     <div>

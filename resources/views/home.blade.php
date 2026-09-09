@@ -15,7 +15,7 @@
                 $heroBadge = $heroBanner?->badge ?? 'New Season Arrival 2026';
                 $heroLink = $heroBanner?->link ?? route('shop');
                 $heroBtnText = $heroBanner?->button_text ?? 'SHOP NOW';
-                $heroImg = $heroBanner?->image_url ?? 'https://images.unsplash.com/photo-1534126511673-b6899657816a?auto=format&fit=crop&w=1000&q=80';
+                $heroImg = $heroBanner?->image_url ?? 'https://i.pinimg.com/736x/00/11/6c/00116cca1c103440bdcbbae2dea0deb4.jpg';
             @endphp
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <span class="zyra-hero-tag">{{ $heroBadge }}</span>
@@ -189,7 +189,7 @@
                         <i class="bi bi-truck"></i>
                     </div>
                     <h5 class="zyra-feature-title">Free Shipping</h5>
-                    <p class="zyra-feature-desc">On all prepaid & COD orders above ₹999 across India.</p>
+                    <p class="zyra-feature-desc">On all prepaid &  orders above ₹999 across India.</p>
                 </div>
             </div>
 
@@ -199,7 +199,7 @@
                         <i class="bi bi-shield-lock"></i>
                     </div>
                     <h5 class="zyra-feature-title">Secure Payments</h5>
-                    <p class="zyra-feature-desc">Encrypted 256-bit SSL checkout with UPI, Cards & COD.</p>
+                    <p class="zyra-feature-desc">Encrypted 256-bit SSL checkout with UPI,Cards</p>
                 </div>
             </div>
 
@@ -208,8 +208,8 @@
                     <div class="zyra-feature-icon">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </div>
-                    <h5 class="zyra-feature-title">Easy Returns</h5>
-                    <p class="zyra-feature-desc">Hassle-free 15-day doorstep exchange and return policy.</p>
+                    <h5 class="zyra-feature-title">Secure Delivery</h5>
+                    <p class="zyra-feature-desc">Safe and timely delivery of your favorite ZYRA pieces.</p>
                 </div>
             </div>
 
@@ -235,70 +235,10 @@
             <div class="mx-auto" style="width: 60px; height: 2px; background-color: var(--zyra-secondary);"></div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
-                <div class="zyra-review-card">
-                    <div class="zyra-review-stars">★★★★★</div>
-                    <p class="zyra-review-text">
-                        "The Handblock Printed Kurti is sensational. Breathable pure cotton, exact tailoring, and the wooden block print looks richer in person!"
-                    </p>
-                    <div class="zyra-reviewer-info">
-                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80" alt="Priya Sharma" class="zyra-reviewer-avatar">
-                        <div>
-                            <div class="zyra-reviewer-name">Priya Sharma</div>
-                            <div class="zyra-reviewer-tag"><i class="bi bi-patch-check-fill"></i> Verified Buyer</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="zyra-review-card">
-                    <div class="zyra-review-stars">★★★★★</div>
-                    <p class="zyra-review-text">
-                        "Finally found 4-way stretch leggings that do not become transparent! High waist holds comfortably without digging in. Already ordered 3 more pairs."
-                    </p>
-                    <div class="zyra-reviewer-info">
-                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" alt="Ananya Verma" class="zyra-reviewer-avatar">
-                        <div>
-                            <div class="zyra-reviewer-name">Ananya Verma</div>
-                            <div class="zyra-reviewer-tag"><i class="bi bi-patch-check-fill"></i> Verified Buyer</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="zyra-review-card">
-                    <div class="zyra-review-stars">★★★★★</div>
-                    <p class="zyra-review-text">
-                        "Wore the Botanical Floral Maxi Dress to a daytime wedding celebration. Received endless compliments! Lightweight, romantic drape and perfect length."
-                    </p>
-                    <div class="zyra-reviewer-info">
-                        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80" alt="Rhea Sen" class="zyra-reviewer-avatar">
-                        <div>
-                            <div class="zyra-reviewer-name">Rhea Sen</div>
-                            <div class="zyra-reviewer-tag"><i class="bi bi-patch-check-fill"></i> Verified Buyer</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="zyra-review-card">
-                    <div class="zyra-review-stars">★★★★★</div>
-                    <p class="zyra-review-text">
-                        "The modal cotton night suits feel like luxury clouds. Delivery in Bengaluru arrived in just 2 days. ZYRA is definitely my new go-to store!"
-                    </p>
-                    <div class="zyra-reviewer-info">
-                        <img src="https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=150&q=80" alt="Kavita Nair" class="zyra-reviewer-avatar">
-                        <div>
-                            <div class="zyra-reviewer-name">Kavita Nair</div>
-                            <div class="zyra-reviewer-tag"><i class="bi bi-patch-check-fill"></i> Verified Buyer</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="text-center py-5">
+            <i class="bi bi-chat-square-heart display-4 text-muted"></i>
+            <h4 class="fw-bold mt-3 text-muted">Customer Reviews Coming Soon</h4>
+            <p class="text-muted mb-0">Our customers are still writing their love letters. Check back soon for real experiences from ZYRA shoppers!</p>
         </div>
     </div>
 </section>
@@ -307,7 +247,7 @@
 <section class="py-5 bg-white">
     <div class="container py-3">
         <div class="text-center mb-4">
-            <span class="text-uppercase small fw-bold text-muted">Tag Us @ZYRA_FASHION</span>
+            <span class="text-uppercase small fw-bold text-muted">Tag Us @zyralifestyle46</span>
             <h2 class="display-6 fw-bold mt-1">Fashion Gallery</h2>
             <p class="text-muted small">Share your style moments using #ZyraWoman</p>
         </div>
@@ -317,20 +257,6 @@
 </section>
 
 <!-- 10. Newsletter Section -->
-<section class="py-5" style="background-color: var(--zyra-bg-light);">
-    <div class="container py-3">
-        <div class="zyra-newsletter-box">
-            <h2>Stay in Style</h2>
-            <p>Subscribe for new arrivals, exclusive offers, styling lookbooks, and private secret sales.</p>
-            <form class="newsletter-form newsletter-input-group">
-                <input type="email" placeholder="Enter your email address" required>
-                <button type="submit" class="btn-subscribe">Subscribe</button>
-            </form>
-            <div class="text-white-50 small mt-3">
-                <i class="bi bi-lock-fill me-1"></i> No spam ever. Unsubscribe with 1-click anytime.
-            </div>
-        </div>
-    </div>
-</section>
+
 
 @endsection

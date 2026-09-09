@@ -56,6 +56,7 @@ Route::prefix('seller')->name('seller.')->group(function () {
     Route::post('/products/{id}/delete', [SellerController::class, 'destroyProduct'])->name('products.destroy');
     Route::post('/products/{id}/inventory', [SellerController::class, 'updateInventory'])->name('products.inventory');
     Route::post('/orders/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('orders.status');
+    Route::post('/orders/{id}/tracking', [SellerController::class, 'updateOrderTracking'])->name('orders.tracking');
 });
 
 Route::get('/', [HomeController::class, 'index'])->name('home');

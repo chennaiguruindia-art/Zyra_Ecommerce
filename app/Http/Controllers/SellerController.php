@@ -101,6 +101,8 @@ class SellerController extends Controller
                 'total' => (float) $order->total,
                 'payment' => $paymentLabels[$order->payment_method] ?? $order->payment_method,
                 'status' => $order->order_status,
+                'awb_code' => $order->awb_code,
+                'courier_name' => $order->courier_name,
             ];
         })->all();
 
@@ -180,6 +182,42 @@ class SellerController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function updateOrderTracking(Request $request, int $id)
+    {
+        $order = Order::query()->findOrFail($id);
+        $data = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'awb_code' => 'nullable|string|max:60',
+            'courier_name' => 'nullable|string|max:120',
+        ])->validate();
+
+        $awb = trim((string) ($data['awb_code'] ?? ''));
+        $courier = trim((string) ($data['courier_name'] ?? ''));
+
+        if ($awb === '' && $courier === '') {
+            return response()->json(['success' => false, 'message' => 'Enter at least an AWB number.'], 422);
+        }
+
+        $updates = [
+            'awb_code' => $awb !== '' ? $awb : $order->awb_code,
+            'courier_name' => $courier !== '' ? $courier : $order->courier_name,
+        ];
+
+        // When a courier begins shipping, mark the order as shipped for the customer.
+        if ($awb !== '' && in_array($order->order_status, ['Pending', 'Processing'], true)) {
+            $updates['order_status'] = 'Shipped';
+            $updates['shipping_status'] = 'Shipped';
+        }
+
+        $order->update($updates);
+
+        return response()->json([
+            'success' => true,
+            'awb_code' => $order->awb_code,
+            'courier_name' => $order->courier_name,
+            'order_status' => $order->order_status,
+        ]);
+    }
+
     protected function sellerStats(): array
     {
         return [
@@ -217,6 +255,7 @@ class SellerController extends Controller
             'material' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'sizes' => 'nullable|array',
+            'size_stock' => 'nullable|array',
             'colors' => 'nullable|array',
             'images' => 'nullable|array|max:4',
             'image_names' => 'nullable|array|max:4',
@@ -313,12 +352,31 @@ class SellerController extends Controller
         }
 
         $sizeNames = $data['sizes'] ?? ['S', 'M', 'L'];
+        $sizeStock = $data['size_stock'] ?? [];
         $sizeIds = [];
+        $sizePivots = [];
+        $computedStock = null;
+
         foreach ($sizeNames as $sz) {
             $sizeModel = Size::firstOrCreate(['name' => $sz]);
             $sizeIds[] = $sizeModel->id;
+
+            // Only persist per-size stock for sizes that were given an explicit value.
+            $stockVal = is_array($sizeStock) ? ($sizeStock[$sz] ?? null) : null;
+            if ($stockVal !== null && $stockVal !== '') {
+                $sizePivots[$sizeModel->id] = ['stock' => max(0, (int) $stockVal)];
+            }
         }
-        $product->sizes()->sync($sizeIds);
+
+        if (!empty($sizePivots)) {
+            $product->sizes()->sync($sizePivots);
+            $computedStock = array_sum(array_column($sizePivots, 'stock'));
+            $product->stock_units = $computedStock;
+            $product->in_stock = $computedStock > 0;
+            $product->save();
+        } else {
+            $product->sizes()->sync($sizeIds);
+        }
 
         $colorNames = $data['colors'] ?? ['Pink', 'White'];
         $colorIds = [];

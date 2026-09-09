@@ -106,9 +106,17 @@
 
             <!-- Size Selection & Size Chart Modal Trigger -->
             <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
+                @php
+    $defaultSize = null;
+    foreach ($product['sizes'] as $size) {
+        $sizeQty = isset($product['size_stock'][$size]) ? (int) $product['size_stock'][$size] : null;
+        if ($sizeQty === null || $sizeQty > 0) { $defaultSize = $size; break; }
+    }
+    $defaultSize = $defaultSize ?? ($product['sizes'][0] ?? 'M');
+@endphp
+<div class="d-flex justify-content-between align-items-center mb-2">
                     <label class="form-label fw-bold small text-uppercase m-0">
-                        Size: <span id="selectedSizeName" class="fw-normal text-muted">{{ $product['sizes'][0] ?? 'M' }}</span>
+                        Size: <span id="selectedSizeName" class="fw-normal text-muted">{{ $defaultSize }}</span>
                     </label>
                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" data-bs-toggle="modal" data-bs-target="#sizeChartModal">
                         <i class="bi bi-rulers me-1"></i> Size Chart
@@ -116,11 +124,21 @@
                 </div>
                 <div class="d-flex flex-wrap gap-2">
                     @foreach($product['sizes'] as $idx => $size)
-                        <button type="button" class="btn btn-outline-dark pd-size-btn {{ $idx === 0 ? 'active' : '' }}" 
-                            data-size="{{ $size }}"
-                            onclick="document.querySelectorAll('.pd-size-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); document.getElementById('selectedSizeName').textContent = '{{ $size }}';">
-                            {{ $size }}
-                        </button>
+                        @php
+                            $sizeQty = isset($product['size_stock'][$size]) ? (int) $product['size_stock'][$size] : null;
+                            $sizeSoldOut = $sizeQty !== null && $sizeQty <= 0;
+                        @endphp
+                        <div>
+                            <button type="button" class="btn btn-outline-dark pd-size-btn {{ $size === $defaultSize ? 'active' : '' }}" 
+                                data-size="{{ $size }}"
+                                @if($sizeSoldOut) disabled @endif
+                                onclick="document.querySelectorAll('.pd-size-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); document.getElementById('selectedSizeName').textContent = '{{ $size }}';">
+                                {{ $size }}
+                            </button>
+                            @if($sizeSoldOut)
+                                <div class="small text-danger mt-1 text-center">Out of stock</div>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
             </div>

@@ -5,7 +5,7 @@
             
             <!-- Brand Column -->
             <div class="col-lg-3 col-md-6">
-                <a href="{{ route('home') }}" class="zyra-brand-logo text-white d-inline-block mb-3 fs-2">
+                <a href="{{ route('home') }}" class="zyra-brand-logo zyra-footer-brand text-white">
                     <img src="{{ asset('images/logo/Zyra _logo.png') }}" alt="ZYRA" class="zyra-logo-image zyra-logo-image-footer">
                 </a>
                 <p class="text-muted small mb-3 pe-lg-3">
@@ -60,7 +60,7 @@
                     </div>
                 </form>
                 <div class="small text-muted">
-                    <i class="bi bi-envelope me-1"></i> care@zyrafashion.com &nbsp;|&nbsp; <i class="bi bi-telephone me-1"></i> +91 98765 43210
+                    <i class="bi bi-envelope me-1"></i> order@shipwithzyra.in &nbsp;|&nbsp; <i class="bi bi-telephone me-1"></i> +91 9884125555
                 </div>
             </div>
 
@@ -74,7 +74,6 @@
             <div class="d-flex gap-3">
                 <a href="{{ route('about') }}" class="text-muted">About Us</a>
                 <a href="{{ route('contact') }}" class="text-muted">Privacy Policy</a>
-                <a href="{{ route('seller.dashboard') }}" class="text-warning fw-semibold"><i class="bi bi-shop me-1"></i> Sell on ZYRA</a>
             </div>
         </div>
     </div>
