@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use App\Support\ProductImageStorage;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -45,6 +46,9 @@ class ProfileController extends Controller
             }
 
             $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            if ($data['avatar']) {
+                ProductImageStorage::publish($data['avatar']);
+            }
         } else {
             unset($data['avatar']);
         }

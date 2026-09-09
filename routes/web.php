@@ -16,6 +16,11 @@ use App\Http\Controllers\GlobalSettingController;
 use App\Http\Controllers\InstagramController;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicStorageController;
+
+Route::get('/storage/{path}', [PublicStorageController::class, 'show'])
+    ->where('path', '.*')
+    ->name('storage.public');
 
 Route::middleware('auth')->get('/dashboard', function () {
     $user = Auth::user();
