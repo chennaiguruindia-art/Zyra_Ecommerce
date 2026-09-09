@@ -11,7 +11,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->extend('translation.loader', function ($loader, $app) {
+            if ($loader instanceof \App\Translation\SafeFileLoader) {
+                return $loader;
+            }
+
+            $safe = new \App\Translation\SafeFileLoader($app['files'], $loader->paths());
+
+            foreach ($loader->jsonPaths() as $path) {
+                $safe->addJsonPath($path);
+            }
+
+            foreach ($loader->namespaces() as $namespace => $hint) {
+                $safe->addNamespace($namespace, $hint);
+            }
+
+            return $safe;
+        });
     }
 
     /**
