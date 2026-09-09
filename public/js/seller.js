@@ -2,13 +2,13 @@
  * ZYRA - Seller Center Management Controller
  * Handles seller products, multi-image upload (max 4 images), dynamic colors with '+' icon,
  * inventory, orders, analytics, and settings.
- * Persists data via LocalStorage ('zyra_seller_products', 'zyra_seller_orders')
+ * Persists seller-created data via LocalStorage.
  */
 
 window.ZyraSeller = {
     page: null,
-    PRODUCTS_KEY: 'zyra_seller_products',
-    ORDERS_KEY: 'zyra_seller_orders',
+    PRODUCTS_KEY: 'zyra_seller_products_v2',
+    ORDERS_KEY: 'zyra_seller_orders_v2',
 
     // Multi-Image state (Max 4)
     currentImages: [],
@@ -29,65 +29,6 @@ window.ZyraSeller = {
     ],
     selectedColors: ['Pink', 'White'],
 
-    // Initial default orders
-    defaultOrders: [
-        {
-            id: 'ZYRA-849201',
-            date: '07 Sep 2026',
-            customer: 'Aditi Sharma',
-            phone: '9876543210',
-            city: 'Bengaluru',
-            items: 'Floral Printed Smocked Peplum Top (M) x 1',
-            total: 799,
-            payment: 'Cash on Delivery',
-            status: 'Delivered'
-        },
-        {
-            id: 'ZYRA-739182',
-            date: '06 Sep 2026',
-            customer: 'Priya Verma',
-            phone: '9812345678',
-            city: 'Mumbai',
-            items: 'Handblock Printed Pure Cotton Straight Kurti (L) x 1, 4-Way Cotton Leggings (L) x 1',
-            total: 1498,
-            payment: 'UPI',
-            status: 'Shipped'
-        },
-        {
-            id: 'ZYRA-628491',
-            date: '05 Sep 2026',
-            customer: 'Kavita Nair',
-            phone: '9923456789',
-            city: 'Delhi NCR',
-            items: 'Floor Sweeping Flared Anarkali Kurti (M) x 1',
-            total: 1699,
-            payment: 'Card',
-            status: 'Processing'
-        },
-        {
-            id: 'ZYRA-519283',
-            date: '05 Sep 2026',
-            customer: 'Meera Deshmukh',
-            phone: '9734567890',
-            city: 'Hyderabad',
-            items: 'Botanical Floral Tiered Ruffle Maxi Dress (S) x 1',
-            total: 1499,
-            payment: 'UPI',
-            status: 'Pending'
-        },
-        {
-            id: 'ZYRA-409182',
-            date: '04 Sep 2026',
-            customer: 'Rhea Sen',
-            phone: '9645678901',
-            city: 'Kolkata',
-            items: 'Notch Collar Cotton Button-Down Night Suit (M) x 1',
-            total: 1099,
-            payment: 'Cash on Delivery',
-            status: 'Delivered'
-        }
-    ],
-
     init() {
         this.seedInitialData();
         this.syncWithBackend();
@@ -100,7 +41,7 @@ window.ZyraSeller = {
         fetch('/seller/api/products')
             .then(res => res.json())
             .then(prods => {
-                if (Array.isArray(prods) && prods.length > 0) {
+                if (Array.isArray(prods)) {
                     this.saveProducts(prods);
                     const path = window.location.pathname;
                     if (path.includes('/seller/products') || path.includes('/seller/inventory') || path.endsWith('/seller') || path.includes('/seller/dashboard')) {
@@ -113,7 +54,7 @@ window.ZyraSeller = {
         fetch('/seller/api/orders')
             .then(res => res.json())
             .then(ords => {
-                if (Array.isArray(ords) && ords.length > 0) {
+                if (Array.isArray(ords)) {
                     localStorage.setItem(this.ORDERS_KEY, JSON.stringify(ords));
                     const path = window.location.pathname;
                     if (path.includes('/seller/sales') || path.includes('/seller/analytics') || path.endsWith('/seller') || path.includes('/seller/dashboard')) {
@@ -126,30 +67,11 @@ window.ZyraSeller = {
 
     seedInitialData() {
         if (!localStorage.getItem(this.PRODUCTS_KEY)) {
-            const initialList = (window.ZyraDB ? window.ZyraDB.getProducts() : []).map(p => ({
-                id: p.id,
-                name: p.name,
-                category: p.category,
-                subcategory: p.subcategory || 'Fashion',
-                price: p.price,
-                old_price: p.old_price || Math.round(p.price * 1.4),
-                discount: p.discount || 30,
-                stock: p.stock !== false,
-                stock_units: (p.id % 7 === 0) ? 4 : (p.id % 3 === 0 ? 9 : 25 + (p.id * 3) % 40),
-                image: p.image,
-                images: p.images && p.images.length ? p.images.slice(0, 4) : [p.image],
-                sku: p.sku || `ZYR-SKU-${p.id}`,
-                sizes: p.sizes || ['S', 'M', 'L', 'XL'],
-                colors: p.colors || ['Pink', 'Black'],
-                description: p.description || '',
-                material: p.material || 'Combed Cotton Blend',
-                status: 'active'
-            }));
-            localStorage.setItem(this.PRODUCTS_KEY, JSON.stringify(initialList));
+            localStorage.setItem(this.PRODUCTS_KEY, JSON.stringify([]));
         }
 
         if (!localStorage.getItem(this.ORDERS_KEY)) {
-            localStorage.setItem(this.ORDERS_KEY, JSON.stringify(this.defaultOrders));
+            localStorage.setItem(this.ORDERS_KEY, JSON.stringify([]));
         }
     },
 
@@ -412,9 +334,9 @@ window.ZyraSeller = {
 
     getOrders() {
         try {
-            return JSON.parse(localStorage.getItem(this.ORDERS_KEY)) || this.defaultOrders;
+            return JSON.parse(localStorage.getItem(this.ORDERS_KEY)) || [];
         } catch (e) {
-            return this.defaultOrders;
+            return [];
         }
     },
 

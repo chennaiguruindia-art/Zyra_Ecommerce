@@ -66,7 +66,6 @@
             <x-input-label for="role" :value="__('Register as')" />
             <select id="role" name="role" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
                 <option value="customer" {{ old('role') === 'customer' ? 'selected' : '' }}>Customer - Shopping Account</option>
-                <option value="seller" {{ old('role') === 'seller' ? 'selected' : '' }}>Seller - Sell Products on ZYRA</option>
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>

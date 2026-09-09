@@ -18,7 +18,7 @@ class SizeAndColorSeeder extends Seeder
             ['name' => 'XL', 'sort_order' => 5],
             ['name' => 'XXL','sort_order' => 6],
         ];
-        foreach ($sizes as $s) Size::create($s);
+        foreach ($sizes as $s) Size::firstOrCreate($s);
 
         $colors = [
             ['name' => 'Pink',    'hex_code' => '#F4A7B9'],
@@ -34,6 +34,6 @@ class SizeAndColorSeeder extends Seeder
             ['name' => 'Maroon',  'hex_code' => '#800000'],
             ['name' => 'Olive',   'hex_code' => '#808000'],
         ];
-        foreach ($colors as $c) Color::create($c);
+        foreach ($colors as $c) Color::firstOrCreate($c);
     }
 }

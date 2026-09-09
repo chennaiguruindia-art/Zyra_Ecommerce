@@ -30,9 +30,19 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $reservedEmails = ['order@shopwithzyra.in'];
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => [
+                'required', 'string', 'lowercase', 'email', 'max:255',
+                'unique:'.User::class,
+                function ($attribute, $value, $fail) use ($reservedEmails) {
+                    if (in_array(strtolower($value), $reservedEmails)) {
+                        $fail('This email is reserved and cannot be used for registration.');
+                    }
+                },
+            ],
             'address' => ['required', 'string', 'max:500'],
             'nearby_area' => ['required', 'string', 'max:255'],
             'pincode' => ['required', 'digits:6'],

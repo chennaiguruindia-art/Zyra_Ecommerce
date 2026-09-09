@@ -29,7 +29,7 @@
         <div class="seller-stat-card">
             <div class="seller-stat-icon bg-gold-soft text-gold"><i class="bi bi-wallet2"></i></div>
             <div>
-                <div class="seller-stat-value" id="analyticsRevenue">₹6,594</div>
+                <div class="seller-stat-value" id="analyticsRevenue">₹0</div>
                 <div class="seller-stat-label">Gross Revenue</div>
             </div>
         </div>

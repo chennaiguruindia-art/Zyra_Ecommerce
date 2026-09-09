@@ -20,19 +20,18 @@
             </p>
 
             @php
-                $orderNumber = isset($order) ? $order->order_number : 'ZYRA-849201';
-                $orderDate = isset($order) ? $order->created_at->format('F d, Y') : date('F d, Y');
+                $orderNumber = $order->order_number;
+                $orderDate = $order->created_at->format('F d, Y');
                 $paymentMethodMap = [
                     'cod' => 'Cash on Delivery',
                     'upi' => 'UPI',
                     'card' => 'Credit / Debit Card',
                     'netbanking' => 'Net Banking'
                 ];
-                $paymentMethod = isset($order) ? ($paymentMethodMap[$order->payment_method] ?? ucfirst($order->payment_method)) : 'Cash on Delivery';
-                $totalAmount = isset($order) ? $order->total : 1499;
-                $customerName = isset($order) ? $order->customer_name : 'Aditi Sharma';
-                $shippingAddress = isset($order) ? '<strong>' . e($order->customer_name) . '</strong><br>' . e($order->shipping_address) . '<br>' . e($order->city) . ', ' . e($order->state) . ' - ' . e($order->pincode) . '<br>Phone: ' . e($order->customer_phone) : '<strong>Aditi Sharma</strong><br>Flat 402, Lotus Residency, MG Road, Tower B<br>Bengaluru, Karnataka - 560001<br>Phone: 9876543210';
-                $items = isset($order) ? $order->items : null;
+                $paymentMethod = $paymentMethodMap[$order->payment_method] ?? ucfirst($order->payment_method);
+                $totalAmount = $order->total;
+                $shippingAddress = '<strong>' . e($order->customer_name) . '</strong><br>' . e($order->shipping_address) . '<br>' . e($order->city) . ', ' . e($order->state) . ' - ' . e($order->pincode) . '<br>Phone: ' . e($order->customer_phone);
+                $items = $order->items;
             @endphp
 
             <!-- Order Details Card -->
@@ -86,18 +85,13 @@
                 <div class="mt-3">
                     <h6 class="fw-bold mb-2 small text-uppercase text-muted">Items In This Order</h6>
                     <div id="successItemsList" class="bg-white p-3 rounded border">
-                        @if($items && count($items) > 0)
+                        @if($items->isNotEmpty())
                             @foreach($items as $it)
                                 <div class="d-flex align-items-center justify-content-between py-1 border-bottom">
                                     <span>{{ $it->product_name }} ({{ $it->size ?? 'M' }}) x {{ $it->quantity }}</span>
                                     <span class="fw-bold">₹{{ number_format($it->total, 0) }}</span>
                                 </div>
                             @endforeach
-                        @else
-                            <div class="d-flex align-items-center justify-content-between py-1">
-                                <span>Handblock Printed Pure Cotton Straight Kurti (M)</span>
-                                <span class="fw-bold">₹999</span>
-                            </div>
                         @endif
                     </div>
                 </div>

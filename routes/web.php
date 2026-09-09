@@ -111,7 +111,6 @@ Route::post('/cart/apply-coupon', [CartController::class, 'applyCoupon'])->name(
 Route::post('/cart/remove-coupon', [CartController::class, 'removeCoupon'])->name('cart.remove-coupon');
 
 Route::get('/order-success/{order_number}', [OrderController::class, 'success'])->name('order.success');
-Route::get('/order-success', fn () => view('order-success'))->name('order.success.fallback');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/search/live', [SearchController::class, 'live'])->name('search.live');

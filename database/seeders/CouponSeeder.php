@@ -35,6 +35,6 @@ class CouponSeeder extends Seeder
                 'status' => true,
             ],
         ];
-        foreach ($coupons as $c) Coupon::create($c);
+        foreach ($coupons as $c) Coupon::firstOrCreate(['code' => $c['code']], $c);
     }
 }
