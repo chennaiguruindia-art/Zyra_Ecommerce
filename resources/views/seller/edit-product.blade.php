@@ -86,9 +86,15 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="productSkuInput" class="seller-form-label">SKU</label>
-                        <input type="text" id="productSkuInput" class="form-control seller-form-control">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label for="productWeightInput" class="seller-form-label">Weight (kg) <span class="text-muted small">(for shipping)</span></label>
+                            <input type="number" id="productWeightInput" class="form-control seller-form-control" min="0" step="0.1" value="0.5">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="productSkuInput" class="seller-form-label">SKU</label>
+                            <input type="text" id="productSkuInput" class="form-control seller-form-control">
+                        </div>
                     </div>
                 </div>
             </div>

@@ -14,7 +14,7 @@ class BannerSeeder extends Seeder
                 'title' => 'Summer Kurti Collection 2026',
                 'subtitle' => 'Handcrafted block prints & graceful Anarkalis designed for the modern Indian woman.',
                 'badge' => 'New Collection',
-                'image' => 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1600&q=80',
+                'image' => 'images/banners/image.png',
                 'link' => '/kurtis',
                 'button_text' => 'Explore Kurtis',
                 'position' => 'hero',
@@ -56,8 +56,14 @@ class BannerSeeder extends Seeder
             ],
         ];
 
-        foreach ($banners as $b) {
-            Banner::create($b);
+        foreach ($banners as $banner) {
+            Banner::updateOrCreate(
+                [
+                    'title' => $banner['title'],
+                    'position' => $banner['position'],
+                ],
+                $banner
+            );
         }
     }
 }

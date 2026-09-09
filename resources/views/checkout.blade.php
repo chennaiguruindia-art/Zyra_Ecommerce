@@ -156,13 +156,18 @@
                 <!-- Items Container -->
                 <div id="checkoutItemsList" class="mb-3 max-h-64 overflow-auto pe-1">
                     @forelse(($cartItems ?? []) as $item)
-                        <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                        <div class="checkout-item-row d-flex align-items-center gap-3 py-2 border-bottom" data-id="{{ $item['id'] ?? 0 }}" data-price="{{ (float) ($item['price'] ?? 0) }}" data-size="{{ $item['size'] ?? '' }}" data-color="{{ $item['color'] ?? '' }}">
                             <img src="{{ $item['image'] ?? '' }}" alt="{{ $item['name'] ?? 'Item' }}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;">
                             <div class="flex-grow-1 overflow-hidden">
                                 <div class="text-truncate fw-semibold small">{{ $item['name'] ?? 'Item' }}</div>
-                                <small class="text-muted d-block" style="font-size: 0.75rem;">Qty: {{ $item['quantity'] ?? 1 }} | Size: {{ $item['size'] ?? 'M' }} | Color: {{ $item['color'] ?? 'Standard' }}</small>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Size: {{ $item['size'] ?? 'M' }} | Color: {{ $item['color'] ?? 'Standard' }}</small>
+                                <div class="zyra-qty-stepper mt-1" style="height: 28px;">
+                                    <button type="button" class="zyra-qty-btn checkout-qty-btn" data-dir="-1" data-id="{{ $item['id'] ?? 0 }}" data-size="{{ $item['size'] ?? '' }}" data-color="{{ $item['color'] ?? '' }}">−</button>
+                                    <input type="text" class="zyra-qty-input checkout-qty" value="{{ (int) ($item['quantity'] ?? 1) }}" readonly style="width: 36px; height: 28px; font-size: 0.8rem;">
+                                    <button type="button" class="zyra-qty-btn checkout-qty-btn" data-dir="1" data-id="{{ $item['id'] ?? 0 }}" data-size="{{ $item['size'] ?? '' }}" data-color="{{ $item['color'] ?? '' }}">+</button>
+                                </div>
                             </div>
-                            <div class="fw-bold small text-nowrap">₹{{ ((float) ($item['price'] ?? 0)) * ((int) ($item['quantity'] ?? 1)) }}</div>
+                            <div class="fw-bold small text-nowrap checkout-line-total">₹{{ ((float) ($item['price'] ?? 0)) * ((int) ($item['quantity'] ?? 1)) }}</div>
                         </div>
                     @empty
                         <div class="text-center py-4 text-muted">
@@ -179,8 +184,13 @@
                 </div>
 
                 <div class="zyra-summary-row text-success" id="checkoutDiscountRow" style="display: none;">
-                    <span>Discount</span>
+                    <span>Coupon Discount</span>
                     <span id="checkoutDiscount" class="fw-semibold">-₹0</span>
+                </div>
+
+                <div class="zyra-summary-row">
+                    <span class="text-muted">GST ({{ $gstRate ?? 5 }}%)</span>
+                    <span id="checkoutGst" class="fw-semibold">₹{{ $cartGst ?? 0 }}</span>
                 </div>
 
                 <div class="zyra-summary-row">
@@ -191,6 +201,16 @@
                 <div class="zyra-summary-row total-row">
                     <span>Total Amount</span>
                     <span id="checkoutTotal" class="fw-bold fs-4">₹{{ $cartTotal ?? 0 }}</span>
+                </div>
+
+                <!-- Coupon Code -->
+                <div class="mt-4 pt-3 border-top">
+                    <label for="checkoutCouponInput" class="form-label small fw-bold text-uppercase">Have a Promo Code?</label>
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="text" id="checkoutCouponInput" class="form-control" placeholder="e.g. FIRSTORDER" style="text-transform: uppercase;">
+                        <button class="btn btn-dark" type="button" id="checkoutCouponApplyBtn">Apply</button>
+                    </div>
+                    <div id="checkoutCouponMsg" class="small"></div>
                 </div>
 
                 <!-- Place Order Button -->
@@ -214,8 +234,10 @@
 @push('scripts')
 <div id="zyraServerCart" data-cart='@json($cartItems ?? [])' hidden></div>
 <meta name="razorpay-key" content="{{ $razorpayKey ?? '' }}">
+<meta name="first-order-eligible" content="{{ ($isFirstOrderEligible ?? false) ? '1' : '0' }}">
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     window.ZYRA_SERVER_CART = JSON.parse(document.getElementById('zyraServerCart')?.dataset.cart || '[]');
+    window.ZYRA_GST_RATE = {{ $gstRate ?? 5 }};
 </script>
 @endpush

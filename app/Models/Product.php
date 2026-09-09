@@ -13,7 +13,7 @@ class Product extends Model
         'category_id', 'subcategory_id', 'name', 'slug', 'sku', 'price', 'old_price',
         'discount', 'stock_units', 'in_stock', 'image', 'material', 'fit', 'care',
         'description', 'badge', 'is_featured', 'is_best_seller', 'is_trending',
-        'rating', 'reviews_count',
+        'rating', 'reviews_count', 'weight',
     ];
 
     protected $casts = [
@@ -24,6 +24,7 @@ class Product extends Model
         'price' => 'decimal:2',
         'old_price' => 'decimal:2',
         'rating' => 'decimal:2',
+        'weight' => 'decimal:2',
     ];
 
     public function category(): BelongsTo

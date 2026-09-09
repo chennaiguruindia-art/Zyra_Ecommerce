@@ -21,12 +21,20 @@ class Coupon extends Model
         'max_discount' => 'decimal:2',
     ];
 
-    public function isValidFor(float $orderAmount): bool
+    public function isValidFor(float $orderAmount, ?int $userId = null): bool
     {
         if (!$this->status) return false;
         if ($orderAmount < $this->min_order_amount) return false;
         if ($this->start_date && Carbon::now()->lt($this->start_date)) return false;
         if ($this->expiry_date && Carbon::now()->gt($this->expiry_date->endOfDay())) return false;
+
+        // FIRSTORDER: common first-purchase coupon, only valid if the customer has no orders yet.
+        if (strtoupper($this->code) === 'FIRSTORDER') {
+            if (!$userId) return false;
+            $hasOrder = \App\Models\Order::where('user_id', $userId)->exists();
+            if ($hasOrder) return false;
+        }
+
         return true;
     }
 

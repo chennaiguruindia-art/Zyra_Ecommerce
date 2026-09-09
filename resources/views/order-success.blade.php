@@ -64,6 +64,24 @@
                     </div>
                 </div>
 
+                @if(isset($order) && $order->awb_code)
+                    <div class="d-flex flex-wrap align-items-center gap-2 bg-white p-3 rounded border mb-3">
+                        <i class="bi bi-truck text-muted fs-5"></i>
+                        <div class="small">
+                            @if($order->courier_name)
+                                <span class="fw-semibold">{{ $order->courier_name }}</span> ·
+                            @endif
+                            AWB: <span class="fw-semibold">{{ $order->awb_code }}</span>
+                            @if($order->shipping_status)
+                                · <span class="text-success">{{ $order->shipping_status }}</span>
+                            @endif
+                        </div>
+                        <a href="https://shiprocket.co/tracking/{{ $order->awb_code }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-dark ms-auto">
+                            <i class="bi bi-box-seam me-1"></i> Track Shipment
+                        </a>
+                    </div>
+                @endif
+
                 <!-- Items Ordered Breakdown -->
                 <div class="mt-3">
                     <h6 class="fw-bold mb-2 small text-uppercase text-muted">Items In This Order</h6>

@@ -102,6 +102,24 @@
                                         <span>Total</span>
                                         <span>₹{{ number_format($order->total, 2) }}</span>
                                     </div>
+
+                                    @if ($order->awb_code)
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
+                                            <i class="bi bi-truck text-muted"></i>
+                                            <div class="small">
+                                                @if($order->courier_name)
+                                                    <span class="fw-semibold">{{ $order->courier_name }}</span> ·
+                                                @endif
+                                                AWB: <span class="fw-semibold">{{ $order->awb_code }}</span>
+                                                @if($order->shipping_status)
+                                                    · <span class="text-success">{{ $order->shipping_status }}</span>
+                                                @endif
+                                            </div>
+                                            <a href="https://shiprocket.co/tracking/{{ $order->awb_code }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-dark ms-auto">
+                                                <i class="bi bi-box-seam me-1"></i> Track Shipment
+                                            </a>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>

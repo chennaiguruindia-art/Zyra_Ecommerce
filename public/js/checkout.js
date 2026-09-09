@@ -6,6 +6,8 @@
 
 const ZyraCheckout = {
     ORDER_KEY: 'zyra_last_order',
+    appliedDiscount: 0,
+    appliedCouponCode: null,
 
     init() {
         if (window.location.pathname.includes('/checkout')) {
@@ -52,6 +54,8 @@ const ZyraCheckout = {
                 })
                 .catch(() => {
                     this.fillOrderReview(browserCart);
+                    this.bindQuantitySteppers();
+                    this.bindCoupon();
                     this.bindPaymentSelectors();
                     this.bindPlaceOrder();
                 });
@@ -62,6 +66,8 @@ const ZyraCheckout = {
             this.fillOrderReview(browserCart);
         }
 
+        this.bindQuantitySteppers();
+        this.bindCoupon();
         this.bindPaymentSelectors();
         this.bindPlaceOrder();
     },
@@ -70,6 +76,7 @@ const ZyraCheckout = {
         const itemsContainer = document.getElementById('checkoutItemsList');
         const subtotalEl = document.getElementById('checkoutSubtotal');
         const shippingEl = document.getElementById('checkoutShipping');
+        const gstEl = document.getElementById('checkoutGst');
         const totalEl = document.getElementById('checkoutTotal');
         if (!itemsContainer || !Array.isArray(cart) || cart.length === 0) return;
 
@@ -81,23 +88,225 @@ const ZyraCheckout = {
             const itemTotal = price * qty;
             subtotal += itemTotal;
             html += `
-                <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                <div class="checkout-item-row d-flex align-items-center gap-3 py-2 border-bottom" data-id="${item.id || ''}" data-price="${price}" data-size="${item.size || 'M'}" data-color="${item.color || ''}">
                     <img src="${item.image || ''}" alt="${item.name || 'Item'}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;">
                     <div class="flex-grow-1 overflow-hidden">
                         <div class="text-truncate fw-semibold small">${item.name || 'Item'}</div>
-                        <small class="text-muted d-block" style="font-size: 0.75rem;">Qty: ${qty} | Size: ${item.size || 'M'} | Color: ${item.color || 'Standard'}</small>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Size: ${item.size || 'M'} | Color: ${item.color || 'Standard'}</small>
+                        <div class="zyra-qty-stepper mt-1" style="height: 28px;">
+                            <button type="button" class="zyra-qty-btn checkout-qty-btn" data-dir="-1">−</button>
+                            <input type="text" class="zyra-qty-input checkout-qty" value="${qty}" readonly style="width: 36px; height: 28px; font-size: 0.8rem;">
+                            <button type="button" class="zyra-qty-btn checkout-qty-btn" data-dir="1">+</button>
+                        </div>
                     </div>
-                    <div class="fw-bold small text-nowrap">₹${itemTotal}</div>
+                    <div class="fw-bold small text-nowrap checkout-line-total">₹${itemTotal}</div>
                 </div>
             `;
         });
         itemsContainer.innerHTML = html;
 
         const shipping = 0;
-        const total = subtotal + shipping;
+        const gstRate = parseFloat(window.ZYRA_GST_RATE) || 5;
+        const gst = Math.round((subtotal * gstRate) / 100);
+        const total = subtotal + gst + shipping;
         if (subtotalEl) subtotalEl.textContent = `₹${subtotal}`;
+        if (gstEl) gstEl.textContent = `₹${gst}`;
         if (shippingEl) shippingEl.textContent = shipping === 0 ? 'FREE' : `₹${shipping}`;
         if (totalEl) totalEl.textContent = `₹${total}`;
+    },
+
+    bindQuantitySteppers() {
+        document.querySelectorAll('#checkoutItemsList .checkout-qty-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.changeCheckoutQty(e.currentTarget);
+            });
+        });
+    },
+
+    async changeCheckoutQty(btn) {
+        const row = btn.closest('.checkout-item-row');
+        if (!row) return;
+
+        const id = row.dataset.id;
+        const size = row.dataset.size || 'M';
+        const color = row.dataset.color || '';
+        const dir = parseInt(btn.dataset.dir, 10) || 0;
+        const input = row.querySelector('.checkout-qty');
+        const currentQty = parseInt(input.value, 10) || 1;
+        const newQty = currentQty + dir;
+
+        if (newQty < 1) return;
+
+        const serverCart = Array.isArray(window.ZYRA_SERVER_CART) ? window.ZYRA_SERVER_CART : [];
+        const index = serverCart.findIndex(item =>
+            String(item.id) === String(id) &&
+            String(item.size || 'M') === String(size) &&
+            String(item.color || '') === String(color)
+        );
+
+        try {
+            const res = await fetch('/cart/update', {
+                method: 'POST',
+                headers: this.csrfHeaders(),
+                body: JSON.stringify({ index, quantity: newQty })
+            });
+            const data = await res.json();
+
+            // Also sync the browser cart so place-order carries correct quantities.
+            const browserCart = this.readBrowserCart();
+            const bIdx = browserCart.findIndex(item =>
+                String(item.id) === String(id) &&
+                String(item.size || 'M') === String(size) &&
+                String(item.color || '') === String(color)
+            );
+            if (bIdx >= 0) {
+                browserCart[bIdx].quantity = newQty;
+                localStorage.setItem('zyra_cart', JSON.stringify(browserCart));
+            }
+
+            const price = parseFloat(row.dataset.price) || 0;
+            input.value = newQty;
+            const lineTotal = row.querySelector('.checkout-line-total');
+            if (lineTotal) lineTotal.textContent = `₹${Math.round(price * newQty)}`;
+
+            this.refreshCheckoutSummary();
+
+            if (window.ZyraApp && this.lastCartCount !== newQty) {
+                this.lastCartCount = newQty;
+            }
+            if (window.ZyraApp && window.ZyraApp.updateCartUI) {
+                window.ZyraApp.updateCartUI(data.cart);
+            }
+        } catch (err) {
+            if (window.ZyraApp) {
+                window.ZyraApp.showToast('Could not update quantity. Please try again.', 'danger');
+            }
+        }
+    },
+
+    refreshCheckoutSummary() {
+        const subtotalEl = document.getElementById('checkoutSubtotal');
+        const shippingEl = document.getElementById('checkoutShipping');
+        const gstEl = document.getElementById('checkoutGst');
+        const totalEl = document.getElementById('checkoutTotal');
+        const discountEl = document.getElementById('checkoutDiscount');
+        const discountRowEl = document.getElementById('checkoutDiscountRow');
+
+        let subtotal = 0;
+        document.querySelectorAll('#checkoutItemsList .checkout-item-row').forEach(row => {
+            const qty = parseInt(row.querySelector('.checkout-qty')?.value, 10) || 0;
+            const price = parseFloat(row.dataset.price) || 0;
+            subtotal += price * qty;
+        });
+
+        const discount = this.appliedDiscount || 0;
+        const gstRate = parseFloat(window.ZYRA_GST_RATE) || 5;
+        const gst = Math.round(((subtotal - discount) * gstRate) / 100);
+        const shipping = 0;
+        const total = (subtotal - discount) + gst + shipping;
+
+        if (subtotalEl) subtotalEl.textContent = `₹${subtotal}`;
+        if (discountEl) discountEl.textContent = `-₹${discount}`;
+        if (discountRowEl) discountRowEl.style.display = discount > 0 ? 'flex' : 'none';
+        if (gstEl) gstEl.textContent = `₹${gst}`;
+        if (shippingEl) shippingEl.textContent = shipping === 0 ? 'FREE' : `₹${shipping}`;
+        if (totalEl) totalEl.textContent = `₹${total}`;
+    },
+
+    bindCoupon() {
+        const applyBtn = document.getElementById('checkoutCouponApplyBtn');
+        const input = document.getElementById('checkoutCouponInput');
+        if (!applyBtn || !input) return;
+
+        const apply = () => {
+            const code = input.value.trim().toUpperCase();
+            if (!code) {
+                if (window.ZyraApp) window.ZyraApp.showToast('Please enter a coupon code.', 'danger');
+                return;
+            }
+            applyBtn.disabled = true;
+            fetch('/checkout/coupon/apply', {
+                method: 'POST',
+                headers: this.csrfHeaders(),
+                body: JSON.stringify({ code })
+            })
+            .then(async res => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = data.message || 'Coupon could not be applied.';
+                    this.renderCouponMsg(msg, 'danger');
+                    throw new Error(msg);
+                }
+                return data;
+            })
+            .then(data => {
+                this.appliedDiscount = data.pricing.discount;
+                this.appliedCouponCode = data.coupon.code;
+                if (window.ZyraApp) window.ZyraApp.showToast(data.message, 'success');
+                this.renderAppliedCoupon(data.coupon);
+                this.applyServerPricing(data.pricing);
+            })
+            .catch(err => {
+                if (err.message) this.renderCouponMsg(err.message, 'danger');
+            })
+            .finally(() => { applyBtn.disabled = false; });
+        };
+
+        applyBtn.addEventListener('click', apply);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); apply(); }
+        });
+    },
+
+    renderCouponMsg(text, type = 'danger') {
+        const el = document.getElementById('checkoutCouponMsg');
+        if (!el) return;
+        el.innerHTML = `<span class="text-${type} fw-semibold">${text}</span>`;
+    },
+
+    renderAppliedCoupon(coupon) {
+        const msg = document.getElementById('checkoutCouponMsg');
+        if (!msg) return;
+        msg.innerHTML = `
+            <span class="d-flex align-items-center justify-content-between">
+                <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>${coupon.code} applied</span>
+                <button type="button" class="btn btn-link btn-sm p-0 text-danger" id="checkoutCouponRemoveBtn">
+                    <i class="bi bi-x-circle"></i> Remove
+                </button>
+            </span>
+        `;
+        const removeBtn = document.getElementById('checkoutCouponRemoveBtn');
+        if (removeBtn) removeBtn.addEventListener('click', () => this.removeCouponUI());
+    },
+
+    async removeCouponUI() {
+        try {
+            const res = await fetch('/checkout/coupon/remove', {
+                method: 'POST',
+                headers: this.csrfHeaders()
+            });
+            const data = await res.json().catch(() => ({}));
+            this.appliedDiscount = 0;
+            this.appliedCouponCode = null;
+            this.renderCouponMsg('');
+            this.applyServerPricing(data.pricing);
+            if (window.ZyraApp) window.ZyraApp.showToast('Coupon removed.', 'success');
+        } catch (err) {
+            if (window.ZyraApp) window.ZyraApp.showToast('Could not remove coupon.', 'danger');
+        }
+    },
+
+    applyServerPricing(pricing) {
+        const subtotalEl = document.getElementById('checkoutSubtotal');
+        const discountEl = document.getElementById('checkoutDiscount');
+        const discountRowEl = document.getElementById('checkoutDiscountRow');
+        const gstEl = document.getElementById('checkoutGst');
+        const totalEl = document.getElementById('checkoutTotal');
+        if (subtotalEl) subtotalEl.textContent = `₹${pricing.subtotal}`;
+        if (discountEl) discountEl.textContent = `-₹${pricing.discount}`;
+        if (discountRowEl) discountRowEl.style.display = pricing.discount > 0 ? 'flex' : 'none';
+        if (gstEl) gstEl.textContent = `₹${pricing.gst}`;
+        if (totalEl) totalEl.textContent = `₹${pricing.total}`;
     },
 
     bindPaymentSelectors() {
@@ -181,13 +390,15 @@ const ZyraCheckout = {
             };
 
             const items = this.readBrowserCart();
-            let couponCode = '';
-            try {
-                const couponData = localStorage.getItem('zyra_coupon');
-                if (couponData) {
-                    couponCode = JSON.parse(couponData).code || '';
-                }
-            } catch (err) {}
+            let couponCode = this.appliedCouponCode || '';
+            if (!couponCode) {
+                try {
+                    const couponData = localStorage.getItem('zyra_coupon');
+                    if (couponData) {
+                        couponCode = JSON.parse(couponData).code || '';
+                    }
+                } catch (err) {}
+            }
 
             const orderData = {
                 orderId: '',

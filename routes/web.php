@@ -9,6 +9,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CatalogController;
@@ -62,6 +63,9 @@ Route::get('/catalog.json', [CatalogController::class, 'json'])->name('catalog.j
 
 Route::get('/global_setting', [GlobalSettingController::class, 'index'])->name('global_setting');
 Route::post('/global_setting/toggle', [GlobalSettingController::class, 'toggle'])->name('global_setting.toggle');
+Route::post('/global_setting/coupon-dates', [GlobalSettingController::class, 'updateCouponDates'])->name('global_setting.coupon-dates');
+Route::post('/global_setting/coupons', [GlobalSettingController::class, 'storeCoupon'])->name('global_setting.coupons.store');
+Route::delete('/global_setting/coupons/{id}', [GlobalSettingController::class, 'destroyCoupon'])->name('global_setting.coupons.destroy');
 
 Route::get('/instagram', [InstagramController::class, 'index'])->name('instagram');
 Route::post('/instagram', [InstagramController::class, 'store'])->name('instagram.store');
@@ -85,6 +89,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.place-order');
     Route::post('/checkout/payment/verify', [CheckoutController::class, 'verifyPayment'])->name('checkout.payment.verify');
+    Route::post('/checkout/coupon/apply', [CouponController::class, 'apply'])->name('checkout.coupon.apply');
+    Route::post('/checkout/coupon/remove', [CouponController::class, 'remove'])->name('checkout.coupon.remove');
 });
 
 Route::middleware('auth')->get('/my-orders', [OrderController::class, 'myOrders'])->name('my-orders');

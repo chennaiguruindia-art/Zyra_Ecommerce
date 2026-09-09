@@ -982,6 +982,7 @@ window.ZyraSeller = {
                 price: document.getElementById('productPriceInput').value,
                 old_price: document.getElementById('productOldPriceInput').value,
                 stock_units: document.getElementById('productStockInput').value,
+                weight: document.getElementById('productWeightInput').value,
                 sku: document.getElementById('productSkuInput').value.trim(),
                 images: [...this.currentImages],
                 material: document.getElementById('productMaterialInput').value.trim(),
@@ -1017,6 +1018,7 @@ window.ZyraSeller = {
         const oldPriceInput = document.getElementById('productOldPriceInput');
         const stockInput = document.getElementById('productStockInput');
         const skuInput = document.getElementById('productSkuInput');
+        const weightInput = document.getElementById('productWeightInput');
         const matInput = document.getElementById('productMaterialInput');
         const descInput = document.getElementById('productDescriptionInput');
 
@@ -1027,6 +1029,7 @@ window.ZyraSeller = {
         if (oldPriceInput) oldPriceInput.value = product.old_price || '';
         if (stockInput) stockInput.value = product.stock_units || 0;
         if (skuInput) skuInput.value = product.sku || '';
+        if (weightInput) weightInput.value = product.weight || 0.5;
         if (matInput) matInput.value = product.material || '';
         if (descInput) descInput.value = product.description || '';
 
@@ -1075,6 +1078,7 @@ window.ZyraSeller = {
                     price: priceInput.value,
                     old_price: oldPriceInput.value,
                     stock_units: stockInput.value,
+                    weight: document.getElementById('productWeightInput').value,
                     sku: skuInput.value.trim(),
                     images: [...this.currentImages],
                     material: matInput.value.trim(),

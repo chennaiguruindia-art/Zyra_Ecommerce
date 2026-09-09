@@ -7,7 +7,9 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\RazorpayTransaction;
+use App\Services\PricingService;
 use App\Services\RazorpayService;
+use App\Services\ShiprocketService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +50,10 @@ class CheckoutController extends Controller
             $cartSubtotal += ((float) ($item['price'] ?? 0)) * ((int) ($item['quantity'] ?? 1));
         }
         $cartShipping = 0;
-        $cartTotal = $cartSubtotal + $cartShipping;
+
+        $pricing = app(PricingService::class)->breakdown(null, $user->id);
+
+        $hasOrders = Order::where('user_id', $user->id)->exists();
 
         return view('checkout', [
             'user' => $user,
@@ -56,7 +61,11 @@ class CheckoutController extends Controller
             'cartItems' => $cartItems,
             'cartSubtotal' => $cartSubtotal,
             'cartShipping' => $cartShipping,
-            'cartTotal' => $cartTotal,
+            'cartGst' => $pricing['gst'],
+            'cartTotal' => $pricing['total'],
+            'gstRate' => PricingService::GST_RATE,
+            'hasOrders' => $hasOrders,
+            'isFirstOrderEligible' => !$hasOrders,
             'razorpayKey' => app(RazorpayService::class)->keyId(),
         ]);
     }
@@ -275,48 +284,28 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Compute subtotal, discount, shipping and total for cart + coupon data.
+     * Compute subtotal, discount, GST and total for cart + coupon data.
      */
     protected function calculateTotals(array $data): array
     {
+        $pricing = app(PricingService::class);
+
+        // Ensure the session cart reflects any items posted from the browser.
         $cartItems = array_values(session()->get('cart', []));
         if (empty($cartItems) && !empty($data['items'])) {
             (new CartController())->replaceCartFromItems($data['items']);
-            $cartItems = array_values(session()->get('cart', []));
         }
 
-        $subtotal = 0;
-        foreach ($cartItems as $item) {
-            $product = Product::query()->find($item['id'] ?? 0);
-            if (!$product) {
-                continue;
-            }
-            $subtotal += ((float) $product->price) * (int) ($item['quantity'] ?? 1);
-        }
-
-        if ($subtotal <= 0) {
-            abort(422, 'Your cart is empty or products are no longer available.');
-        }
-
-        $couponCode = strtoupper(trim((string) ($data['coupon_code'] ?? '')));
-        $discount = 0;
-        if ($couponCode !== '') {
-            $coupon = Coupon::query()->where('code', $couponCode)->first();
-            if ($coupon && $coupon->isValidFor($subtotal)) {
-                $discount = $coupon->calculateDiscount($subtotal);
-            }
-        }
-
-        $shipping = 0;
-        $total = max(0, $subtotal - $discount + $shipping);
+        $breakdown = $pricing->breakdown($data['coupon_code'] ?? '', Auth::id());
 
         return [
-            'subtotal' => $subtotal,
-            'discount' => $discount,
-            'shipping' => $shipping,
-            'total' => $total,
-            'coupon_code' => $couponCode,
-            'receipt' => Order::generateOrderNumber(),
+            'subtotal' => $breakdown['subtotal'],
+            'discount' => $breakdown['discount'],
+            'shipping' => 0,
+            'gst' => $breakdown['gst'],
+            'total' => $breakdown['total'],
+            'coupon_code' => $breakdown['coupon_code'],
+            'receipt' => $breakdown['receipt'],
         ];
     }
 
@@ -332,46 +321,22 @@ class CheckoutController extends Controller
                 $cartItems = array_values(session()->get('cart', []));
             }
 
-            $subtotal = 0;
-            $lineItems = [];
+            $pricing = app(PricingService::class)->breakdown($data['coupon_code'] ?? '', Auth::id());
+            $subtotal = $pricing['subtotal'];
+            $discount = $pricing['discount'];
+            $gst = $pricing['gst'];
+            $total = $pricing['total'];
+            $couponCode = $pricing['coupon_code'];
+            $lineItems = $pricing['line_items'];
 
-            foreach ($cartItems as $item) {
-                $product = Product::query()->find($item['id'] ?? 0);
-                if (!$product) {
-                    continue;
-                }
-
-                $qty = (int) ($item['quantity'] ?? 1);
-                $price = (float) $product->price;
-                $lineTotal = $price * $qty;
-                $subtotal += $lineTotal;
-
-                $lineItems[] = [
-                    'product' => $product,
-                    'quantity' => $qty,
-                    'size' => $item['size'] ?? null,
-                    'color' => $item['color'] ?? null,
-                    'price' => $price,
-                    'total' => $lineTotal,
-                ];
-            }
-
-            if (empty($lineItems)) {
-                abort(422, 'Your cart is empty or products are no longer available.');
-            }
-
-            $discount = 0;
-            $couponCode = strtoupper(trim((string) ($data['coupon_code'] ?? '')));
-            if ($couponCode !== '') {
+            if (!empty($couponCode)) {
                 $coupon = Coupon::query()->where('code', $couponCode)->first();
-                if ($coupon && $coupon->isValidFor($subtotal)) {
-                    $discount = $coupon->calculateDiscount($subtotal);
+                if ($coupon) {
                     $coupon->increment('used_count');
                 }
             }
 
             $shipping = 0;
-            $total = max(0, $subtotal - $discount + $shipping);
 
             $paymentMethod = $data['payment_method'];
             $order = Order::create(array_merge([
@@ -389,9 +354,9 @@ class CheckoutController extends Controller
                 'subtotal' => $subtotal,
                 'discount' => $discount,
                 'shipping_cost' => $shipping,
-                'tax' => 0,
+                'tax' => $gst,
                 'total' => $total,
-                'coupon_code' => $couponCode !== '' ? $couponCode : null,
+                'coupon_code' => $couponCode,
                 'order_status' => 'Pending',
                 'notes' => $notes ?? $data['notes'] ?? null,
             ], $razorpay));
@@ -418,7 +383,37 @@ class CheckoutController extends Controller
 
             session()->forget(['cart', 'coupon']);
 
+            $this->pushToShiprocket($order);
+
             return $order;
         });
+    }
+
+    /**
+     * Auto-push a freshly created, paid order to Shiprocket (create shipment + AWB).
+     * Never throws — failures are logged and stored on the order so checkout is unaffected.
+     */
+    protected function pushToShiprocket(Order $order): void
+    {
+        try {
+            $service = app(ShiprocketService::class);
+
+            if (!config('shiprocket.auto_push', true) || !$service->isConfigured()) {
+                return;
+            }
+
+            $result = $service->pushOrder($order);
+
+            if (!($result['ok'] ?? false)) {
+                $order->update([
+                    'shipping_status' => 'Shiprocket Push Failed',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Shiprocket auto-push failed', [
+                'order' => $order->order_number,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

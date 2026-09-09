@@ -3,11 +3,6 @@
     <div class="container d-flex justify-content-between align-items-center">
         <span class="d-none d-md-inline-block"><i class="bi bi-geo-alt me-1"></i> Pan-India Express Delivery</span>
         <span class="mx-auto mx-md-0 fw-semibold">Free Shipping on All Orders</span>
-        <span class="d-none d-md-inline-block">
-            <a href="{{ route('seller.dashboard') }}" class="text-white text-decoration-none fw-semibold">
-                <i class="bi bi-shop me-1 text-warning"></i> Seller Hub
-            </a>
-        </span>
     </div>
 </div>
 
@@ -218,10 +213,6 @@
             <a href="{{ route('cart') }}" class="btn btn-outline-dark btn-sm d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-bag me-2"></i> View Cart</span>
                 <span class="badge bg-dark cart-count-badge">0</span>
-            </a>
-            <a href="{{ route('seller.dashboard') }}" class="btn btn-dark btn-sm d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-shop me-2 text-warning"></i> Seller Hub</span>
-                <span class="badge bg-warning text-dark">Partner Portal</span>
             </a>
         </div>
     </div>
