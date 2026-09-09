@@ -5,6 +5,7 @@ namespace App\Support;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 class ProductImageStorage
 {
@@ -63,6 +64,9 @@ class ProductImageStorage
     /**
      * Copy a storage/app/public file into public/storage so Windows/Plesk
      * can serve it without a working storage symlink.
+     *
+     * If public/storage is not writable (common on Plesk), the copy is skipped.
+     * Images still live in storage/app/public and are served by PublicStorageController.
      */
     public static function publish(string $path): void
     {
@@ -77,18 +81,36 @@ class ProductImageStorage
         }
 
         $destination = public_path('storage/' . $path);
-        $sourceReal = realpath($source);
-        $destReal = realpath($destination);
 
-        if ($sourceReal && $destReal && $sourceReal === $destReal) {
-            return;
+        try {
+            $sourceReal = realpath($source);
+            $destReal = is_file($destination) ? realpath($destination) : false;
+
+            if ($sourceReal && $destReal && $sourceReal === $destReal) {
+                return;
+            }
+
+            $directory = dirname($destination);
+            if (!static::ensureDirectory($directory) || !is_writable($directory)) {
+                return;
+            }
+
+            copy($source, $destination);
+        } catch (Throwable) {
+            // Permission denied on mkdir/copy must not abort product save.
+        }
+    }
+
+    private static function ensureDirectory(string $directory): bool
+    {
+        if (is_dir($directory)) {
+            return true;
         }
 
-        $directory = dirname($destination);
-        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
-            return;
+        try {
+            return mkdir($directory, 0755, true) || is_dir($directory);
+        } catch (Throwable) {
+            return is_dir($directory);
         }
-
-        copy($source, $destination);
     }
 }
