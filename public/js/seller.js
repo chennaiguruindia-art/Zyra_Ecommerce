@@ -171,9 +171,18 @@ window.ZyraSeller = {
     },
 
     buildProductFormData(data) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const formData = new FormData();
+        formData.append('_token', csrfToken);
         formData.append('name', data.name || '');
         formData.append('category', data.category || '');
+        formData.append('subcategory', data.subcategory || '');
+        formData.append('price', data.price ?? '');
+        formData.append('old_price', data.old_price ?? '');
+        formData.append('stock_units', data.stock_units ?? 0);
+        formData.append('sku', data.sku || '');
+        formData.append('material', data.material || '');
+        formData.append('description', data.description || '');
         formData.append('subcategory', data.subcategory || '');
         formData.append('price', data.price ?? '');
         formData.append('old_price', data.old_price ?? '');
@@ -219,7 +228,8 @@ window.ZyraSeller = {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: this.buildProductFormData(data)
         })
@@ -271,11 +281,12 @@ window.ZyraSeller = {
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating in Database...';
         }
 
-        fetch(`/seller/products/${id}`, {
+        fetch(`/seller/products/${id}/update`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: this.buildProductFormData(data)
         })
@@ -985,10 +996,14 @@ window.ZyraSeller = {
 
     initEditProductPage() {
         const form = document.getElementById('sellerEditProductForm');
+        if (form) {
+            form.addEventListener('submit', (e) => e.preventDefault());
+        }
+
         const urlParams = window.location.pathname.split('/');
         const id = urlParams[urlParams.indexOf('products') + 1];
 
-        const product = this.getProductById(id);
+        const product = window.ZYRA_EDIT_PRODUCT || this.getProductById(id);
         if (!product) {
             if (window.ZyraApp) window.ZyraApp.showToast('Product not found', 'danger');
             return;

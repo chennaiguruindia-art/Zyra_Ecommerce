@@ -18,6 +18,10 @@ use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicStorageController;
 
+Route::get('/media/{path}', [PublicStorageController::class, 'show'])
+    ->where('path', '.*')
+    ->name('media.public');
+
 Route::get('/storage/{path}', [PublicStorageController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.public');
@@ -47,7 +51,7 @@ Route::prefix('seller')->name('seller.')->group(function () {
     Route::get('/api/products', [SellerController::class, 'apiProducts'])->name('api.products');
     Route::get('/api/orders', [SellerController::class, 'apiOrders'])->name('api.orders');
     Route::post('/products', [SellerController::class, 'storeProduct'])->name('products.store');
-    Route::post('/products/{id}', [SellerController::class, 'updateProduct'])->name('products.update');
+    Route::post('/products/{id}/update', [SellerController::class, 'updateProduct'])->name('products.update');
     Route::post('/products/{id}/delete', [SellerController::class, 'destroyProduct'])->name('products.destroy');
     Route::post('/products/{id}/inventory', [SellerController::class, 'updateInventory'])->name('products.inventory');
     Route::post('/orders/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('orders.status');

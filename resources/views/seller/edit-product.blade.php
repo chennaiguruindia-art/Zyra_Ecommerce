@@ -6,6 +6,7 @@
 @push('scripts')
 <script>
     window.ZyraSeller.page = 'edit-product';
+    window.ZYRA_EDIT_PRODUCT = @json($product);
 </script>
 @endpush
 
@@ -21,7 +22,8 @@
     </a>
 </div>
 
-<form id="sellerEditProductForm" novalidate>
+<form id="sellerEditProductForm" method="POST" action="{{ route('seller.products.update', $productId) }}" enctype="multipart/form-data" novalidate>
+    @csrf
     <div class="row g-4">
         
         <!-- Left: Product Details Inputs -->

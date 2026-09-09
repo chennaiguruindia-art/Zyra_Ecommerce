@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
 use Throwable;
 
 class ProductImageStorage
@@ -84,19 +83,18 @@ class ProductImageStorage
 
         $path = str_replace('\\', '/', ltrim($path, '/'));
 
-        if (str_starts_with($path, 'uploads/') || str_starts_with($path, 'images/')) {
+        if (str_starts_with($path, 'images/')) {
             return asset($path);
         }
 
-        if (str_starts_with($path, 'storage/')) {
-            return asset($path);
+        foreach (['storage/', 'uploads/', 'media/'] as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $path = substr($path, strlen($prefix));
+                break;
+            }
         }
 
-        if (is_file(public_path('uploads/' . $path))) {
-            return asset('uploads/' . $path);
-        }
-
-        return asset('storage/' . $path);
+        return url('/media/' . ltrim($path, '/'));
     }
 
     /**
@@ -109,6 +107,7 @@ class ProductImageStorage
 
         foreach ([
             public_path('uploads/' . $relative),
+            public_path('media/' . $relative),
             storage_path('app/public/' . $relative),
             public_path('storage/' . $relative),
         ] as $destination) {
@@ -152,6 +151,7 @@ class ProductImageStorage
         }
 
         $candidates = [
+            public_path('media/' . $path),
             public_path('uploads/' . $path),
             storage_path('app/public/' . $path),
             public_path('storage/' . $path),

@@ -97,7 +97,7 @@
     <script src="{{ asset('js/products.js') }}"></script>
     <script src="{{ asset('js/cart.js') }}"></script>
     <script src="{{ asset('js/app.js') }}"></script>
-    <script src="{{ asset('js/seller.js') }}?v=20260909a"></script>
+    <script src="{{ asset('js/seller.js') }}?v=20260909b"></script>
 
     @stack('scripts')
 </body>

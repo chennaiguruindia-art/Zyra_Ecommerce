@@ -16,6 +16,7 @@ class PublicStorageController extends Controller
         }
 
         $baseRoots = [
+            realpath(public_path('media')),
             realpath(public_path('uploads')),
             realpath(storage_path('app/public')),
             realpath(public_path('storage')),

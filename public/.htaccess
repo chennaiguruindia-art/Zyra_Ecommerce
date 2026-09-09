@@ -5,8 +5,8 @@
 
     RewriteEngine On
 
-    # Plesk/IIS: /storage is often a real folder (Laravel storage/), so always
-    # send those image URLs to Laravel to serve storage/app/public files.
+    # Serve product images through Laravel (avoid Plesk /storage folder clash).
+    RewriteRule ^media/ index.php [L]
     RewriteRule ^storage/ index.php [L]
 
     # Handle Authorization Header
