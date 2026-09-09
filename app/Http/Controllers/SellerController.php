@@ -218,6 +218,8 @@ class SellerController extends Controller
             'sizes' => 'nullable|array',
             'colors' => 'nullable|array',
             'images' => 'nullable|array|max:4',
+            'image_names' => 'nullable|array|max:4',
+            'image_names.*' => 'nullable|string|max:255',
         ])->validate();
     }
 
@@ -254,9 +256,19 @@ class SellerController extends Controller
         $discount = ($oldPrice && $oldPrice > $price) ? (int) round((($oldPrice - $price) / $oldPrice) * 100) : 0;
 
         $images = $data['images'] ?? [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $file) {
+                if ($file) {
+                    $images[$index] = $file;
+                }
+            }
+        }
+
+        $imageNames = $data['image_names'] ?? $request->input('image_names', []);
         $storedPaths = [];
         foreach ($images as $index => $image) {
-            $path = ProductImageStorage::store($image, 'products', $index);
+            $originalName = is_array($imageNames) ? ($imageNames[$index] ?? null) : null;
+            $path = ProductImageStorage::store($image, 'products', $index, $originalName);
             if ($path) {
                 $storedPaths[] = $path;
             }

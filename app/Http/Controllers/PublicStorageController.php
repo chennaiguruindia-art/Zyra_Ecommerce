@@ -2,29 +2,40 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ProductImageStorage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PublicStorageController extends Controller
 {
     public function show(string $path): BinaryFileResponse
     {
-        $path = str_replace('\\', '/', $path);
+        $file = ProductImageStorage::resolveOnDisk($path);
 
-        if ($path === '' || str_contains($path, '..')) {
+        if (!$file) {
             abort(404);
         }
 
-        $base = realpath(storage_path('app/public'));
-        $file = realpath(storage_path('app/public/' . $path));
+        $baseRoots = [
+            realpath(public_path('uploads')),
+            realpath(storage_path('app/public')),
+            realpath(public_path('storage')),
+            realpath(public_path()),
+        ];
 
-        $baseCheck = $base;
-        $fileCheck = $file;
-        if (PHP_OS_FAMILY === 'Windows') {
-            $baseCheck = $base ? strtolower($base) : false;
-            $fileCheck = $file ? strtolower($file) : false;
+        $fileCheck = PHP_OS_FAMILY === 'Windows' ? strtolower($file) : $file;
+        $allowed = false;
+        foreach ($baseRoots as $base) {
+            if (!$base) {
+                continue;
+            }
+            $baseCheck = PHP_OS_FAMILY === 'Windows' ? strtolower($base) : $base;
+            if (str_starts_with($fileCheck, rtrim($baseCheck, '\\/') . DIRECTORY_SEPARATOR) || $fileCheck === $baseCheck) {
+                $allowed = true;
+                break;
+            }
         }
 
-        if (!$baseCheck || !$fileCheck || !str_starts_with($fileCheck, $baseCheck) || !is_file($file)) {
+        if (!$allowed) {
             abort(404);
         }
 

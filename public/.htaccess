@@ -5,6 +5,10 @@
 
     RewriteEngine On
 
+    # Plesk/IIS: /storage is often a real folder (Laravel storage/), so always
+    # send those image URLs to Laravel to serve storage/app/public files.
+    RewriteRule ^storage/ index.php [L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

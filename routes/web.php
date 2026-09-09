@@ -22,6 +22,10 @@ Route::get('/storage/{path}', [PublicStorageController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.public');
 
+Route::get('/uploads/{path}', [PublicStorageController::class, 'show'])
+    ->where('path', '.*')
+    ->name('uploads.public');
+
 Route::middleware('auth')->get('/dashboard', function () {
     $user = Auth::user();
     if ($user instanceof User && $user->isSeller()) {

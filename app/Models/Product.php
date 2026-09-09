@@ -68,10 +68,7 @@ class Product extends Model
 
     public function getImageUrlAttribute(): string
     {
-        if ($this->image && str_starts_with($this->image, 'http')) {
-            return $this->image;
-        }
-        return $this->image ? asset('storage/' . $this->image) : asset('images/placeholder.jpg');
+        return \App\Support\ProductImageStorage::url($this->image);
     }
 
     public function getSizeNamesAttribute(): array
@@ -92,8 +89,7 @@ class Product extends Model
     public function getGalleryUrlsAttribute(): array
     {
         return $this->images->map(function ($img) {
-            if (str_starts_with($img->image_path, 'http')) return $img->image_path;
-            return asset('storage/' . $img->image_path);
+            return \App\Support\ProductImageStorage::url($img->image_path);
         })->toArray();
     }
 

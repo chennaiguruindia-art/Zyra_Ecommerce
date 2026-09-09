@@ -26,9 +26,6 @@ class OrderItem extends Model
 
     public function getImageUrlAttribute(): string
     {
-        if ($this->product_image && str_starts_with($this->product_image, 'http')) {
-            return $this->product_image;
-        }
-        return $this->product_image ? asset('storage/' . $this->product_image) : asset('images/placeholder.jpg');
+        return \App\Support\ProductImageStorage::url($this->product_image);
     }
 }

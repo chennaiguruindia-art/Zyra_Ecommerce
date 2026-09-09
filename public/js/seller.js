@@ -12,6 +12,7 @@ window.ZyraSeller = {
 
     // Multi-Image state (Max 4)
     currentImages: [],
+    currentImageFiles: [],
     MAX_IMAGES: 4,
 
     // Dynamic Colors state
@@ -169,6 +170,43 @@ window.ZyraSeller = {
         return products.find(p => p.id === parseInt(id)) || null;
     },
 
+    buildProductFormData(data) {
+        const formData = new FormData();
+        formData.append('name', data.name || '');
+        formData.append('category', data.category || '');
+        formData.append('subcategory', data.subcategory || '');
+        formData.append('price', data.price ?? '');
+        formData.append('old_price', data.old_price ?? '');
+        formData.append('stock_units', data.stock_units ?? 0);
+        formData.append('sku', data.sku || '');
+        formData.append('material', data.material || '');
+        formData.append('description', data.description || '');
+
+        (data.sizes && data.sizes.length ? data.sizes : ['S', 'M', 'L']).forEach((size) => {
+            formData.append('sizes[]', size);
+        });
+        (data.colors && data.colors.length ? data.colors : ['Pink', 'White']).forEach((color) => {
+            formData.append('colors[]', color);
+        });
+
+        const images = (data.images && data.images.length > 0)
+            ? data.images.slice(0, this.MAX_IMAGES)
+            : this.currentImages.slice(0, this.MAX_IMAGES);
+
+        images.forEach((img, index) => {
+            const file = this.currentImageFiles[index];
+            if (file instanceof File) {
+                formData.append(`images[${index}]`, file, file.name);
+                formData.append(`image_names[${index}]`, file.name);
+            } else if (img && !String(img).startsWith('blob:')) {
+                formData.append(`images[${index}]`, img);
+                formData.append(`image_names[${index}]`, '');
+            }
+        });
+
+        return formData;
+    },
+
     addProduct(data) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const submitBtn = document.querySelector('button[type="submit"]');
@@ -177,33 +215,13 @@ window.ZyraSeller = {
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Publishing to Store...';
         }
 
-        const productImages = (data.images && data.images.length > 0)
-            ? data.images.slice(0, this.MAX_IMAGES)
-            : [data.image || 'https://images.unsplash.com/photo-1534126511673-b6899657816a?auto=format&fit=crop&w=800&q=80'];
-
-        const payload = {
-            name: data.name,
-            category: data.category,
-            subcategory: data.subcategory || '',
-            price: parseFloat(data.price) || 0,
-            old_price: data.old_price ? parseFloat(data.old_price) : null,
-            stock_units: parseInt(data.stock_units) || 0,
-            sku: data.sku || '',
-            material: data.material || '',
-            description: data.description || '',
-            sizes: data.sizes && data.sizes.length ? data.sizes : ['S', 'M', 'L'],
-            colors: data.colors && data.colors.length ? data.colors : ['Pink', 'White'],
-            images: productImages
-        };
-
         fetch('/seller/products', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': csrfToken
             },
-            body: JSON.stringify(payload)
+            body: this.buildProductFormData(data)
         })
         .then(res => res.text().then(text => ({ res, text })))
         .then(({ res, text }) => {
@@ -253,33 +271,13 @@ window.ZyraSeller = {
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating in Database...';
         }
 
-        const productImages = (data.images && data.images.length > 0)
-            ? data.images.slice(0, this.MAX_IMAGES)
-            : (data.image ? [data.image] : []);
-
-        const payload = {
-            name: data.name,
-            category: data.category,
-            subcategory: data.subcategory || '',
-            price: parseFloat(data.price) || 0,
-            old_price: data.old_price ? parseFloat(data.old_price) : null,
-            stock_units: parseInt(data.stock_units) || 0,
-            sku: data.sku || '',
-            material: data.material || '',
-            description: data.description || '',
-            sizes: data.sizes && data.sizes.length ? data.sizes : ['S', 'M', 'L'],
-            colors: data.colors && data.colors.length ? data.colors : ['Pink', 'White'],
-            images: productImages
-        };
-
         fetch(`/seller/products/${id}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': csrfToken
             },
-            body: JSON.stringify(payload)
+            body: this.buildProductFormData(data)
         })
         .then(res => res.text().then(text => ({ res, text })))
         .then(({ res, text }) => {
@@ -482,6 +480,7 @@ window.ZyraSeller = {
         }
 
         this.currentImages.push(urlOrData.trim());
+        this.currentImageFiles.push(null);
         this.renderImagesGrid();
         if (window.ZyraApp) {
             window.ZyraApp.showToast(`Image ${this.currentImages.length} added!`, 'success');
@@ -491,6 +490,7 @@ window.ZyraSeller = {
     removeImage(index) {
         if (index >= 0 && index < this.currentImages.length) {
             this.currentImages.splice(index, 1);
+            this.currentImageFiles.splice(index, 1);
             this.renderImagesGrid();
             if (window.ZyraApp) {
                 window.ZyraApp.showToast('Image removed.', 'info');
@@ -513,12 +513,13 @@ window.ZyraSeller = {
         const filesToProcess = files.slice(0, remainingSlots);
 
         filesToProcess.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                this.addImage(e.target.result);
-            };
-            reader.readAsDataURL(file);
+            this.currentImages.push(URL.createObjectURL(file));
+            this.currentImageFiles.push(file);
         });
+        this.renderImagesGrid();
+        if (window.ZyraApp) {
+            window.ZyraApp.showToast(`${filesToProcess.length} image(s) added!`, 'success');
+        }
 
         // Reset input
         event.target.value = '';
@@ -916,6 +917,7 @@ window.ZyraSeller = {
         this.currentImages = [
             'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
         ];
+        this.currentImageFiles = [null];
         this.renderImagesGrid();
 
         // Initialize colors list
@@ -1015,6 +1017,7 @@ window.ZyraSeller = {
 
         // Load images
         this.currentImages = product.images && product.images.length ? [...product.images.slice(0, this.MAX_IMAGES)] : [product.image];
+        this.currentImageFiles = this.currentImages.map(() => null);
         this.renderImagesGrid();
 
         // Load colors

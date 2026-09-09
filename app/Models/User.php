@@ -43,7 +43,7 @@ class User extends Authenticatable
             return null;
         }
 
-        return asset('storage/' . $this->avatar);
+        return \App\Support\ProductImageStorage::url($this->avatar);
     }
 
     /**

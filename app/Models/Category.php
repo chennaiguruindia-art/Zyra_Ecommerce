@@ -23,10 +23,7 @@ class Category extends Model
 
     public function getImageUrlAttribute(): string
     {
-        if ($this->image && str_starts_with($this->image, 'http')) {
-            return $this->image;
-        }
-        return $this->image ? asset('storage/' . $this->image) : asset('images/placeholder-category.jpg');
+        return \App\Support\ProductImageStorage::url($this->image, 'images/placeholder-category.jpg');
     }
 
     public function scopeActive($query)

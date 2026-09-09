@@ -15,10 +15,7 @@ class Banner extends Model
 
     public function getImageUrlAttribute(): string
     {
-        if ($this->image && str_starts_with($this->image, 'http')) {
-            return $this->image;
-        }
-        return $this->image ? asset('storage/' . $this->image) : asset('images/placeholder.jpg');
+        return \App\Support\ProductImageStorage::url($this->image);
     }
 
     public function scopeActive($query)
