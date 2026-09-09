@@ -273,7 +273,7 @@ window.ZyraSeller = {
         };
 
         fetch(`/seller/products/${id}`, {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -329,8 +329,8 @@ window.ZyraSeller = {
         if (!confirm('Are you sure you want to remove this product from your store and database?')) return;
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        fetch(`/seller/products/${id}`, {
-            method: 'DELETE',
+        fetch(`/seller/products/${id}/delete`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
