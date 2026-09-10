@@ -160,6 +160,10 @@ window.ZyraSeller = {
         })
         .then(res => res.text().then(text => ({ res, text })))
         .then(({ res, text }) => {
+            if (res.status === 413 || (text && text.includes('too large'))) {
+                throw new Error('The uploaded images are too large for the server. Images have been automatically compressed, but please try selecting fewer or smaller images.');
+            }
+
             let resData = null;
             try {
                 resData = text ? JSON.parse(text) : null;
@@ -217,6 +221,10 @@ window.ZyraSeller = {
         })
         .then(res => res.text().then(text => ({ res, text })))
         .then(({ res, text }) => {
+            if (res.status === 413 || (text && text.includes('too large'))) {
+                throw new Error('The uploaded images are too large for the server. Images have been automatically compressed, but please try selecting fewer or smaller images.');
+            }
+
             let resData = null;
             try {
                 resData = text ? JSON.parse(text) : null;
@@ -475,7 +483,61 @@ window.ZyraSeller = {
         }
     },
 
-    handleFileInput(event) {
+    compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.85) {
+        return new Promise((resolve) => {
+            if (!file || !file.type || !file.type.startsWith('image/')) {
+                return resolve(file);
+            }
+            // If already small (< 400KB), keep original
+            if (file.size <= 400 * 1024) {
+                return resolve(file);
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        if (width > height) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        } else {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob && blob.size < file.size) {
+                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                            const compressedFile = new File([blob], newName, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(file);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(file);
+            reader.readAsDataURL(file);
+        });
+    },
+
+    async handleFileInput(event) {
         const files = Array.from(event.target.files);
         if (!files.length) return;
 
@@ -488,14 +550,19 @@ window.ZyraSeller = {
         }
 
         const filesToProcess = files.slice(0, remainingSlots);
+        if (window.ZyraApp) {
+            window.ZyraApp.showToast('Optimizing images for fast upload...', 'info');
+        }
 
-        filesToProcess.forEach(file => {
-            this.currentImages.push(URL.createObjectURL(file));
-            this.currentImageFiles.push(file);
-        });
+        for (const file of filesToProcess) {
+            const optimized = await this.compressImage(file);
+            this.currentImages.push(URL.createObjectURL(optimized));
+            this.currentImageFiles.push(optimized);
+        }
+
         this.renderImagesGrid();
         if (window.ZyraApp) {
-            window.ZyraApp.showToast(`${filesToProcess.length} image(s) added!`, 'success');
+            window.ZyraApp.showToast(`${filesToProcess.length} image(s) ready!`, 'success');
         }
 
         // Reset input

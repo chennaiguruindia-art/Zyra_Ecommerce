@@ -22,5 +22,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, $request) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The uploaded images exceed the maximum allowed size on this server. Please upload smaller images.',
+                ], 413);
+            }
+
+            return back()->with('error', 'The uploaded images exceed the maximum allowed size.');
+        });
     })->create();
