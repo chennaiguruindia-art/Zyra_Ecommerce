@@ -181,7 +181,7 @@ const ZyraSearch = {
                                 ${p.badge ? `<span class="badge-zyra-${p.badge.toLowerCase().replace(/\s+/g, '')}">${p.badge}</span>` : ''}
                                 ${p.discount ? `<span class="badge-zyra-discount">${p.discount}% OFF</span>` : ''}
                             </div>
-                            <button type="button" class="zyra-wishlist-btn" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Add to Wishlist">
+                            <button type="button" class="zyra-wishlist-btn" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Love it" aria-label="Love it">
                                 <i class="bi bi-heart"></i>
                             </button>
                             <div class="zyra-card-actions">

@@ -32,7 +32,7 @@
         </div>
 
         <!-- Wishlist Button -->
-        <button type="button" class="zyra-wishlist-btn" data-product-id="{{ $id }}" onclick="ZyraWishlist.toggleWishlist({{ $id }}, this)" title="Add to Wishlist">
+        <button type="button" class="zyra-wishlist-btn" data-product-id="{{ $id }}" onclick="ZyraWishlist.toggleWishlist({{ $id }}, this)" title="Love it" aria-label="Love it">
             <i class="bi bi-heart"></i>
         </button>
 

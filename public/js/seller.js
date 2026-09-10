@@ -483,13 +483,14 @@ window.ZyraSeller = {
         }
     },
 
-    compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.85) {
+    compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.72) {
         return new Promise((resolve) => {
             if (!file || !file.type || !file.type.startsWith('image/')) {
                 return resolve(file);
             }
-            // If already small (< 400KB), keep original
-            if (file.size <= 400 * 1024) {
+            // Keep uploaded files below common hosting limits.
+            const targetBytes = 700 * 1024;
+            if (file.size <= targetBytes) {
                 return resolve(file);
             }
 
@@ -516,18 +517,27 @@ window.ZyraSeller = {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    canvas.toBlob((blob) => {
-                        if (blob && blob.size < file.size) {
-                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                    const newName = file.name.replace(/\.[^/.]+$/, '') + '.jpg';
+                    const encode = (width, height, encodeQuality) => {
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        canvas.toBlob((blob) => {
+                            if (!blob) return resolve(file);
+
+                            if (blob.size > targetBytes && encodeQuality > 0.5) {
+                                return encode(Math.round(width * 0.75), Math.round(height * 0.75), 0.5);
+                            }
+
                             const compressedFile = new File([blob], newName, {
                                 type: 'image/jpeg',
                                 lastModified: Date.now(),
                             });
-                            resolve(compressedFile);
-                        } else {
-                            resolve(file);
-                        }
-                    }, 'image/jpeg', quality);
+                            resolve(compressedFile.size < file.size ? compressedFile : file);
+                        }, 'image/jpeg', encodeQuality);
+                    };
+
+                    encode(width, height, quality);
                 };
                 img.onerror = () => resolve(file);
                 img.src = e.target.result;

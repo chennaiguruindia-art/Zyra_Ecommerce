@@ -184,7 +184,7 @@
                 </button>
 
                 <!-- Wishlist Toggle -->
-                <button type="button" class="btn btn-outline-dark p-2 px-3 zyra-wishlist-btn position-static" data-product-id="{{ $product['id'] }}" onclick="ZyraWishlist.toggleWishlist({{ $product['id'] }}, this)" title="Add to Wishlist">
+                <button type="button" class="btn btn-outline-dark p-2 px-3 zyra-wishlist-btn position-static" data-product-id="{{ $product['id'] }}" onclick="ZyraWishlist.toggleWishlist({{ $product['id'] }}, this)" title="Love it" aria-label="Love it">
                     <i class="bi bi-heart fs-5"></i>
                 </button>
             </div>

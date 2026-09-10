@@ -104,12 +104,16 @@ const ZyraWishlist = {
             const icon = btn.querySelector('i');
             if (list.includes(id)) {
                 btn.classList.add('active');
+                btn.title = 'Loved';
+                btn.setAttribute('aria-label', 'Loved');
                 if (icon) {
                     icon.classList.remove('bi-heart');
                     icon.classList.add('bi-heart-fill');
                 }
             } else {
                 btn.classList.remove('active');
+                btn.title = 'Love it';
+                btn.setAttribute('aria-label', 'Love it');
                 if (icon) {
                     icon.classList.remove('bi-heart-fill');
                     icon.classList.add('bi-heart');
@@ -190,7 +194,7 @@ const ZyraWishlist = {
                             <div class="zyra-badge-stack">
                                 ${p.discount ? `<span class="badge-zyra-discount">${p.discount}% OFF</span>` : ''}
                             </div>
-                            <button type="button" class="zyra-wishlist-btn active" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Remove from Wishlist">
+                            <button type="button" class="zyra-wishlist-btn active" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Loved" aria-label="Loved">
                                 <i class="bi bi-heart-fill"></i>
                             </button>
                         </div>
