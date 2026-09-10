@@ -16,6 +16,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\GlobalSettingController;
 use App\Http\Controllers\InstagramController;
 use App\Http\Controllers\SellerController;
+use App\Http\Controllers\QueryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicStorageController;
 
@@ -58,6 +59,9 @@ Route::prefix('seller')->name('seller.')->group(function () {
     Route::post('/orders/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('orders.status');
     Route::post('/orders/{id}/tracking', [SellerController::class, 'updateOrderTracking'])->name('orders.tracking');
 });
+
+Route::get('/query', [QueryController::class, 'index'])->name('queries');
+Route::post('/query/{id}/status', [QueryController::class, 'updateStatus'])->name('queries.status');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/catalog.json', [CatalogController::class, 'json'])->name('catalog.json');
@@ -117,6 +121,7 @@ Route::get('/search/live', [SearchController::class, 'live'])->name('search.live
 
 Route::get('/about', fn () => view('about'))->name('about');
 Route::get('/contact', fn () => view('contact'))->name('contact');
+Route::post('/contact', [QueryController::class, 'store'])->name('contact.submit');
 Route::get('/faq', fn () => view('faq'))->name('faq');
 
 Route::middleware('auth')->group(function () {

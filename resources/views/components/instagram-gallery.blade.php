@@ -71,7 +71,7 @@
 
 @if ($showHeading)
     <div class="text-center mb-4">
-        <span class="text-uppercase small fw-bold text-muted">Tag Us @zyralifestyle46</span>
+        <span class="text-uppercase small fw-bold text-muted">Tag Us @zyraofficial46</span>
         <h2 class="display-6 fw-bold mt-1">Fashion Gallery</h2>
         <p class="text-muted small">Share your style moments using #ZyraWoman</p>
     </div>

@@ -60,6 +60,28 @@
         <h5 class="mb-0 fw-bold"><i class="bi bi-truck me-2 text-muted"></i>Customer Order Stream</h5>
         <small class="text-muted">Change status dropdown to trigger automatic fulfillment updates</small>
     </div>
+    <div class="seller-card-body p-3 border-bottom">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" id="sellerOrderSearch" class="form-control" placeholder="Search by Order ID or customer..." oninput="ZyraSeller.renderSalesPage()">
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <select id="sellerOrderStatusFilter" class="form-select form-select-sm" onchange="ZyraSeller.renderSalesPage()">
+                    <option value="all" selected>All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                </select>
+            </div>
+            <div class="col-lg-3 text-md-end">
+                <small class="text-muted" id="sellerOrdersResultCount"></small>
+            </div>
+        </div>
+    </div>
     <div class="seller-card-body p-0">
         <div class="table-responsive">
             <table class="table seller-table">

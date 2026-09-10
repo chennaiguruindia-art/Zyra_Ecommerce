@@ -12,10 +12,10 @@
                     Redefining modern Indian women's everyday wardrobe with timeless silhouettes, breathable fabrics, and effortless elegance.
                 </p>
                 <div class="zyra-social-links">
-                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" title="Instagram"><i class="bi bi-instagram"></i></a>
-                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" title="Facebook"><i class="bi bi-facebook"></i></a>
-                    <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" title="YouTube"><i class="bi bi-youtube"></i></a>
-                    <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" title="Pinterest"><i class="bi bi-pinterest"></i></a>
+                    <a href="https://www.instagram.com/zyraofficial46/" target="_blank" rel="noopener noreferrer" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://www.facebook.com/profile.php?id=61591489273734" target="_blank" rel="noopener noreferrer" title="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.youtube.com/@ZyraOfficial46" target="_blank" rel="noopener noreferrer" title="YouTube"><i class="bi bi-youtube"></i></a>
+                    <a href="https://in.pinterest.com/Zyraofficial46/" target="_blank" rel="noopener noreferrer" title="Pinterest"><i class="bi bi-pinterest"></i></a>
                 </div>
             </div>
 
@@ -60,7 +60,7 @@
                     </div>
                 </form>
                 <div class="small text-muted">
-                    <i class="bi bi-envelope me-1"></i> order@shipwithzyra.in &nbsp;|&nbsp; <i class="bi bi-telephone me-1"></i> +91 9884125555
+                    <i class="bi bi-envelope me-1"></i> hello@shopwithzyra.in &nbsp;|&nbsp; <i class="bi bi-telephone me-1"></i> +91 9884125555
                 </div>
             </div>
 

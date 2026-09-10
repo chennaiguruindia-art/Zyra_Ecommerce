@@ -826,18 +826,42 @@ window.ZyraSeller = {
 
     renderSalesPage() {
         const tableBody = document.getElementById('sellerOrdersTableBody');
-        const orders = this.getOrders();
+        let orders = this.getOrders();
 
-        const totalSales = orders.reduce((acc, o) => acc + o.total, 0);
-        const deliveredOrders = orders.filter(o => o.status === 'Delivered').length;
+        const searchInput = document.getElementById('sellerOrderSearch');
+        const statusFilter = document.getElementById('sellerOrderStatusFilter');
+        const resultCount = document.getElementById('sellerOrdersResultCount');
+
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const status = statusFilter ? statusFilter.value : 'all';
+
+        if (query) {
+            orders = orders.filter(o =>
+                String(o.id || '').toLowerCase().includes(query) ||
+                String(o.customer || '').toLowerCase().includes(query) ||
+                String(o.phone || '').toLowerCase().includes(query) ||
+                String(o.db_id || '').includes(query)
+            );
+        }
+
+        if (status !== 'all') {
+            orders = orders.filter(o => (o.status || '').toLowerCase() === status.toLowerCase());
+        }
+
+        const totalSales = this.getOrders().reduce((acc, o) => acc + o.total, 0);
+        const deliveredOrders = this.getOrders().filter(o => o.status === 'Delivered').length;
 
         const elRev = document.getElementById('salesTotalRevenue');
         const elOrders = document.getElementById('salesTotalOrders');
         const elDelivered = document.getElementById('salesDeliveredOrders');
 
         if (elRev) elRev.textContent = `₹${totalSales.toLocaleString('en-IN')}`;
-        if (elOrders) elOrders.textContent = orders.length;
+        if (elOrders) elOrders.textContent = this.getOrders().length;
         if (elDelivered) elDelivered.textContent = deliveredOrders;
+
+        if (resultCount) {
+            resultCount.textContent = `${orders.length} of ${this.getOrders().length} orders`;
+        }
 
         if (!tableBody) return;
 
@@ -874,6 +898,11 @@ window.ZyraSeller = {
                 </tr>
             `;
         });
+
+        if (orders.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No orders found matching your search.</td></tr>`;
+            return;
+        }
 
         tableBody.innerHTML = html;
     },

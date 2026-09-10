@@ -15,7 +15,7 @@
                 $heroBadge = $heroBanner?->badge ?? 'New Season Arrival 2026';
                 $heroLink = $heroBanner?->link ?? route('shop');
                 $heroBtnText = $heroBanner?->button_text ?? 'SHOP NOW';
-                $heroImg = $heroBanner?->image_url ?? 'https://i.pinimg.com/736x/00/11/6c/00116cca1c103440bdcbbae2dea0deb4.jpg';
+                $heroImg = $heroBanner?->image_url ?? 'https://i.pinimg.com/736x/79/7e/5b/797e5bc63ee0fa88895b1feccf6f188c.jpg';
             @endphp
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <span class="zyra-hero-tag">{{ $heroBadge }}</span>

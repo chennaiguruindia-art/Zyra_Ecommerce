@@ -31,6 +31,11 @@
             </a>
         </li>
         <li class="seller-nav-item">
+            <a href="{{ route('queries') }}" class="seller-nav-link {{ request()->routeIs('queries') ? 'active' : '' }}">
+                <i class="bi bi-chat-left-text me-2"></i> Customer Queries
+            </a>
+        </li>
+        <li class="seller-nav-item">
             <a href="{{ route('seller.analytics') }}" class="seller-nav-link {{ request()->routeIs('seller.analytics') ? 'active' : '' }}">
                 <i class="bi bi-graph-up-arrow me-2"></i> Analytics
             </a>
