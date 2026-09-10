@@ -141,6 +141,10 @@ window.ZyraSeller = {
         return formData;
     },
 
+    inputValue(id, fallback = '') {
+        return document.getElementById(id)?.value ?? fallback;
+    },
+
     addProduct(data) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const submitBtn = document.querySelector('button[type="submit"]');
@@ -1088,17 +1092,17 @@ window.ZyraSeller = {
             if (stockInput && Object.keys(sizeStock).length) stockInput.value = totalStock;
 
             const data = {
-                name: document.getElementById('productNameInput').value.trim(),
-                category: document.getElementById('productCategoryInput').value,
-                subcategory: document.getElementById('productSubcategoryInput').value.trim() || 'Casual Wear',
-                price: document.getElementById('productPriceInput').value,
-                old_price: document.getElementById('productOldPriceInput').value,
-                stock_units: document.getElementById('productStockInput').value,
+                name: this.inputValue('productNameInput').trim(),
+                category: this.inputValue('productCategoryInput'),
+                subcategory: this.inputValue('productSubcategoryInput').trim() || 'Casual Wear',
+                price: this.inputValue('productPriceInput'),
+                old_price: this.inputValue('productOldPriceInput'),
+                stock_units: this.inputValue('productStockInput'),
                 weight: document.getElementById('productWeightInput')?.value || '',
-                sku: document.getElementById('productSkuInput').value.trim(),
+                sku: this.inputValue('productSkuInput').trim(),
                 images: [...this.currentImages],
-                material: document.getElementById('productMaterialInput').value.trim(),
-                description: document.getElementById('productDescriptionInput').value.trim(),
+                material: this.inputValue('productMaterialInput').trim(),
+                description: this.inputValue('productDescriptionInput').trim(),
                 sizes: checkedSizes.length ? checkedSizes : ['S', 'M', 'L'],
                 size_stock: sizeStock,
                 colors: this.selectedColors.length ? this.selectedColors : ['Pink', 'White']
