@@ -1023,11 +1023,9 @@ window.ZyraSeller = {
         if (!form || form.dataset.initialized === 'true') return;
         form.dataset.initialized = 'true';
 
-        // Initialize multi-images with a starter cover image
-        this.currentImages = [
-            'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
-        ];
-        this.currentImageFiles = [null];
+        // Start with empty slots so the first uploaded image becomes the cover.
+        this.currentImages = [];
+        this.currentImageFiles = [];
         this.renderImagesGrid();
 
         // Initialize colors list
