@@ -1132,7 +1132,7 @@ window.ZyraSeller = {
                     price: priceInput.value,
                     old_price: oldPriceInput.value,
                     stock_units: stockInput.value,
-                    weight: document.getElementById('productWeightInput').value,
+                    weight: document.getElementById('productWeightInput')?.value || '',
                     sku: skuInput.value.trim(),
                     images: [...this.currentImages],
                     material: matInput.value.trim(),

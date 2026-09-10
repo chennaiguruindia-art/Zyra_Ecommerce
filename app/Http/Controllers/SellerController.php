@@ -351,8 +351,10 @@ class SellerController extends Controller
             }
         }
 
-        $sizeNames = $data['sizes'] ?? ['S', 'M', 'L'];
-        $sizeStock = $data['size_stock'] ?? [];
+        $sizeNames = array_values(array_filter((array) ($data['sizes'] ?? ['S', 'M', 'L'])));
+        $sizeStock = collect((array) ($data['size_stock'] ?? []))
+            ->mapWithKeys(fn ($stock, $size) => [$size => max(0, (int) $stock)])
+            ->all();
         $sizeIds = [];
         $sizePivots = [];
         $computedStock = null;
@@ -368,7 +370,7 @@ class SellerController extends Controller
             }
         }
 
-        if (!empty($sizePivots)) {
+        if ($sizeNames && $sizeStock) {
             $product->sizes()->sync($sizePivots);
             $computedStock = array_sum(array_column($sizePivots, 'stock'));
             $product->stock_units = $computedStock;
