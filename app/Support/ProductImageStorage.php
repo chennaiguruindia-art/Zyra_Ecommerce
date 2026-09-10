@@ -10,8 +10,20 @@ class ProductImageStorage
     public static function store(mixed $source, string $directory = 'products', int $index = 0, ?string $originalName = null): ?string
     {
         $directory = trim(str_replace('\\', '/', $directory), '/');
+        if ($directory === '') {
+            $directory = 'products';
+        }
 
         if ($source instanceof UploadedFile) {
+            if (!$source->isValid()) {
+                return null;
+            }
+
+            $realPath = $source->getRealPath();
+            if (!$realPath || !is_file($realPath) || is_dir($realPath)) {
+                return null;
+            }
+
             $filename = static::uniqueOriginalName(
                 $source->getClientOriginalName() ?: $originalName,
                 $directory,
@@ -19,15 +31,20 @@ class ProductImageStorage
                 $source->getClientOriginalExtension()
             );
             $relative = $directory . '/' . $filename;
-            $binary = file_get_contents($source->getRealPath());
-            if ($binary === false || !static::writePublicFile($relative, $binary)) {
+            $binary = @file_get_contents($realPath);
+            if ($binary === false || $binary === '' || !static::writePublicFile($relative, $binary)) {
                 return null;
             }
 
             return $relative;
         }
 
-        if (!is_string($source) || $source === '') {
+        if (!is_string($source) || trim($source) === '') {
+            return null;
+        }
+
+        $source = trim($source);
+        if ($source === '/' || $source === '\\' || $source === '.' || $source === '..') {
             return null;
         }
 
@@ -46,7 +63,7 @@ class ProductImageStorage
             }
 
             $binary = base64_decode(substr($source, strpos($source, ',') + 1));
-            if ($binary === false) {
+            if ($binary === false || $binary === '') {
                 return null;
             }
 
@@ -68,12 +85,16 @@ class ProductImageStorage
             $relative = substr($relative, strlen('storage/'));
         }
 
+        if ($relative === '' || $relative === 'public' || is_dir(public_path($relative))) {
+            return null;
+        }
+
         return $relative;
     }
 
     public static function url(?string $path, string $placeholder = 'images/placeholder.jpg'): string
     {
-        if (!$path) {
+        if (!$path || trim($path) === '' || trim($path) === '/') {
             return asset($placeholder);
         }
 
@@ -103,6 +124,10 @@ class ProductImageStorage
     public static function writePublicFile(string $relative, string $binary): bool
     {
         $relative = str_replace('\\', '/', ltrim($relative, '/'));
+        if ($relative === '' || $relative === '/' || $relative === 'public') {
+            return false;
+        }
+
         $written = false;
 
         foreach ([
@@ -122,17 +147,17 @@ class ProductImageStorage
     public static function publish(string $path): void
     {
         $path = str_replace('\\', '/', ltrim($path, '/'));
-        if ($path === '' || str_contains($path, '..') || str_starts_with($path, 'http')) {
+        if ($path === '' || $path === '/' || $path === 'public' || str_contains($path, '..') || str_starts_with($path, 'http')) {
             return;
         }
 
         $source = storage_path('app/public/' . $path);
-        if (!is_file($source)) {
+        if (!is_file($source) || is_dir($source)) {
             return;
         }
 
         $binary = @file_get_contents($source);
-        if ($binary === false) {
+        if ($binary === false || $binary === '') {
             return;
         }
 
@@ -142,7 +167,7 @@ class ProductImageStorage
     public static function resolveOnDisk(string $path): ?string
     {
         $path = str_replace('\\', '/', ltrim($path, '/'));
-        if ($path === '' || str_contains($path, '..')) {
+        if ($path === '' || $path === '/' || $path === 'public' || str_contains($path, '..')) {
             return null;
         }
 
@@ -165,8 +190,8 @@ class ProductImageStorage
         }
 
         foreach ($candidates as $file) {
-            $real = realpath($file);
-            if ($real && is_file($real)) {
+            $real = @realpath($file);
+            if ($real && is_file($real) && !is_dir($real)) {
                 return $real;
             }
         }
@@ -200,6 +225,10 @@ class ProductImageStorage
 
     private static function fileExists(string $relative): bool
     {
+        if ($relative === '' || $relative === '/') {
+            return false;
+        }
+
         return is_file(public_path('uploads/' . $relative))
             || is_file(storage_path('app/public/' . $relative))
             || is_file(public_path('storage/' . $relative));
@@ -208,16 +237,16 @@ class ProductImageStorage
     private static function putFile(string $destination, string $binary): bool
     {
         try {
+            if (is_dir($destination)) {
+                return false;
+            }
+
             $directory = dirname($destination);
             if (!is_dir($directory) && !static::ensureDirectory($directory)) {
                 return false;
             }
 
-            if (!is_writable($directory)) {
-                return false;
-            }
-
-            return file_put_contents($destination, $binary) !== false;
+            return @file_put_contents($destination, $binary) !== false;
         } catch (Throwable) {
             return false;
         }
@@ -230,9 +259,10 @@ class ProductImageStorage
         }
 
         try {
-            return mkdir($directory, 0755, true) || is_dir($directory);
+            return @mkdir($directory, 0755, true) || is_dir($directory);
         } catch (Throwable) {
             return is_dir($directory);
         }
     }
 }
+

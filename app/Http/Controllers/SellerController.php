@@ -307,6 +307,9 @@ class SellerController extends Controller
         $imageNames = $data['image_names'] ?? $request->input('image_names', []);
         $storedPaths = [];
         foreach ($images as $index => $image) {
+            if (empty($image)) {
+                continue;
+            }
             $originalName = is_array($imageNames) ? ($imageNames[$index] ?? null) : null;
             $path = ProductImageStorage::store($image, 'products', $index, $originalName);
             if ($path) {
