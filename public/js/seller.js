@@ -1009,7 +1009,7 @@ window.ZyraSeller = {
         document.querySelectorAll('.size-checkbox:checked').forEach(cb => {
             const label = cb.closest('label');
             const input = label ? label.querySelector('.size-stock-input') : null;
-            if (input && input.value !== '') {
+            if (input) {
                 const val = parseInt(input.value, 10);
                 stockMap[cb.value] = Number.isFinite(val) && val >= 0 ? val : 0;
             }
@@ -1022,14 +1022,25 @@ window.ZyraSeller = {
         if (!stockInput) return;
         const update = () => {
             const total = Object.values(this.collectSizeStock()).reduce((a, b) => a + b, 0);
-            if (Object.keys(this.collectSizeStock()).length) {
-                stockInput.value = total;
-            }
+            stockInput.value = total;
         };
         document.querySelectorAll('.size-checkbox, .size-stock-input').forEach(el => {
             el.addEventListener('change', update);
             el.addEventListener('input', update);
         });
+        document.querySelectorAll('.size-stock-input').forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.value === '') return;
+
+                const label = input.closest('label');
+                const checkbox = label?.querySelector('.size-checkbox');
+                if (checkbox && !checkbox.checked) {
+                    checkbox.checked = true;
+                    update();
+                }
+            });
+        });
+        update();
     },
 
     initAddProductPage() {

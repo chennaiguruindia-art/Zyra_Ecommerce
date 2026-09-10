@@ -81,7 +81,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="productStockInput" class="seller-form-label">Stock Quantity (Units) *</label>
-                            <input type="number" id="productStockInput" class="form-control seller-form-control" placeholder="25" min="0" required value="20">
+                            <input type="number" id="productStockInput" class="form-control seller-form-control" placeholder="Calculated from sizes" min="0" required readonly>
                         </div>
                     </div>
 
