@@ -29,7 +29,7 @@
         <div class="seller-stat-card">
             <div class="seller-stat-icon bg-gold-soft text-gold"><i class="bi bi-wallet2"></i></div>
             <div>
-                <div class="seller-stat-value" id="analyticsRevenue">₹0https://zyralifestyle.in/seller/settings</div>
+                <div class="seller-stat-value" id="analyticsRevenue">₹0</div>
                 <div class="seller-stat-label">Gross Revenue</div>
             </div>
         </div>
@@ -38,7 +38,7 @@
         <div class="seller-stat-card">
             <div class="seller-stat-icon bg-primary-soft text-primary"><i class="bi bi-bag-check"></i></div>
             <div>
-                <div class="seller-stat-value" id="analyticsUnitsSold">148 units</div>
+                <div class="seller-stat-value" id="analyticsUnitsSold">0 units</div>
                 <div class="seller-stat-label">Units Dispatched</div>
             </div>
         </div>
@@ -47,7 +47,7 @@
         <div class="seller-stat-card">
             <div class="seller-stat-icon bg-success-soft text-success"><i class="bi bi-graph-up"></i></div>
             <div>
-                <div class="seller-stat-value" id="analyticsAov">₹1,318</div>
+                <div class="seller-stat-value" id="analyticsAov">₹0</div>
                 <div class="seller-stat-label">Average Order Value (AOV)</div>
             </div>
         </div>
@@ -63,54 +63,9 @@
                 <h5 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2 text-muted"></i>Revenue By Category</h5>
             </div>
             <div class="seller-card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between small fw-bold mb-1">
-                        <span>Kurtis & Anarkalis</span>
-                        <span>38%</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-dark" style="width: 38%"></div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between small fw-bold mb-1">
-                        <span>Tops & Peplums</span>
-                        <span>26%</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-secondary" style="width: 26%"></div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between small fw-bold mb-1">
-                        <span>Maxi Dresses</span>
-                        <span>18%</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar" style="width: 18%; background-color: var(--zyra-secondary);"></div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between small fw-bold mb-1">
-                        <span>Leggings & Churidars</span>
-                        <span>12%</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-info" style="width: 12%"></div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="d-flex justify-content-between small fw-bold mb-1">
-                        <span>Nightwear & Loungewear</span>
-                        <span>6%</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-warning" style="width: 6%"></div>
-                    </div>
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-bar-chart-line fs-2 d-block mb-2"></i>
+                    No category sales data available yet.
                 </div>
             </div>
         </div>
@@ -121,7 +76,7 @@
         <div class="seller-card h-100">
             <div class="seller-card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold"><i class="bi bi-bank me-2 text-muted"></i>Settlement Payouts</h5>
-                <span class="badge bg-success-subtle text-success">Next Payout: Friday</span>
+                <span class="badge bg-secondary-subtle text-secondary">No upcoming payouts</span>
             </div>
             <div class="seller-card-body p-0">
                 <div class="table-responsive">
@@ -136,22 +91,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="fw-bold small">PAY-20260901-01</td>
-                                <td><small class="text-muted">25 Aug - 31 Aug 2026</small></td>
-                                <td class="fw-bold">₹24,850</td>
-                                <td><span class="badge bg-success">Settled</span></td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold small">PAY-20260825-02</td>
-                                <td><small class="text-muted">18 Aug - 24 Aug 2026</small></td>
-                                <td class="fw-bold">₹19,420</td>
-                                <td><span class="badge bg-success">Settled</span></td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold small">PAY-20260818-03</td>
-                                <td><small class="text-muted">11 Aug - 17 Aug 2026</small></td>
-                                <td class="fw-bold">₹31,100</td>
-                                <td><span class="badge bg-success">Settled</span></td>
+                                <td colspan="4" class="text-center text-muted py-5">No settlement payouts available yet.</td>
                             </tr>
                         </tbody>
                     </table>

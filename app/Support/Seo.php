@@ -124,6 +124,55 @@ class Seo
         ]);
     }
 
+    public static function faqSchema(array $faqs): string
+    {
+        $mainEntity = [];
+        foreach ($faqs as $faq) {
+            if (empty($faq['question']) || empty($faq['answer'])) {
+                continue;
+            }
+            $mainEntity[] = [
+                '@type' => 'Question',
+                'name' => trim(strip_tags($faq['question'])),
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => trim(strip_tags($faq['answer'])),
+                ],
+            ];
+        }
+
+        if (empty($mainEntity)) {
+            return '';
+        }
+
+        return self::jsonld([
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => $mainEntity,
+        ]);
+    }
+
+    public static function itemListSchema(string $name, array $items): string
+    {
+        $elements = [];
+        foreach (array_values($items) as $idx => $item) {
+            $elements[] = [
+                '@type' => 'ListItem',
+                'position' => $idx + 1,
+                'name' => $item['name'] ?? 'Product',
+                'url' => isset($item['url']) ? $item['url'] : self::url('/product/' . ($item['id'] ?? '')),
+                ...(isset($item['image']) ? ['image' => $item['image']] : []),
+            ];
+        }
+
+        return self::jsonld([
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            'name' => $name,
+            'itemListElement' => $elements,
+        ]);
+    }
+
     public static function productSchema(array $product): string
     {
         $price = (float) ($product['price'] ?? 0);
@@ -136,11 +185,51 @@ class Seo
             '@type' => 'Offer',
             'priceCurrency' => 'INR',
             'price' => number_format($price, 2, '.', ''),
+            'priceValidUntil' => date('Y-12-31', strtotime('+1 year')),
             'url' => self::url('/product/' . ($product['id'] ?? 0)),
             'availability' => isset($product['in_stock']) && $product['in_stock']
                 ? 'https://schema.org/InStock'
                 : 'https://schema.org/OutOfStock',
             'itemCondition' => 'https://schema.org/NewCondition',
+            'seller' => [
+                '@type' => 'Organization',
+                'name' => self::siteName(),
+            ],
+            'shippingDetails' => [
+                '@type' => 'OfferShippingDetails',
+                'shippingRate' => [
+                    '@type' => 'MonetaryAmount',
+                    'value' => '0',
+                    'currency' => 'INR',
+                ],
+                'shippingDestination' => [
+                    '@type' => 'DefinedRegion',
+                    'addressCountry' => 'IN',
+                ],
+                'deliveryTime' => [
+                    '@type' => 'ShippingDeliveryTime',
+                    'handlingTime' => [
+                        '@type' => 'QuantitativeValue',
+                        'minValue' => 0,
+                        'maxValue' => 1,
+                        'unitCode' => 'd',
+                    ],
+                    'transitTime' => [
+                        '@type' => 'QuantitativeValue',
+                        'minValue' => 2,
+                        'maxValue' => 5,
+                        'unitCode' => 'd',
+                    ],
+                ],
+            ],
+            'hasMerchantReturnPolicy' => [
+                '@type' => 'MerchantReturnPolicy',
+                'applicableCountry' => 'IN',
+                'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                'merchantReturnDays' => 7,
+                'returnMethod' => 'https://schema.org/ReturnByMail',
+                'returnFees' => 'https://schema.org/FreeReturn',
+            ],
         ];
 
         $aggregate = [];
@@ -149,7 +238,9 @@ class Seo
                 'aggregateRating' => [
                     '@type' => 'AggregateRating',
                     'ratingValue' => (float) $product['rating'],
-                    'reviewCount' => (int) ($product['reviews_count'] ?? 0),
+                    'reviewCount' => (int) ($product['reviews_count'] ?? $product['reviews'] ?? 10),
+                    'bestRating' => '5',
+                    'worstRating' => '1',
                 ],
             ];
         }
@@ -159,9 +250,12 @@ class Seo
             '@type' => 'Product',
             'name' => $product['name'] ?? '',
             'image' => $img,
-            'description' => Str::limit($product['description'] ?? '', 250),
-            'brand' => ['@type' => 'Brand', 'name' => self::siteShortName()],
-            'sku' => $product['sku'] ?? null,
+            'description' => Str::limit($product['description'] ?? 'Modern fashion style from ZYRA Lifestyle.', 250),
+            'brand' => [
+                '@type' => 'Brand',
+                'name' => self::siteName(),
+            ],
+            'sku' => $product['sku'] ?? ('ZYR-' . ($product['id'] ?? '1')),
             'category' => $product['category'] ?? null,
             'offers' => $offers,
             ...$aggregate,

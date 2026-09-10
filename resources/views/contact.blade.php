@@ -1,10 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Contact Us | ZYRA Concierge & Support')
-@section('meta_description', 'Get in touch with the ZYRA customer concierge for order inquiries, sizing assistance, exchange requests, and styling consultations.')
+@section('title', 'Contact Us | ZYRA Lifestyle Support & Concierge')
+@section('meta_description', 'Get in touch with the ZYRA Lifestyle customer concierge for order inquiries, sizing assistance, exchange requests, and styling consultations.')
 
 @push('schema')
     {!! \App\Support\Seo::organizationSchema() !!}
+    {!! \App\Support\Seo::localBusinessSchema() !!}
     {!! \App\Support\Seo::breadcrumbSchema([
         ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
         ['name' => 'Contact Us'],

@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Search Products | ZYRA Fashion')
-@section('meta_description', 'Search and find women\'s tops, cotton leggings, kurtis, maxi dresses and nightwear at ZYRA.')
+@section('title', 'Search Products | ZYRA Lifestyle')
+@section('meta_description', 'Search and find women\'s tops, cotton leggings, kurtis, maxi dresses and nightwear at ZYRA Lifestyle.')
+@section('robots', 'noindex, follow')
 
 @section('content')
 

@@ -119,6 +119,9 @@ window.ZyraSeller = {
         (data.colors && data.colors.length ? data.colors : ['Pink', 'White']).forEach((color) => {
             formData.append('colors[]', color);
         });
+        Object.entries(data.size_stock || {}).forEach(([size, stock]) => {
+            formData.append(`size_stock[${size}]`, stock);
+        });
 
         const images = (data.images && data.images.length > 0)
             ? data.images.slice(0, this.MAX_IMAGES)
@@ -916,7 +919,7 @@ window.ZyraSeller = {
         const elAov = document.getElementById('analyticsAov');
 
         if (elRev) elRev.textContent = `₹${totalRev.toLocaleString('en-IN')}`;
-        if (elUnits) elUnits.textContent = '148 units';
+        if (elUnits) elUnits.textContent = '0 units';
         if (elAov) elAov.textContent = `₹${Math.round(totalRev / (orders.length || 1))}`;
     },
 
@@ -1016,7 +1019,7 @@ window.ZyraSeller = {
                 price: document.getElementById('productPriceInput').value,
                 old_price: document.getElementById('productOldPriceInput').value,
                 stock_units: document.getElementById('productStockInput').value,
-                weight: document.getElementById('productWeightInput').value,
+                weight: document.getElementById('productWeightInput')?.value || '',
                 sku: document.getElementById('productSkuInput').value.trim(),
                 images: [...this.currentImages],
                 material: document.getElementById('productMaterialInput').value.trim(),

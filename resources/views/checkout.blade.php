@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Secure Checkout | ZYRA Fashion')
+@section('title', 'Secure Checkout | ZYRA Lifestyle')
 @section('robots', 'noindex, nofollow')
 @section('meta_description', 'Complete your order securely with UPI, Cards, or Net Banking via Razorpay.')
 

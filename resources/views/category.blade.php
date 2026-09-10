@@ -9,6 +9,7 @@
         ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
         ['name' => $currentCategory['name'] ?? 'Category'],
     ]) !!}
+    {!! \App\Support\Seo::itemListSchema(($currentCategory['name'] ?? 'Category') . ' Collection - ZYRA Lifestyle', $products ?? []) !!}
 @endpush
 
 @section('content')

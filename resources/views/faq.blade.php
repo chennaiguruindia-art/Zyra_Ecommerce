@@ -1,7 +1,40 @@
 @extends('layouts.app')
 
-@section('title', 'Frequently Asked Questions (FAQ) | ZYRA Fashion')
-@section('meta_description', 'Find instant answers to common questions regarding shipping, returns, order cancellation, sizing, payments, and discounts.')
+@section('title', 'Frequently Asked Questions (FAQ) | ZYRA Lifestyle')
+@section('meta_description', 'Find instant answers to common questions regarding shipping, returns, order cancellation, sizing, payments, and discounts at ZYRA Lifestyle.')
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'FAQ'],
+    ]) !!}
+    {!! \App\Support\Seo::faqSchema([
+        [
+            'question' => 'How long does delivery take and what are the shipping fees?',
+            'answer' => 'We offer Free Standard Shipping across India on all orders. Metro Cities (Delhi, Mumbai, Bengaluru, Chennai, Kolkata, Hyderabad): 2-4 business days. Rest of India: 4-7 business days. Tracking links are dispatched via SMS & Email as soon as your order leaves our warehouse.'
+        ],
+        [
+            'question' => "What is ZYRA's Return and Exchange policy?",
+            'answer' => "We provide a seamless 15-Day Doorstep Exchange & Return Policy. If an item doesn't fit or meet your expectation, simply WhatsApp our concierge team at +91 9884125555 or email order@shopwithzyra.in with your Order ID. We arrange free reverse pickup from your doorstep."
+        ],
+        [
+            'question' => 'What payment options are accepted? Is COD available?',
+            'answer' => 'Yes! We accept Cash on Delivery (COD) across 19,000+ PIN codes in India. We also accept instant UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards (Visa, MasterCard, RuPay), and Net Banking across 50+ major banks.'
+        ],
+        [
+            'question' => 'How do I choose the correct size?',
+            'answer' => "Our garments are tailored according to standard Indian women's sizing from XS (32) to XXL (42). Click the 'Size Chart' button on any product details page for exact bust, waist, and hip measurements in inches."
+        ],
+        [
+            'question' => 'Can I modify or cancel my order after placing it?',
+            'answer' => 'Orders can be cancelled or modified within 4 hours of placing the order before our fulfillment warehouse begins packaging. Simply contact customer care with your Order ID for instant cancellation and 100% refund.'
+        ],
+        [
+            'question' => 'How do I apply promo discount coupons?',
+            'answer' => 'You can enter coupon codes like WELCOME10 (10% OFF), SAVE20 (20% OFF), or FASHION15 (15% OFF) in the coupon code field located in your Shopping Bag page. The discount will instantly be deducted from your payable total!'
+        ]
+    ]) !!}
+@endpush
 
 @section('content')
 

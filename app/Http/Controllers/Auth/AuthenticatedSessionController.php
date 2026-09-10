@@ -33,6 +33,12 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('seller.dashboard', absolute: false));
         }
 
+        $intended = session()->get('url.intended');
+        if ($intended && (str_contains($intended, '/seller') || str_contains($intended, '/query') || str_contains($intended, '/global_setting') || str_contains($intended, '/instagram'))) {
+            session()->forget('url.intended');
+            return redirect()->route('home');
+        }
+
         return redirect()->intended(route('home', absolute: false));
     }
 

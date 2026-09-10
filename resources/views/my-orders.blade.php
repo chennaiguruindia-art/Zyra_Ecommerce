@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My Orders | ZYRA')
+@section('title', 'My Orders | ZYRA Lifestyle')
 @section('robots', 'noindex, nofollow')
 
 @section('content')

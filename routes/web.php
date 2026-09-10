@@ -43,7 +43,7 @@ Route::middleware('auth')->get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
-Route::prefix('seller')->name('seller.')->group(function () {
+Route::prefix('seller')->name('seller.')->middleware(['auth', 'seller'])->group(function () {
     Route::get('/', [SellerController::class, 'dashboard'])->name('dashboard');
     Route::get('/products/add', [SellerController::class, 'addProduct'])->name('products.add');
     Route::get('/products', [SellerController::class, 'products'])->name('products');
@@ -63,21 +63,23 @@ Route::prefix('seller')->name('seller.')->group(function () {
     Route::post('/orders/{id}/tracking', [SellerController::class, 'updateOrderTracking'])->name('orders.tracking');
 });
 
-Route::get('/query', [QueryController::class, 'index'])->name('queries');
-Route::post('/query/{id}/status', [QueryController::class, 'updateStatus'])->name('queries.status');
+Route::middleware(['auth', 'seller'])->group(function () {
+    Route::get('/query', [QueryController::class, 'index'])->name('queries');
+    Route::post('/query/{id}/status', [QueryController::class, 'updateStatus'])->name('queries.status');
+
+    Route::get('/global_setting', [GlobalSettingController::class, 'index'])->name('global_setting');
+    Route::post('/global_setting/toggle', [GlobalSettingController::class, 'toggle'])->name('global_setting.toggle');
+    Route::post('/global_setting/coupon-dates', [GlobalSettingController::class, 'updateCouponDates'])->name('global_setting.coupon-dates');
+    Route::post('/global_setting/coupons', [GlobalSettingController::class, 'storeCoupon'])->name('global_setting.coupons.store');
+    Route::delete('/global_setting/coupons/{id}', [GlobalSettingController::class, 'destroyCoupon'])->name('global_setting.coupons.destroy');
+
+    Route::get('/instagram', [InstagramController::class, 'index'])->name('instagram');
+    Route::post('/instagram', [InstagramController::class, 'store'])->name('instagram.store');
+    Route::delete('/instagram/{id}', [InstagramController::class, 'destroy'])->name('instagram.destroy');
+});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/catalog.json', [CatalogController::class, 'json'])->name('catalog.json');
-
-Route::get('/global_setting', [GlobalSettingController::class, 'index'])->name('global_setting');
-Route::post('/global_setting/toggle', [GlobalSettingController::class, 'toggle'])->name('global_setting.toggle');
-Route::post('/global_setting/coupon-dates', [GlobalSettingController::class, 'updateCouponDates'])->name('global_setting.coupon-dates');
-Route::post('/global_setting/coupons', [GlobalSettingController::class, 'storeCoupon'])->name('global_setting.coupons.store');
-Route::delete('/global_setting/coupons/{id}', [GlobalSettingController::class, 'destroyCoupon'])->name('global_setting.coupons.destroy');
-
-Route::get('/instagram', [InstagramController::class, 'index'])->name('instagram');
-Route::post('/instagram', [InstagramController::class, 'store'])->name('instagram.store');
-Route::delete('/instagram/{id}', [InstagramController::class, 'destroy'])->name('instagram.destroy');
 
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
 Route::get('/shop/filter', [ShopController::class, 'filter'])->name('shop.filter');
@@ -142,6 +144,13 @@ return '<pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
 Route::get('/run-migrations-fresh-seed', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate:fresh', [
         '--seed' => true,
+        '--force' => true,
+    ]);
+    return '<pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+});
+
+Route::get('/run-seed', function () {
+    \Illuminate\Support\Facades\Artisan::call('db:seed', [
         '--force' => true,
     ]);
     return '<pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';

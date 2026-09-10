@@ -15,7 +15,11 @@ class EnsureUserIsSeller
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() || ! $request->user()->isSeller()) {
+        if (! $request->user()) {
+            return redirect()->guest(route('login'));
+        }
+
+        if (! $request->user()->isSeller()) {
             abort(403, 'You are not authorized to access the seller panel.');
         }
 

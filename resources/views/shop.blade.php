@@ -9,6 +9,7 @@
         ['name' => 'Shop'],
     ]) !!}
     {!! \App\Support\Seo::websiteSchema() !!}
+    {!! \App\Support\Seo::itemListSchema('Women\'s Fashion Collection - ZYRA Lifestyle', $products ?? []) !!}
 @endpush
 
 @section('content')
