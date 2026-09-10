@@ -1,7 +1,17 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Women\'s Kurtis - Handblock Cotton, Anarkalis & Chikankari | ZYRA')
 @section('meta_description', 'Discover handcrafted Indian kurtis at ZYRA. Authentic Bagru block prints, celebratory 32-kali Anarkalis, and Lucknowi Chikankari.')
+
+
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
+        ['name' => 'Kurtis'],
+    ]) !!}
+@endpush
 
 @section('content')
 

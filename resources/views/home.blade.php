@@ -1,7 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'ZYRA | Elevate Your Everyday Style - Modern Women\'s Fashion')
-@section('meta_description', 'Discover modern Indian women\'s clothing at ZYRA. Premium tops, cotton leggings, handprinted kurtis, maxi dresses, and luxury nightwear.')
+@section('title', 'ZYRA Lifestyle | Modern Women\'s Fashion - Kurtis, Tops, Maxi Dresses & Nightwear')
+@section('meta_description', 'Shop modern Indian women\'s clothing online at ZYRA Lifestyle (zyralifestyle.in). Premium tops, cotton leggings, handprinted kurtis, maxi dresses & luxury nightwear with FREE shipping.')
+
+@push('schema')
+    {!! \App\Support\Seo::organizationSchema() !!}
+    {!! \App\Support\Seo::websiteSchema() !!}
+    {!! \App\Support\Seo::localBusinessSchema() !!}
+@endpush
 
 @section('content')
 

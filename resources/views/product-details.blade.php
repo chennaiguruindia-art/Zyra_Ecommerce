@@ -1,9 +1,20 @@
 @extends('layouts.app')
 
-@section('title', $product['name'] . ' | ZYRA Fashion')
+@section('title', $product['name'] . ' | ZYRA Lifestyle')
 @section('meta_description', $product['description'])
 @section('og_title', $product['name'] . ' - ₹' . $product['price'])
 @section('og_image', $product['image'])
+@section('og_type', 'product')
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
+        ['name' => $product['category'] ?? 'Category', 'url' => \App\Support\Seo::url('/category/' . strtolower($product['category'] ?? ''))],
+        ['name' => $product['name']],
+    ]) !!}
+    {!! \App\Support\Seo::productSchema($product) !!}
+@endpush
 
 @section('content')
 

@@ -1,7 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'About Us | The ZYRA Story & Heritage')
-@section('meta_description', 'Discover the story behind ZYRA - modern Indian women\'s fashion crafted with sustainable breathable fabrics and timeless artisan silhouettes.')
+@section('title', 'About Us | The ZYRA Story & Heritage - ZYRA Lifestyle')
+@section('meta_description', 'Discover the story behind ZYRA Lifestyle - modern Indian women\'s fashion crafted with sustainable breathable fabrics and timeless artisan silhouettes.')
+
+@push('schema')
+    {!! \App\Support\Seo::organizationSchema() !!}
+    {!! \App\Support\Seo::localBusinessSchema() !!}
+@endpush
 
 @section('content')
 

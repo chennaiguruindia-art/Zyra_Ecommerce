@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Shopping Bag | ZYRA Fashion')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Review items in your shopping bag, apply promo coupons, and proceed to secure checkout.')
 
 @section('content')

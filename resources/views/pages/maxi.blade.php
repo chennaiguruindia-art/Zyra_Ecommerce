@@ -1,7 +1,17 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Women\'s Maxi Dresses - Floral, Tiered & Evening Party Gowns | ZYRA')
 @section('meta_description', 'Flowing botanical tiered maxi dresses, satin evening high-slit slip gowns, and bohemian beach sundresses at ZYRA.')
+
+
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
+        ['name' => 'Maxi Dresses'],
+    ]) !!}
+@endpush
 
 @section('content')
 

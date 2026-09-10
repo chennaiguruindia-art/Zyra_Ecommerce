@@ -6,15 +6,40 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="{{ asset('images/logo/logo.png') }}">
-    
+
     <!-- SEO & Social Meta Tags -->
-    <title>@yield('title', 'ZYRA | Modern Indian Women\'s Fashion & Clothing Store')</title>
-    <meta name="description" content="@yield('meta_description', 'Discover chic women\'s fashion at ZYRA. Premium tops, cotton leggings, elegant kurtis, breezy maxi dresses, and luxury nightwear designed for effortless style.')">
-    <meta name="keywords" content="women fashion, indian clothing, kurtis, tops, leggings, maxi dresses, nightwear, ZYRA fashion">
-    <meta property="og:title" content="@yield('og_title', 'ZYRA | Elevate Your Everyday Style')">
-    <meta property="og:description" content="@yield('og_description', 'Shop effortlessly chic modern Indian women\'s clothing with free shipping on all orders.')">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1534126511673-b6899657816a?auto=format&fit=crop&w=1200&q=80">
-    <meta property="og:type" content="website">
+    <title>@yield('title', config('seo.site_name') . ' | ' . config('seo.tagline'))</title>
+    <meta name="description" content="@yield('meta_description', config('seo.default_description'))">
+    <meta name="keywords" content="{{ config('seo.default_keywords') }}">
+    <meta name="robots" content="@yield('robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1')">
+    <meta name="author" content="{{ config('seo.site_name') }}">
+    <meta name="theme-color" content="#635454">
+    <meta name="geo.region" content="{{ config('seo.geo.region') }}">
+    <meta name="geo.placename" content="{{ config('seo.geo.placename') }}">
+    <meta name="geo.position" content="{{ config('seo.geo.position') }}">
+    <meta name="ICBM" content="{{ config('seo.geo.icbm') }}">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ \App\Support\Seo::canonical() }}">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="{{ config('seo.site_name') }}">
+    <meta property="og:locale" content="{{ config('seo.locale') }}">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="@yield('og_title', config('seo.site_name') . ' | ' . config('seo.tagline'))">
+    <meta property="og:description" content="@yield('og_description', config('seo.default_description'))">
+    <meta property="og:image" content="@yield('og_image', \App\Support\Seo::asset('images/logo/Zyra _logo.png'))">
+    <meta property="og:url" content="{{ \App\Support\Seo::canonical() }}">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="@yield('twitter_card', 'summary_large_image')">
+    <meta name="twitter:site" content="@zyraofficial46">
+    <meta name="twitter:title" content="@yield('og_title', config('seo.site_name') . ' | ' . config('seo.tagline'))">
+    <meta name="twitter:description" content="@yield('og_description', config('seo.default_description'))">
+    <meta name="twitter:image" content="@yield('og_image', \App\Support\Seo::asset('images/logo/Zyra _logo.png'))">
+
+    <!-- Structured Data (JSON-LD) -->
+    @stack('schema')
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

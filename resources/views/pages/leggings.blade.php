@@ -1,7 +1,17 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Women\'s Leggings - Cotton, Ankle Length, Churidars & Shapers | ZYRA')
 @section('meta_description', 'Shop 4-way stretch super combed cotton leggings, seamless ankle length tights, and traditional churidars at ZYRA.')
+
+
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
+        ['name' => 'Leggings'],
+    ]) !!}
+@endpush
 
 @section('content')
 

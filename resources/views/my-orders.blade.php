@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'My Orders | ZYRA')
+@section('robots', 'noindex, nofollow')
 
 @section('content')
 <div class="container py-5" style="min-height: 60vh;">

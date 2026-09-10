@@ -3,6 +3,14 @@
 @section('title', 'Contact Us | ZYRA Concierge & Support')
 @section('meta_description', 'Get in touch with the ZYRA customer concierge for order inquiries, sizing assistance, exchange requests, and styling consultations.')
 
+@push('schema')
+    {!! \App\Support\Seo::organizationSchema() !!}
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Contact Us'],
+    ]) !!}
+@endpush
+
 @section('content')
 
 <x-breadcrumb :items="[['label' => 'Contact Us', 'url' => '']]" />

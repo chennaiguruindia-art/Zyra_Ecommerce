@@ -19,7 +19,10 @@ use App\Http\Controllers\SellerController;
 use App\Http\Controllers\QueryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicStorageController;
+use App\Http\Controllers\SitemapController;
 
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/media/{path}', [PublicStorageController::class, 'show'])
     ->where('path', '.*')
     ->name('media.public');
@@ -128,4 +131,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+
+Route::get('/run-migrations', function () {
+\Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+return '<pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+});
+
+Route::get('/run-migrations-fresh-seed', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate:fresh', [
+        '--seed' => true,
+        '--force' => true,
+    ]);
+    return '<pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
 });

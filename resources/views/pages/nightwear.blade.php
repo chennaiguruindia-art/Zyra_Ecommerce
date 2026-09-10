@@ -1,7 +1,17 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Women\'s Nightwear - Cotton Night Suits, Satin Sets & Kaftans | ZYRA')
 @section('meta_description', 'Cozy modal cotton notch collar night suits, botanical kaftans, and satin camisole slip sets designed for restful sleep at ZYRA.')
+
+
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
+        ['name' => 'Nightwear'],
+    ]) !!}
+@endpush
 
 @section('content')
 

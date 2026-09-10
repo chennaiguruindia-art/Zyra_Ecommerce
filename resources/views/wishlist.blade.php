@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'My Wishlist | ZYRA Fashion')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'View and manage your saved favorite styles in your ZYRA wishlist.')
 
 @section('content')

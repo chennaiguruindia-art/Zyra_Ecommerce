@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Order Confirmed! | ZYRA Fashion')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Your ZYRA fashion order has been successfully placed.')
 
 @section('content')

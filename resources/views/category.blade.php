@@ -1,7 +1,15 @@
 @extends('layouts.app')
 
-@section('title', ($currentCategory['name'] ?? 'Category') . ' | ZYRA Fashion')
+@section('title', ($currentCategory['name'] ?? 'Category') . ' | ZYRA Lifestyle')
 @section('meta_description', $currentCategory['description'] ?? 'Shop our exclusive women collection.')
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
+        ['name' => $currentCategory['name'] ?? 'Category'],
+    ]) !!}
+@endpush
 
 @section('content')
 

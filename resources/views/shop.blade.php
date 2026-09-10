@@ -1,7 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Shop Modern Women\'s Clothing & Ethnic Wear | ZYRA')
-@section('meta_description', 'Explore ZYRA\'s complete women\'s fashion collection. Filter by tops, leggings, kurtis, maxi dresses, nightwear, size, color, and price.')
+@section('title', 'Shop Modern Women\'s Clothing & Ethnic Wear | ZYRA Lifestyle')
+@section('meta_description', 'Explore ZYRA Lifestyle\'s complete women\'s fashion collection. Shop tops, leggings, kurtis, maxi dresses, nightwear online. Filter by size, color, and price.')
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Shop'],
+    ]) !!}
+    {!! \App\Support\Seo::websiteSchema() !!}
+@endpush
 
 @section('content')
 

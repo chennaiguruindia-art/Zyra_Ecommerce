@@ -3,6 +3,16 @@
 @section('title', 'Women\'s Tops - Casual, Crop, Office & Party Wear | ZYRA')
 @section('meta_description', 'Discover chic women\'s tops at ZYRA. From breathable cotton peplums and crop tops to linen formal shirts and satin camisoles.')
 
+
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema([
+        ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
+        ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
+        ['name' => 'Tops'],
+    ]) !!}
+@endpush
+
 @section('content')
 
 <x-breadcrumb :items="[
