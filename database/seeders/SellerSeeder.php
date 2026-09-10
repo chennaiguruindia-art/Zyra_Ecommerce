@@ -17,11 +17,11 @@ class SellerSeeder extends Seeder
                 'role'          => 'seller',
                 'password'      => Hash::make('Zyra@9876'),
                 'phone_number'  => '9876543210',
-                'address'       => 'ZYRA Office',
-                'nearby_area'   => 'MG Road',
-                'pincode'       => '560001',
-                'state'         => 'Karnataka',
-                'district'      => 'Bengaluru Urban',
+                'address'       => '1st Floor, F 200, 1st St, Block F, Annanagar East, Chennai',
+                'nearby_area'   => 'Opposite, Annanagar East Metro Station',
+                'pincode'       => '600102',
+                'state'         => 'Tamil Nadu',
+                'district'      => 'Chennai',
             ]
         );
     }
