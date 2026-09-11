@@ -1159,9 +1159,8 @@ window.ZyraSeller = {
 
     initEditProductPage() {
         const form = document.getElementById('sellerEditProductForm');
-        if (form) {
-            form.addEventListener('submit', (e) => e.preventDefault());
-        }
+        if (!form || form.dataset.initialized === 'true') return;
+        form.dataset.initialized = 'true';
 
         const urlParams = window.location.pathname.split('/');
         const id = urlParams[urlParams.indexOf('products') + 1];
@@ -1246,13 +1245,12 @@ window.ZyraSeller = {
             });
         }
 
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                if (this.currentImages.length === 0) {
-                    if (window.ZyraApp) window.ZyraApp.showToast('Please add at least 1 image for the product.', 'danger');
-                    return;
-                }
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (this.currentImages.length === 0) {
+                if (window.ZyraApp) window.ZyraApp.showToast('Please add at least 1 image for the product.', 'danger');
+                return;
+            }
 
                 const checkedSizes = Array.from(document.querySelectorAll('.size-checkbox:checked')).map(c => c.value);
                 const sizeStock = this.collectSizeStock();
@@ -1277,9 +1275,8 @@ window.ZyraSeller = {
                     colors: this.selectedColors.length ? this.selectedColors : product.colors
                 };
 
-                this.updateProduct(id, data);
-            });
-        }
+            this.updateProduct(id, data);
+        });
     },
 
     initSettingsPage() {
