@@ -1263,18 +1263,20 @@ img {
 
 /* Product Details Page */
 .zyra-gallery-main-view {
-    border-radius: var(--zyra-radius-md);
+    border-radius: 18px 18px 6px 18px;
     overflow: hidden;
     position: relative;
-    background: var(--zyra-bg-beige);
-    box-shadow: var(--zyra-shadow-sm);
+    background: linear-gradient(145deg, #fbf8f2, #f1e9df);
+    border: 1px solid rgba(121, 83, 70, 0.14);
+    box-shadow: 12px 12px 0 rgba(232, 180, 184, 0.22), var(--zyra-shadow-md);
     margin-bottom: 1rem;
 }
 
 .zyra-gallery-main-view img {
     width: 100%;
     height: 580px;
-    object-fit: cover;
+    object-fit: contain;
+    padding: 14px;
     cursor: zoom-in;
     transition: transform 0.3s ease;
 }
@@ -1289,7 +1291,8 @@ img {
     height: 95px;
     border-radius: 6px;
     overflow: hidden;
-    border: 2px solid transparent;
+    border: 2px solid rgba(121, 83, 70, 0.12);
+    background: var(--zyra-bg-beige);
     cursor: pointer;
     transition: var(--zyra-transition);
 }
@@ -1301,7 +1304,159 @@ img {
 .zyra-thumb-item img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    padding: 3px;
+}
+
+#sizeChartModal .modal-dialog {
+    max-width: 620px;
+}
+
+#sizeChartModal .modal-content {
+    overflow: hidden;
+    color: #33262a;
+    background: rgba(255, 251, 248, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 22px 22px 8px 22px;
+    box-shadow: 0 24px 70px rgba(42, 25, 29, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+#sizeChartModal .modal-header {
+    position: relative;
+    padding: 1.2rem 1.4rem 1rem;
+    background: linear-gradient(135deg, rgba(247, 226, 220, 0.9), rgba(255, 251, 248, 0.5));
+    border-bottom: 1px solid rgba(121, 83, 70, 0.12);
+}
+
+#sizeChartModal .modal-header::after {
+    content: '';
+    position: absolute;
+    left: 1.4rem;
+    bottom: -2px;
+    width: 54px;
+    height: 3px;
+    background: #c99487;
+    border-radius: 4px;
+}
+
+#sizeChartModal .modal-title {
+    font-family: var(--zyra-font-heading);
+    letter-spacing: 0.02em;
+}
+
+#sizeChartModal .modal-body {
+    padding: 1.35rem 1.4rem 1.5rem;
+}
+
+#sizeChartModal .zyra-size-chart-poster {
+    background: linear-gradient(135deg, #fffaf3 0%, #f8eee6 100%);
+    position: relative;
+}
+
+#sizeChartModal .zyra-size-chart-brand {
+    color: #5d1b2a;
+    font-family: var(--zyra-font-heading);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-align: center;
+    margin-bottom: 0.9rem;
+}
+
+#sizeChartModal .zyra-size-chart-brand span {
+    display: block;
+    color: #8d746b;
+    font-family: var(--zyra-font-sans);
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    margin-top: 0.25rem;
+}
+
+#sizeChartModal .zyra-size-chart-layout {
+    display: grid;
+    grid-template-columns: minmax(120px, 38%) 1fr;
+    gap: 0.8rem;
+    align-items: start;
+}
+
+#sizeChartModal .zyra-size-chart-model {
+    height: 430px;
+    overflow: hidden;
+    border-radius: 50% 50% 8px 8px;
+    background: #ead8cf;
+}
+
+#sizeChartModal .zyra-size-chart-model img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    padding: 0.35rem;
+}
+
+#sizeChartModal .zyra-size-chart-ribbon {
+    color: #fff8f2;
+    background: #601d31;
+    border-radius: 999px;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.28rem 0.55rem;
+    text-align: center;
+    margin-bottom: 0.32rem;
+}
+
+#sizeChartModal .zyra-size-chart-ribbon i {
+    margin-right: 0.25rem;
+}
+
+#sizeChartModal .zyra-size-chart-data .table {
+    margin-bottom: 0.65rem;
+    font-size: 0.62rem;
+}
+
+#sizeChartModal .zyra-size-chart-data .table th,
+#sizeChartModal .zyra-size-chart-data .table td {
+    padding: 0.23rem 0.2rem;
+}
+
+#sizeChartModal .zyra-size-chart-note {
+    color: #765c51;
+    border: 1px solid rgba(121, 83, 70, 0.2);
+    border-radius: 999px;
+    font-size: 0.58rem;
+    margin: 0 0 0.75rem;
+    padding: 0.3rem 0.35rem;
+    text-align: center;
+}
+
+#sizeChartModal .zyra-size-chart-note span {
+    margin: 0 0.25rem;
+}
+
+#sizeChartModal .zyra-size-chart-footnote {
+    color: #8d746b;
+    font-size: 0.65rem;
+    margin: 0.7rem 0 0;
+    text-align: center;
+}
+
+#sizeChartModal .table {
+    --bs-table-bg: rgba(255, 255, 255, 0.46);
+    --bs-table-border-color: rgba(121, 83, 70, 0.14);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#sizeChartModal .table thead th {
+    color: #704b4b;
+    background: rgba(238, 211, 204, 0.55);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .zyra-pincode-box {

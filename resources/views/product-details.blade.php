@@ -148,7 +148,7 @@
                             </button>
                             @if($sizeSoldOut)
                                 <span class="position-absolute top-0 start-0 w-100 h-100 rounded pe-none" role="img" aria-label="Out of stock" title="Out of stock"
-                                    style="background: linear-gradient(135deg, transparent 44%, #dc3545 45%, #dc3545 55%, transparent 56%);"></span>
+                                    style="background: linear-gradient(135deg, transparent 49%, #8f8f8f 49.5%, #8f8f8f 50.5%, transparent 51%);"></span>
                             @endif
                         </div>
                     @endforeach
@@ -408,31 +408,46 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="sizeChartModalLabel">ZYRA Standard Size Guide (Inches)</h5>
+                <h5 class="modal-title fw-bold" id="sizeChartModalLabel">Size Chart</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <table class="table table-bordered text-center small align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Size</th>
-                            <th>Bust (in)</th>
-                            <th>Waist (in)</th>
-                            <th>Hip (in)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>XS</td><td>32</td><td>26</td><td>35</td></tr>
-                        <tr><td>S</td><td>34</td><td>28</td><td>37</td></tr>
-                        <tr><td>M</td><td>36</td><td>30</td><td>39</td></tr>
-                        <tr><td>L</td><td>38</td><td>32</td><td>41</td></tr>
-                        <tr><td>XL</td><td>40</td><td>34</td><td>43</td></tr>
-                        <tr><td>XXL</td><td>42</td><td>36</td><td>45</td></tr>
-                    </tbody>
-                </table>
-                <p class="text-muted small mb-0">
-                    <i class="bi bi-info-circle me-1"></i> Measurements indicate body size, not garment dimensions. For in-between sizes, choose the larger size for relaxed styling.
-                </p>
+            <div class="modal-body zyra-size-chart-poster">
+                <div class="zyra-size-chart-brand">ZYRA <span>FIND YOUR PERFECT FIT</span></div>
+                <div class="zyra-size-chart-layout">
+                    <div class="zyra-size-chart-model">
+                        <img src="{{ $mainImg }}" alt="{{ $product['name'] }} size guide">
+                    </div>
+                    <div class="zyra-size-chart-data">
+                        <div class="zyra-size-chart-ribbon"><i class="bi bi-person-standing"></i> KURTI SIZE CHART</div>
+                        <table class="table table-bordered text-center small align-middle">
+                            <thead><tr><th>Size</th><th>Chest</th><th>Waist</th><th>Hip</th></tr></thead>
+                            <tbody>
+                                <tr><td>XXS</td><td>32</td><td>28</td><td>35</td></tr>
+                                <tr><td>XS</td><td>34</td><td>30</td><td>37</td></tr>
+                                <tr><td>S</td><td>36</td><td>32</td><td>39</td></tr>
+                                <tr><td>M</td><td>38</td><td>34</td><td>41</td></tr>
+                                <tr><td>L</td><td>40</td><td>36</td><td>43</td></tr>
+                                <tr><td>XL</td><td>42</td><td>38</td><td>45</td></tr>
+                                <tr><td>XXL</td><td>44</td><td>40</td><td>47</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="zyra-size-chart-note"><i class="bi bi-rulers"></i> Kurti Length: 44 inch <span>|</span> Maxi Length: 46 inch</div>
+                        <div class="zyra-size-chart-ribbon"><i class="bi bi-person-standing"></i> PANT SIZE CHART</div>
+                        <table class="table table-bordered text-center small align-middle">
+                            <thead><tr><th>Size</th><th>Length</th><th>Waist</th><th>Ankle</th></tr></thead>
+                            <tbody>
+                                <tr><td>XXS</td><td>35½</td><td>23</td><td>10</td></tr>
+                                <tr><td>XS</td><td>36</td><td>24</td><td>10</td></tr>
+                                <tr><td>S</td><td>36</td><td>26</td><td>11</td></tr>
+                                <tr><td>M</td><td>37</td><td>28</td><td>12</td></tr>
+                                <tr><td>L</td><td>37½</td><td>29</td><td>12</td></tr>
+                                <tr><td>XL</td><td>37½</td><td>29</td><td>12</td></tr>
+                                <tr><td>XXL</td><td>38</td><td>31</td><td>13</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p class="zyra-size-chart-footnote"><i class="bi bi-info-circle me-1"></i> Measurements are in inches. For in-between sizes, choose the larger size.</p>
             </div>
         </div>
     </div>
