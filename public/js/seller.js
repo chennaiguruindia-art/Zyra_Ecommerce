@@ -92,7 +92,7 @@ window.ZyraSeller = {
         return products.find(p => p.id === parseInt(id)) || null;
     },
 
-    buildProductFormData(data) {
+    buildProductFormData(data, preserveExistingImages = false) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const formData = new FormData();
         formData.append('_token', csrfToken);
@@ -132,6 +132,8 @@ window.ZyraSeller = {
             if (file instanceof File) {
                 formData.append(`images[${index}]`, file, file.name);
                 formData.append(`image_names[${index}]`, file.name);
+            } else if (preserveExistingImages && data.image_paths?.[index]) {
+                formData.append(`existing_images[${index}]`, data.image_paths[index]);
             } else if (img && !String(img).startsWith('blob:')) {
                 formData.append(`images[${index}]`, img);
                 formData.append(`image_names[${index}]`, '');
@@ -160,7 +162,7 @@ window.ZyraSeller = {
                 'X-CSRF-TOKEN': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: this.buildProductFormData(data)
+            body: this.buildProductFormData(data, true)
         })
         .then(res => res.text().then(text => ({ res, text })))
         .then(({ res, text }) => {
@@ -470,6 +472,7 @@ window.ZyraSeller = {
 
         this.currentImages.push(urlOrData.trim());
         this.currentImageFiles.push(null);
+        if (Array.isArray(this.currentImagePaths)) this.currentImagePaths.push(null);
         this.renderImagesGrid();
         if (window.ZyraApp) {
             window.ZyraApp.showToast(`Image ${this.currentImages.length} added!`, 'success');
@@ -480,6 +483,7 @@ window.ZyraSeller = {
         if (index >= 0 && index < this.currentImages.length) {
             this.currentImages.splice(index, 1);
             this.currentImageFiles.splice(index, 1);
+            if (Array.isArray(this.currentImagePaths)) this.currentImagePaths.splice(index, 1);
             this.renderImagesGrid();
             if (window.ZyraApp) {
                 window.ZyraApp.showToast('Image removed.', 'info');
@@ -572,6 +576,7 @@ window.ZyraSeller = {
             const optimized = await this.compressImage(file);
             this.currentImages.push(URL.createObjectURL(optimized));
             this.currentImageFiles.push(optimized);
+            if (Array.isArray(this.currentImagePaths)) this.currentImagePaths.push(null);
         }
 
         this.renderImagesGrid();
@@ -1200,6 +1205,9 @@ window.ZyraSeller = {
         // Load images
         this.currentImages = product.images && product.images.length ? [...product.images.slice(0, this.MAX_IMAGES)] : [product.image];
         this.currentImageFiles = this.currentImages.map(() => null);
+        this.currentImagePaths = product.image_paths && product.image_paths.length
+            ? [...product.image_paths.slice(0, this.MAX_IMAGES)]
+            : this.currentImages.map(() => null);
         this.renderImagesGrid();
 
         // Load colors
@@ -1261,6 +1269,7 @@ window.ZyraSeller = {
                     weight: document.getElementById('productWeightInput')?.value || '',
                     sku: skuInput.value.trim(),
                     images: [...this.currentImages],
+                    image_paths: [...this.currentImagePaths],
                     material: matInput.value.trim(),
                     description: descInput.value.trim(),
                     sizes: checkedSizes.length ? checkedSizes : product.sizes,

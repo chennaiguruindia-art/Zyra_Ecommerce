@@ -35,10 +35,15 @@ class SellerController extends Controller
     public function editProduct(int $id)
     {
         $product = Product::query()->with(['category', 'subcategory', 'sizes', 'colors', 'images'])->findOrFail($id);
+        $catalog = $product->toCatalogArray();
+        $catalog['image_paths'] = $product->images->pluck('image_path')->values()->all();
+        if (empty($catalog['image_paths']) && $product->image) {
+            $catalog['image_paths'] = [$product->image];
+        }
 
         return view('seller.edit-product', [
             'productId' => $id,
-            'product' => $product->toCatalogArray(),
+            'product' => $catalog,
             'categories' => Category::query()->active()->with('subcategories')->get(),
         ]);
     }
@@ -258,6 +263,8 @@ class SellerController extends Controller
             'size_stock' => 'nullable|array',
             'colors' => 'nullable|array',
             'images' => 'nullable|array|max:4',
+            'existing_images' => 'nullable|array|max:4',
+            'existing_images.*' => 'nullable|string|max:2048',
             'image_names' => 'nullable|array|max:4',
             'image_names.*' => 'nullable|string|max:255',
         ])->validate();
@@ -304,12 +311,26 @@ class SellerController extends Controller
             }
         }
 
+        $existingImages = $data['existing_images'] ?? [];
+        $allowedExisting = $product->exists
+            ? $product->images()->pluck('image_path')->all()
+            : [];
         $imageNames = $data['image_names'] ?? $request->input('image_names', []);
         $storedPaths = [];
-        foreach ($images as $index => $image) {
+        $slotIndexes = array_merge(array_keys((array) $images), array_keys((array) $existingImages));
+        $slotCount = empty($slotIndexes) ? 0 : min(4, max($slotIndexes) + 1);
+        for ($index = 0; $index < $slotCount; $index++) {
+            $existingPath = is_array($existingImages) ? ($existingImages[$index] ?? null) : null;
+            if ($existingPath !== null && in_array($existingPath, $allowedExisting, true)) {
+                $storedPaths[] = $existingPath;
+                continue;
+            }
+
+            $image = $images[$index] ?? null;
             if (empty($image)) {
                 continue;
             }
+
             $originalName = is_array($imageNames) ? ($imageNames[$index] ?? null) : null;
             $path = ProductImageStorage::store($image, 'products', $index, $originalName);
             if ($path) {
