@@ -8,6 +8,41 @@
     .container {
         max-width: 1240px;
     }
+
+    .zyra-hero-section .row {
+        min-height: 560px;
+    }
+}
+
+/* Compact navigation for tablets and smaller laptops. The full menu is
+   intentionally reserved for wide screens so header controls never overlap. */
+@media (max-width: 1199.98px) {
+    .zyra-header .container {
+        padding-top: 0.8rem !important;
+        padding-bottom: 0.8rem !important;
+    }
+
+    .zyra-header nav {
+        display: none !important;
+    }
+
+    .zyra-header .d-lg-none {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+    }
+
+    .zyra-brand-logo {
+        margin-right: auto;
+        margin-left: 0.75rem;
+    }
+
+    .zyra-header-icons {
+        margin-left: 0.75rem;
+    }
 }
 
 /* Medium Desktop & Tablet Landscape (992px to 1199px) */
@@ -62,10 +97,103 @@
         opacity: 1;
         transform: translateY(0);
     }
+
+    .zyra-hero-section .row {
+        min-height: 0;
+    }
+
+    .zyra-hero-section .col-lg-6:first-child {
+        order: 1;
+    }
+
+    .zyra-hero-section .col-lg-6:last-child {
+        order: 2;
+    }
+
+    .zyra-feature-box {
+        height: 100%;
+    }
 }
 
 /* Mobile Devices (< 768px) */
 @media (max-width: 767.98px) {
+    .zyra-header .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .zyra-logo-image {
+        width: 105px;
+        height: 42px;
+    }
+
+    .zyra-header-icons {
+        gap: 0.15rem !important;
+    }
+
+    .zyra-header-icons .icon-btn {
+        font-size: 1.1rem;
+        padding: 0.35rem;
+    }
+
+    .zyra-auth-dropdown .dropdown-toggle {
+        padding: 0.2rem !important;
+    }
+
+    .zyra-hero-section {
+        padding: 2.5rem 0 2rem;
+    }
+
+    .zyra-hero-tag {
+        max-width: 100%;
+        font-size: 0.68rem;
+        padding: 0.3rem 0.7rem;
+    }
+
+    .zyra-hero-desc {
+        font-size: 0.95rem;
+    }
+
+    .zyra-hero-section .btn {
+        width: 100%;
+        max-width: 270px;
+    }
+
+    .zyra-hero-badge-float {
+        left: 8px;
+        right: 8px;
+        bottom: 10px;
+        padding: 0.65rem 0.8rem;
+        gap: 8px;
+    }
+
+    .zyra-hero-badge-float .rounded-circle {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0.35rem !important;
+    }
+
+    main > section > .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    main .display-6 {
+        font-size: 1.8rem;
+    }
+
+    .zyra-promo-banner .btn {
+        width: 100%;
+    }
+
+    .zyra-feature-title {
+        font-size: 1rem;
+    }
+
+    .zyra-feature-desc {
+        font-size: 0.78rem;
+    }
+
     .zyra-logo-image-footer {
         width: 160px;
         max-height: 56px;
