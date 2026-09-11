@@ -262,6 +262,8 @@ class SellerController extends Controller
             'sizes' => 'nullable|array',
             'size_stock' => 'nullable|array',
             'colors' => 'nullable|array',
+            'color_codes' => 'nullable|array',
+            'color_codes.*' => 'nullable|string|max:20',
             'images' => 'nullable|array|max:4',
             'existing_images' => 'nullable|array|max:4',
             'existing_images.*' => 'nullable|string|max:2048',
@@ -405,9 +407,14 @@ class SellerController extends Controller
         }
 
         $colorNames = $data['colors'] ?? ['Pink', 'White'];
+        $colorCodes = array_values($data['color_codes'] ?? []);
         $colorIds = [];
-        foreach ($colorNames as $clr) {
+        foreach ($colorNames as $index => $clr) {
             $colorModel = Color::firstOrCreate(['name' => $clr]);
+            $hexCode = trim((string) ($colorCodes[$index] ?? ''));
+            if ($hexCode !== '' && $colorModel->hex_code !== $hexCode) {
+                $colorModel->update(['hex_code' => $hexCode]);
+            }
             $colorIds[] = $colorModel->id;
         }
         $product->colors()->sync($colorIds);

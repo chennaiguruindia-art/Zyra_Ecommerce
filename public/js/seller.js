@@ -119,6 +119,9 @@ window.ZyraSeller = {
         (data.colors && data.colors.length ? data.colors : ['Pink', 'White']).forEach((color) => {
             formData.append('colors[]', color);
         });
+        (data.color_codes || []).forEach((code) => {
+            formData.append('color_codes[]', code || '');
+        });
         Object.entries(data.size_stock || {}).forEach(([size, stock]) => {
             formData.append(`size_stock[${size}]`, stock);
         });
@@ -637,9 +640,11 @@ window.ZyraSeller = {
         }
 
         // Check if color already exists
-        const exists = this.availableColors.some(c => c.name.toLowerCase() === cleanName.toLowerCase());
-        if (!exists) {
+        const existingColor = this.availableColors.find(c => c.name.toLowerCase() === cleanName.toLowerCase());
+        if (!existingColor) {
             this.availableColors.push({ name: cleanName, hex: cleanHex });
+        } else {
+            existingColor.hex = cleanHex;
         }
 
         // Auto select newly created color
@@ -1150,7 +1155,8 @@ window.ZyraSeller = {
                 description: this.inputValue('productDescriptionInput').trim(),
                 sizes: checkedSizes.length ? checkedSizes : ['S', 'M', 'L'],
                 size_stock: sizeStock,
-                colors: this.selectedColors.length ? this.selectedColors : ['Pink', 'White']
+                colors: this.selectedColors.length ? this.selectedColors : ['Pink', 'White'],
+                color_codes: this.selectedColors.map(color => this.availableColors.find(c => c.name === color)?.hex || '')
             };
 
             this.addProduct(data);
@@ -1211,6 +1217,16 @@ window.ZyraSeller = {
 
         // Load colors
         this.selectedColors = product.colors && product.colors.length ? [...product.colors] : ['Pink', 'White'];
+        (product.colors || []).forEach((name, index) => {
+            const hex = product.color_codes?.[index];
+            if (!hex) return;
+            const existingColor = this.availableColors.find(c => c.name.toLowerCase() === name.toLowerCase());
+            if (existingColor) {
+                existingColor.hex = hex;
+            } else {
+                this.availableColors.push({ name, hex });
+            }
+        });
         this.renderColorsList();
 
         // Load sizes + per-size stock
@@ -1272,7 +1288,8 @@ window.ZyraSeller = {
                     description: descInput.value.trim(),
                     sizes: checkedSizes.length ? checkedSizes : product.sizes,
                     size_stock: sizeStock,
-                    colors: this.selectedColors.length ? this.selectedColors : product.colors
+                    colors: this.selectedColors.length ? this.selectedColors : product.colors,
+                    color_codes: this.selectedColors.map(color => this.availableColors.find(c => c.name === color)?.hex || '')
                 };
 
             this.updateProduct(id, data);

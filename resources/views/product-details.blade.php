@@ -139,7 +139,7 @@
                             $sizeQty = isset($product['size_stock'][$size]) ? (int) $product['size_stock'][$size] : null;
                             $sizeSoldOut = $sizeQty !== null && $sizeQty <= 0;
                         @endphp
-                        <div>
+                        <div class="position-relative d-inline-block">
                             <button type="button" class="btn btn-outline-dark pd-size-btn {{ $size === $defaultSize ? 'active' : '' }}" 
                                 data-size="{{ $size }}"
                                 @if($sizeSoldOut) disabled @endif
@@ -147,7 +147,8 @@
                                 {{ $size }}
                             </button>
                             @if($sizeSoldOut)
-                                <div class="small text-danger mt-1 text-center">Out of stock</div>
+                                <span class="position-absolute top-0 start-0 w-100 h-100 rounded pe-none" role="img" aria-label="Out of stock" title="Out of stock"
+                                    style="background: linear-gradient(135deg, transparent 44%, #dc3545 45%, #dc3545 55%, transparent 56%);"></span>
                             @endif
                         </div>
                     @endforeach
