@@ -17,7 +17,7 @@ class CategorySeeder extends Seeder
                 'description' => 'Chic crop tops, casual shirts, office wear & statement party tops.',
                 'image' => 'https://images.unsplash.com/photo-1534126511673-b6899657816a?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 1,
-                'subcategories' => ['Casual Tops', 'Crop Tops', 'Printed Tops', 'Office Wear Tops', 'Party Wear Tops'],
+                'subcategories' => ['Peplum Tops', 'Tunics', 'Short Kurtis'],
             ],
             [
                 'name' => 'Leggings',
@@ -25,7 +25,7 @@ class CategorySeeder extends Seeder
                 'description' => 'Ultra-stretchable, breathable 4-way cotton, ankle-length & festive churidars.',
                 'image' => 'https://images.unsplash.com/photo-1506619216599-9d16d0903dfd?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 2,
-                'subcategories' => ['Cotton Leggings', 'Ankle Length Leggings', 'Printed Leggings', 'Stretch Leggings', 'Basic Leggings'],
+                'subcategories' => ['Straight Pants', 'Palazzo', 'Leggings (Straight Fit & Ankle Fit)'],
             ],
             [
                 'name' => 'Kurtis',
@@ -33,7 +33,7 @@ class CategorySeeder extends Seeder
                 'description' => 'Handcrafted block prints, graceful Anarkalis, and everyday office straight kurtis.',
                 'image' => 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 3,
-                'subcategories' => ['Cotton Kurtis', 'Printed Kurtis', 'Anarkali Kurtis', 'Straight Kurtis', 'Office Wear Kurtis', 'Party Wear Kurtis'],
+                'subcategories' => ['3 Pcs Set', '2 Pcs Set', 'Anarkali', 'Office Wear', 'Daily Wear', 'Festive Wear'],
             ],
             [
                 'name' => 'Maxi Dresses',
@@ -41,7 +41,7 @@ class CategorySeeder extends Seeder
                 'description' => 'Flowing tiered silhouettes, romantic bohemian florals, and evening party maxis.',
                 'image' => 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=800&q=80',
                 'sort_order' => 4,
-                'subcategories' => ['Casual Maxi', 'Floral Maxi', 'Printed Maxi', 'Party Maxi', 'Ankle Length Maxi'],
+                'subcategories' => ['Anarkali'],
             ],
             [
                 'name' => 'Nightwear',
@@ -57,7 +57,7 @@ class CategorySeeder extends Seeder
                 'description' => 'Effortless matching sets designed for polished everyday style.',
                 'image' => 'images/categories/co-ords.jpg',
                 'sort_order' => 6,
-                'subcategories' => ['Casual Co-ords', 'Lounge Co-ords', 'Printed Co-ords', 'Party Co-ords'],
+                'subcategories' => ['Co-rds'],
             ],
         ];
 
@@ -65,12 +65,19 @@ class CategorySeeder extends Seeder
             $subcategoryNames = $catData['subcategories'];
             unset($catData['subcategories']);
             $cat = Category::updateOrCreate(['slug' => $catData['slug']], $catData);
+
+            $newSlugs = [];
             foreach ($subcategoryNames as $i => $subName) {
+                $newSlugs[] = \Illuminate\Support\Str::slug($subName);
                 Subcategory::updateOrCreate(
                     ['category_id' => $cat->id, 'slug' => \Illuminate\Support\Str::slug($subName)],
                     ['name' => $subName, 'sort_order' => $i + 1]
                 );
             }
+
+            Subcategory::where('category_id', $cat->id)
+                ->whereNotIn('slug', $newSlugs)
+                ->delete();
         }
     }
 }

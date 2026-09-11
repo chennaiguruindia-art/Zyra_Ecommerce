@@ -15,7 +15,7 @@
                     <span>
                         <input type="radio" name="filterCategory" class="filter-category-radio" value="all" checked> All Categories
                     </span>
-                    <span class="text-muted small">40</span>
+                    <span class="text-muted small">{{ array_sum(array_column($navCategories ?? [], 'count')) }}</span>
                 </label>
             </li>
             @foreach($navCategories ?? [] as $filterCat)
@@ -81,21 +81,16 @@
         <div class="zyra-filter-heading">Color</div>
         <div class="color-swatches-grid">
             @php
-                $colors = [
-                    'Black' => '#1a1a1a',
-                    'White' => '#ffffff',
-                    'Pink' => '#e8b4b8',
-                    'Blue' => '#3498db',
-                    'Red' => '#c0392b',
-                    'Green' => '#27ae60',
-                    'Yellow' => '#f1c40f',
-                ];
+                $filterColors = \App\Models\Color::query()->orderBy('name')->get();
             @endphp
-            @foreach($colors as $name => $hex)
-                <label class="color-swatch-btn" style="background-color: {{ $hex }};" title="{{ $name }}">
-                    <input type="checkbox" class="d-none filter-color-check" value="{{ $name }}" onchange="this.parentElement.classList.toggle('active', this.checked);">
+            @forelse($filterColors as $color)
+                <label class="color-swatch-btn" style="background-color: {{ $color->hex_code ?? '#cccccc' }};" title="{{ $color->name }}"
+                    data-color-name="{{ $color->name }}">
+                    <input type="checkbox" class="d-none filter-color-check" value="{{ $color->name }}" onchange="this.parentElement.classList.toggle('active', this.checked);">
                 </label>
-            @endforeach
+            @empty
+                <span class="text-muted small">No colors available</span>
+            @endforelse
         </div>
     </div>
 

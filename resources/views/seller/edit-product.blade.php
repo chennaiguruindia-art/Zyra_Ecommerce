@@ -7,6 +7,11 @@
 <script>
     window.ZyraSeller.page = 'edit-product';
     window.ZYRA_EDIT_PRODUCT = @json($product);
+    window.ZyraSubcategoryMap = @json(
+        collect($categories ?? [])->mapWithKeys(fn ($cat) => [
+            $cat->name => $cat->subcategories->pluck('name')->all(),
+        ])
+    );
 </script>
 @endpush
 
@@ -43,13 +48,15 @@
                             <label for="productCategoryInput" class="seller-form-label">Category *</label>
                             <select id="productCategoryInput" class="form-select seller-form-control" required>
                                 @foreach($categories ?? [] as $cat)
-                                    <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                                    <option value="{{ $cat->name }}" data-slug="{{ $cat->slug }}">{{ $cat->name }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label for="productSubcategoryInput" class="seller-form-label">Subcategory</label>
-                            <input type="text" id="productSubcategoryInput" class="form-control seller-form-control">
+                            <select id="productSubcategoryInput" class="form-select seller-form-control">
+                                <option value="" selected disabled>Select a category first</option>
+                            </select>
                         </div>
                     </div>
 

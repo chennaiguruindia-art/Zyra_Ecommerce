@@ -28,7 +28,7 @@ class SellerController extends Controller
     public function addProduct()
     {
         return view('seller.add-product', [
-            'categories' => Category::query()->active()->get(),
+            'categories' => Category::query()->active()->with('subcategories')->get(),
         ]);
     }
 
@@ -39,7 +39,7 @@ class SellerController extends Controller
         return view('seller.edit-product', [
             'productId' => $id,
             'product' => $product->toCatalogArray(),
-            'categories' => Category::query()->active()->get(),
+            'categories' => Category::query()->active()->with('subcategories')->get(),
         ]);
     }
 

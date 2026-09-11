@@ -237,10 +237,10 @@ window.ZyraApp = {
         });
     },
 
-    // Shop Page Dynamic AJAX-Style Filtering & Sorting
+    // Shop Page Dynamic AJAX Filtering & Sorting (server-side via /shop/filter)
     initShopPage() {
         const shopGrid = document.getElementById('shopProductGrid');
-        if (!shopGrid || !window.ZyraDB) return;
+        if (!shopGrid) return;
 
         // Preserve the current category when on a category/collection page.
         const pageCategory = shopGrid.getAttribute('data-category-slug');
@@ -309,14 +309,14 @@ window.ZyraApp = {
                 this.resetShopFilters();
             });
         }
-
-        // Initial apply to setup view
-        this.applyShopFilters();
     },
 
     resetShopFilters() {
+        const shopGrid = document.getElementById('shopProductGrid');
+        const pageCategory = shopGrid ? shopGrid.getAttribute('data-category-slug') : null;
+
         this.shopFilters = {
-            category: 'all',
+            category: pageCategory || 'all',
             subcategories: [],
             priceRange: 'all',
             sizes: [],
@@ -327,7 +327,13 @@ window.ZyraApp = {
         };
 
         // Reset inputs
-        document.querySelectorAll('.filter-category-radio[value="all"]').forEach(r => r.checked = true);
+        if (pageCategory) {
+            document.querySelectorAll('.filter-category-radio').forEach(r => {
+                r.checked = (r.value.toLowerCase() === pageCategory.toLowerCase());
+            });
+        } else {
+            document.querySelectorAll('.filter-category-radio[value="all"]').forEach(r => r.checked = true);
+        }
         document.querySelectorAll('.filter-price-radio[value="all"]').forEach(r => r.checked = true);
         document.querySelectorAll('.filter-rating-radio[value="0"]').forEach(r => r.checked = true);
         document.querySelectorAll('.filter-size-check').forEach(c => c.checked = false);
@@ -345,161 +351,84 @@ window.ZyraApp = {
         const emptyState = document.getElementById('shopEmptyState');
         const activeFiltersBar = document.getElementById('shopActiveFiltersBar');
 
-        if (!shopGrid || !window.ZyraDB) return;
+        if (!shopGrid) return;
 
-        // Show subtle AJAX loading effect
+        // Show subtle loading effect
         shopGrid.style.opacity = '0.5';
 
-        setTimeout(() => {
-            let filtered = window.ZyraDB.getProducts();
+        const params = new URLSearchParams();
+        if (this.shopFilters.category && this.shopFilters.category !== 'all') {
+            params.append('category', this.shopFilters.category);
+        }
+        if (this.shopFilters.priceRange && this.shopFilters.priceRange !== 'all') {
+            params.append('price_range', this.shopFilters.priceRange);
+        }
+        this.shopFilters.sizes.forEach(s => params.append('sizes[]', s));
+        this.shopFilters.colors.forEach(c => params.append('colors[]', c));
+        if (this.shopFilters.rating > 0) {
+            params.append('rating', this.shopFilters.rating);
+        }
+        params.append('sort', this.shopFilters.sort || 'featured');
 
-            // 1. Filter Category
+        // Render Active Filters Tag Bar immediately
+        if (activeFiltersBar) {
+            let tagsHtml = '';
             if (this.shopFilters.category !== 'all') {
-                filtered = filtered.filter(p => p.category.toLowerCase() === this.shopFilters.category.toLowerCase());
+                tagsHtml += `<span class="active-filter-tag">Category: ${this.shopFilters.category} <button type="button" onclick="ZyraApp.removeFilter('category')">&times;</button></span>`;
             }
-
-            // 2. Filter Price Range
             if (this.shopFilters.priceRange !== 'all') {
-                const [min, max] = this.shopFilters.priceRange.split('-').map(Number);
-                filtered = filtered.filter(p => {
-                    if (max) {
-                        return p.price >= min && p.price <= max;
-                    } else {
-                        return p.price >= min;
-                    }
-                });
+                tagsHtml += `<span class="active-filter-tag">Price: ${this.shopFilters.priceRange} <button type="button" onclick="ZyraApp.removeFilter('price')">&times;</button></span>`;
             }
-
-            // 3. Filter Sizes
-            if (this.shopFilters.sizes.length > 0) {
-                filtered = filtered.filter(p => p.sizes.some(s => this.shopFilters.sizes.includes(s)));
-            }
-
-            // 4. Filter Colors
-            if (this.shopFilters.colors.length > 0) {
-                filtered = filtered.filter(p => p.colors.some(c => this.shopFilters.colors.includes(c)));
-            }
-
-            // 5. Filter Rating
+            this.shopFilters.sizes.forEach(s => {
+                tagsHtml += `<span class="active-filter-tag">Size: ${s} <button type="button" onclick="ZyraApp.removeFilter('size', '${s}')">&times;</button></span>`;
+            });
+            this.shopFilters.colors.forEach(c => {
+                tagsHtml += `<span class="active-filter-tag">Color: ${c} <button type="button" onclick="ZyraApp.removeFilter('color', '${c}')">&times;</button></span>`;
+            });
             if (this.shopFilters.rating > 0) {
-                filtered = filtered.filter(p => p.rating >= this.shopFilters.rating);
+                tagsHtml += `<span class="active-filter-tag">Rating: ${this.shopFilters.rating}★+ <button type="button" onclick="ZyraApp.removeFilter('rating')">&times;</button></span>`;
             }
-
-            // 6. Sorting
-            switch (this.shopFilters.sort) {
-                case 'price-low':
-                    filtered.sort((a, b) => a.price - b.price);
-                    break;
-                case 'price-high':
-                    filtered.sort((a, b) => b.price - a.price);
-                    break;
-                case 'newest':
-                    filtered.sort((a, b) => (b.badge === 'New' ? 1 : 0) - (a.badge === 'New' ? 1 : 0));
-                    break;
-                case 'rating':
-                    filtered.sort((a, b) => b.rating - a.rating);
-                    break;
-                case 'popular':
-                    filtered.sort((a, b) => b.reviews - a.reviews);
-                    break;
-                default: // featured
-                    filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-                    break;
+            if (tagsHtml) {
+                tagsHtml += `<button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="ZyraApp.resetShopFilters()">Clear All</button>`;
             }
+            activeFiltersBar.innerHTML = tagsHtml;
+        }
 
-            // Update Count Display
-            if (countDisplay) {
-                countDisplay.textContent = `Showing ${filtered.length} of ${window.ZyraDB.getProducts().length} products`;
-            }
-
-            // Render Active Filters Tag Bar
-            if (activeFiltersBar) {
-                let tagsHtml = '';
-                if (this.shopFilters.category !== 'all') {
-                    tagsHtml += `<span class="active-filter-tag">Category: ${this.shopFilters.category} <button type="button" onclick="ZyraApp.removeFilter('category')">&times;</button></span>`;
+        fetch(`/shop/filter?${params.toString()}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (!shopGrid) return;
+                if (countDisplay) {
+                    countDisplay.textContent = `Showing ${data.count} products`;
                 }
-                if (this.shopFilters.priceRange !== 'all') {
-                    tagsHtml += `<span class="active-filter-tag">Price: ${this.shopFilters.priceRange} <button type="button" onclick="ZyraApp.removeFilter('price')">&times;</button></span>`;
+                if (!data.html || data.count === 0) {
+                    shopGrid.innerHTML = '';
+                    if (emptyState) emptyState.style.display = 'block';
+                } else {
+                    if (emptyState) emptyState.style.display = 'none';
+                    shopGrid.innerHTML = data.html;
                 }
-                this.shopFilters.sizes.forEach(s => {
-                    tagsHtml += `<span class="active-filter-tag">Size: ${s} <button type="button" onclick="ZyraApp.removeFilter('size', '${s}')">&times;</button></span>`;
-                });
-                this.shopFilters.colors.forEach(c => {
-                    tagsHtml += `<span class="active-filter-tag">Color: ${c} <button type="button" onclick="ZyraApp.removeFilter('color', '${c}')">&times;</button></span>`;
-                });
-                if (this.shopFilters.rating > 0) {
-                    tagsHtml += `<span class="active-filter-tag">Rating: ${this.shopFilters.rating}★+ <button type="button" onclick="ZyraApp.removeFilter('rating')">&times;</button></span>`;
+                shopGrid.style.opacity = '1';
+                if (window.ZyraWishlist) {
+                    window.ZyraWishlist.syncHeartIcons();
                 }
-
-                if (tagsHtml) {
-                    tagsHtml += `<button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="ZyraApp.resetShopFilters()">Clear All</button>`;
-                }
-                activeFiltersBar.innerHTML = tagsHtml;
-            }
-
-            // Empty state check
-            if (filtered.length === 0) {
-                shopGrid.innerHTML = '';
-                if (emptyState) emptyState.style.display = 'block';
-            } else {
-                if (emptyState) emptyState.style.display = 'none';
-
-                let html = '';
-                filtered.forEach(p => {
-                    html += `
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <div class="zyra-product-card">
-                                <div class="zyra-product-thumb">
-                                    <img src="${p.image}" alt="${p.name}" loading="lazy">
-                                    <div class="zyra-badge-stack">
-                                        ${p.badge ? `<span class="badge-zyra-${p.badge.toLowerCase().replace(/\s+/g, '')}">${p.badge}</span>` : ''}
-                                        ${p.discount ? `<span class="badge-zyra-discount">${p.discount}% OFF</span>` : ''}
-                                    </div>
-                                    <button type="button" class="zyra-wishlist-btn" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Love it" aria-label="Love it">
-                                        <i class="bi bi-heart"></i>
-                                    </button>
-                                    <div class="zyra-card-actions">
-                                        <button type="button" class="btn-card-quickview" onclick="ZyraApp.openQuickView(${p.id})">
-                                            <i class="bi bi-eye"></i> Quick View
-                                        </button>
-                                        <button type="button" class="btn-card-addcart" onclick="ZyraCart.addToCart(${p.id})" title="Add to Cart">
-                                            <i class="bi bi-bag-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="zyra-product-body">
-                                    <span class="zyra-product-category">${p.category}</span>
-                                    <h6 class="zyra-product-title">
-                                        <a href="/product/${p.id}">${p.name}</a>
-                                    </h6>
-                                    <div class="zyra-product-rating">
-                                        <span>${'★'.repeat(Math.round(p.rating))}${'☆'.repeat(5 - Math.round(p.rating))}</span>
-                                        <span class="review-count">(${p.reviews})</span>
-                                    </div>
-                                    <div class="zyra-product-price-box">
-                                        <span class="zyra-current-price">₹${p.price}</span>
-                                        ${p.old_price ? `<span class="zyra-old-price">₹${p.old_price}</span>` : ''}
-                                        ${p.discount ? `<span class="zyra-discount-tag">${p.discount}% OFF</span>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                shopGrid.innerHTML = html;
-            }
-
-            shopGrid.style.opacity = '1';
-            if (window.ZyraWishlist) {
-                window.ZyraWishlist.syncHeartIcons();
-            }
-        }, 150);
+            })
+            .catch(() => {
+                if (shopGrid) shopGrid.style.opacity = '1';
+            });
     },
 
     removeFilter(type, value = null) {
+        const shopGrid = document.getElementById('shopProductGrid');
+        const pageCategory = shopGrid ? shopGrid.getAttribute('data-category-slug') : null;
+
         if (type === 'category') {
-            this.shopFilters.category = 'all';
-            document.querySelectorAll('.filter-category-radio[value="all"]').forEach(r => r.checked = true);
+            this.shopFilters.category = pageCategory || 'all';
+            document.querySelectorAll('.filter-category-radio').forEach(r => {
+                r.checked = (r.value.toLowerCase() === (pageCategory || 'all').toLowerCase());
+            });
         } else if (type === 'price') {
             this.shopFilters.priceRange = 'all';
             document.querySelectorAll('.filter-price-radio[value="all"]').forEach(r => r.checked = true);

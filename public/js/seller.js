@@ -1043,6 +1043,34 @@ window.ZyraSeller = {
         update();
     },
 
+    bindSubcategoryDropdown(selectedValue = null) {
+        const categoryInput = document.getElementById('productCategoryInput');
+        const subcategoryInput = document.getElementById('productSubcategoryInput');
+        if (!categoryInput || !subcategoryInput) return;
+
+        const map = window.ZyraSubcategoryMap || {};
+
+        const populate = () => {
+            const catName = categoryInput.value;
+            const subs = map[catName] || [];
+            subcategoryInput.innerHTML = '<option value="" selected disabled>' +
+                (subs.length ? 'Select Subcategory' : 'No subcategories available') +
+                '</option>';
+            subs.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                subcategoryInput.appendChild(opt);
+            });
+            if (selectedValue && subs.includes(selectedValue)) {
+                subcategoryInput.value = selectedValue;
+            }
+        };
+
+        categoryInput.addEventListener('change', populate);
+        populate();
+    },
+
     initAddProductPage() {
         const form = document.getElementById('sellerAddProductForm');
         if (!form || form.dataset.initialized === 'true') return;
@@ -1057,6 +1085,7 @@ window.ZyraSeller = {
         this.selectedColors = ['Pink', 'White'];
         this.renderColorsList();
         this.bindSizeStockTotal();
+        this.bindSubcategoryDropdown();
 
         // Bind image file input
         const fileInput = document.getElementById('productFileInput');
@@ -1105,7 +1134,7 @@ window.ZyraSeller = {
             const data = {
                 name: this.inputValue('productNameInput').trim(),
                 category: this.inputValue('productCategoryInput'),
-                subcategory: this.inputValue('productSubcategoryInput').trim() || 'Casual Wear',
+                subcategory: this.inputValue('productSubcategoryInput').trim() || '',
                 price: this.inputValue('productPriceInput'),
                 old_price: this.inputValue('productOldPriceInput'),
                 stock_units: this.inputValue('productStockInput'),
@@ -1152,7 +1181,14 @@ window.ZyraSeller = {
 
         if (nameInput) nameInput.value = product.name;
         if (catInput) catInput.value = product.category;
-        if (subInput) subInput.value = product.subcategory || '';
+        this.bindSubcategoryDropdown(product.subcategory);
+        if (subInput && product.subcategory && !Array.from(subInput.options).some(o => o.value === product.subcategory)) {
+            const opt = document.createElement('option');
+            opt.value = product.subcategory;
+            opt.textContent = product.subcategory;
+            subInput.appendChild(opt);
+            subInput.value = product.subcategory;
+        }
         if (priceInput) priceInput.value = product.price;
         if (oldPriceInput) oldPriceInput.value = product.old_price || '';
         if (stockInput) stockInput.value = product.stock_units || 0;
