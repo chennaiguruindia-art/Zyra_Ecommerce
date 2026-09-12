@@ -84,10 +84,34 @@ window.ZyraApp = {
     },
 
     // Quick View Modal
-    openQuickView(productId) {
-        if (!window.ZyraDB) return;
-        const product = window.ZyraDB.getProductById(productId);
-        if (!product) return;
+    openQuickView(productOrId) {
+        let product = null;
+
+        if (typeof productOrId === 'string') {
+            try {
+                product = JSON.parse(productOrId);
+            } catch (e) {
+                product = null;
+            }
+        }
+
+        if (!product && productOrId && typeof productOrId === 'object') {
+            product = productOrId;
+        }
+
+        if (!product) {
+            const id = parseInt(productOrId);
+            if (window.ZyraDB && typeof window.ZyraDB.getProductById === 'function') {
+                product = window.ZyraDB.getProductById(id);
+            }
+            if (!product && Array.isArray(window.ZYRA_SEARCH_PRODUCTS)) {
+                product = window.ZYRA_SEARCH_PRODUCTS.find(p => parseInt(p.id) === id);
+            }
+            if (!product && typeof ZYRA_PRODUCTS !== 'undefined' && Array.isArray(ZYRA_PRODUCTS)) {
+                product = ZYRA_PRODUCTS.find(p => parseInt(p.id) === id);
+            }
+            if (!product) return;
+        }
 
         const modalEl = document.getElementById('quickViewModal');
         if (!modalEl) return;

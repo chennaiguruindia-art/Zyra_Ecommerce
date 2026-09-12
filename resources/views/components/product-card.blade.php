@@ -38,7 +38,7 @@
 
         <!-- Hover Actions -->
         <div class="zyra-card-actions">
-            <button type="button" class="btn-card-quickview" onclick="ZyraApp.openQuickView({{ $id }})" title="Quick View" aria-label="Quick View">
+            <button type="button" class="btn-card-quickview" onclick="ZyraApp.openQuickView(@js($product))" title="Quick View" aria-label="Quick View">
                 <i class="bi bi-eye" aria-hidden="true"></i>
             </button>
             <button type="button" class="btn-card-addcart" onclick="ZyraCart.addToCart({{ $id }}, null, null, 1, @js($product))" title="Add to Cart">

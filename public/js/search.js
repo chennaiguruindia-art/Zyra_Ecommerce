@@ -149,14 +149,25 @@ const ZyraSearch = {
     },
 
     filterSearchPage(query, container, countEl, queryDisplayEl, emptyState) {
-        if (!container || !window.ZyraDB) return;
+        if (!container) return;
+
+        const allProducts = Array.isArray(window.ZYRA_SEARCH_PRODUCTS)
+            ? window.ZYRA_SEARCH_PRODUCTS
+            : [];
 
         let results = [];
         if (!query) {
-            results = window.ZyraDB.getProducts();
+            results = allProducts;
             if (queryDisplayEl) queryDisplayEl.textContent = 'All Products';
         } else {
-            results = window.ZyraDB.searchProducts(query);
+            const q = query.toLowerCase();
+            results = allProducts.filter(p =>
+                (p.name || '').toLowerCase().includes(q) ||
+                (p.category || '').toLowerCase().includes(q) ||
+                (p.subcategory || '').toLowerCase().includes(q) ||
+                (p.description || '').toLowerCase().includes(q) ||
+                (p.material || '').toLowerCase().includes(q)
+            );
             if (queryDisplayEl) queryDisplayEl.textContent = `"${query}"`;
         }
 
@@ -185,10 +196,10 @@ const ZyraSearch = {
                                 <i class="bi bi-heart"></i>
                             </button>
                             <div class="zyra-card-actions">
-                                <button type="button" class="btn-card-quickview" onclick="ZyraApp.openQuickView(${p.id})">
+                                <button type="button" class="btn-card-quickview" onclick="ZyraApp.openQuickView(${this.escapeAttr(JSON.stringify(p))})">
                                     <i class="bi bi-eye"></i> Quick View
                                 </button>
-                                <button type="button" class="btn-card-addcart" onclick="ZyraCart.addToCart(${p.id})" title="Add to Cart">
+                                <button type="button" class="btn-card-addcart" onclick="ZyraCart.addToCart(${p.id}, null, null, 1, ${this.escapeAttr(JSON.stringify(p))})" title="Add to Cart">
                                     <i class="bi bi-bag-plus"></i>
                                 </button>
                             </div>
@@ -229,6 +240,11 @@ const ZyraSearch = {
             '"': '&quot;',
             "'": '&#039;'
         }[m]));
+    },
+
+    escapeAttr(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#039;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 };
 

@@ -42,6 +42,12 @@
     <!-- Results Container (Populated by search.js) -->
     <div id="searchResultsContainer"></div>
 
+    @push('scripts')
+    <script>
+        window.ZYRA_SEARCH_PRODUCTS = @json($allProducts ?? []);
+    </script>
+    @endpush
+
     <!-- Empty Search State -->
     <div id="searchEmptyState" class="text-center py-5 my-4" style="display: none;">
         <div class="mb-3 text-muted" style="font-size: 3.5rem;">

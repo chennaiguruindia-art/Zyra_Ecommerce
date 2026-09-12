@@ -36,6 +36,10 @@ const ZyraCart = {
             product = window.ZyraDB.getProductById(productId);
         }
 
+        if (!product && Array.isArray(window.ZYRA_SEARCH_PRODUCTS)) {
+            product = window.ZYRA_SEARCH_PRODUCTS.find(p => parseInt(p.id) === parseInt(productId));
+        }
+
         if (!product && typeof ZYRA_PRODUCTS !== 'undefined') {
             product = ZYRA_PRODUCTS.find(p => parseInt(p.id) === parseInt(productId));
         }
