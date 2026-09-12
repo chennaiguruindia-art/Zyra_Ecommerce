@@ -47,6 +47,24 @@
                         <strong>Free Express Delivery</strong> on all orders.
                     </div>
                 </div>
+
+                <!-- Save Cart for Reminder -->
+                <div class="alert alert-zyra-reminder border mt-3">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-bell fs-5"></i>
+                        <div class="flex-grow-1">
+                            <strong class="d-block">Saving your bag?</strong>
+                            <span class="text-muted small">Enter your email and we'll remind you if you leave without checking out.</span>
+                            <div class="input-group input-group-sm mt-2">
+                                <input type="email" id="saveCartEmailInput" class="form-control" placeholder="you@example.com" maxlength="190">
+                                <button class="btn btn-dark" type="button" id="saveCartBtn" onclick="ZyraCart.saveCartForReminder(document.getElementById('saveCartEmailInput').value)">
+                                    Save My Bag
+                                </button>
+                            </div>
+                            <div id="saveCartFeedback" class="mt-1 small"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Right: Order Summary & Coupon -->

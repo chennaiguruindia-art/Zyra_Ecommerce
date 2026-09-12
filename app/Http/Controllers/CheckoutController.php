@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -50,6 +51,16 @@ class CheckoutController extends Controller
             $cartSubtotal += ((float) ($item['price'] ?? 0)) * ((int) ($item['quantity'] ?? 1));
         }
         $cartShipping = 0;
+
+        // Track the cart against the shopper's account email so we can send an
+        // abandoned-cart reminder if they leave before completing the purchase.
+        if (!empty($cartItems) && !empty($user->email)) {
+            try {
+                (new CartController())->updateOrCreateCartRecord($user->email, $cartItems);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Checkout cart tracking failed', ['error' => $e->getMessage()]);
+            }
+        }
 
         $pricing = app(PricingService::class)->breakdown(null, $user->id);
 
@@ -115,6 +126,7 @@ class CheckoutController extends Controller
         $razorpay = app(RazorpayService::class);
 
         if (!$razorpay->verifySignature($data)) {
+            $this->sendPaymentFailedMail($pending ?? []);
             return response()->json([
                 'success' => false,
                 'message' => 'Payment verification failed. Your order was not placed.',
@@ -124,6 +136,7 @@ class CheckoutController extends Controller
         try {
             $payment = $razorpay->fetchPayment($data['razorpay_payment_id']);
         } catch (\Throwable $e) {
+            $this->sendPaymentFailedMail($pending ?? []);
             return response()->json([
                 'success' => false,
                 'message' => 'We could not confirm the payment with Razorpay. Please try again.',
@@ -132,6 +145,7 @@ class CheckoutController extends Controller
 
         $expectedAmount = (int) round((float) ($pending['_total'] ?? 0) * 100);
         if (($payment['order_id'] ?? null) !== $data['razorpay_order_id']) {
+            $this->sendPaymentFailedMail($pending ?? []);
             return response()->json([
                 'success' => false,
                 'message' => 'Payment does not belong to this order.',
@@ -139,6 +153,7 @@ class CheckoutController extends Controller
         }
 
         if ((int) ($payment['amount'] ?? 0) !== $expectedAmount) {
+            $this->sendPaymentFailedMail($pending ?? []);
             return response()->json([
                 'success' => false,
                 'message' => 'Payment amount mismatch. Please contact support.',
@@ -149,6 +164,7 @@ class CheckoutController extends Controller
             try {
                 $payment = $razorpay->capturePayment($data['razorpay_payment_id'], $expectedAmount);
             } catch (\Throwable $e) {
+                $this->sendPaymentFailedMail($pending ?? []);
                 return response()->json([
                     'success' => false,
                     'message' => 'Payment was authorized but could not be captured. Please try again.',
@@ -157,6 +173,7 @@ class CheckoutController extends Controller
         }
 
         if (($payment['status'] ?? null) !== 'captured') {
+            $this->sendPaymentFailedMail($pending ?? []);
             return response()->json([
                 'success' => false,
                 'message' => 'Payment is not captured yet. Please complete the payment or try again.',
@@ -395,10 +412,59 @@ class CheckoutController extends Controller
 
             session()->forget(['cart', 'coupon']);
 
+            // The cart has been converted into an order — stop reminding.
+            Cart::query()
+                ->where('user_id', Auth::id())
+                ->active()
+                ->update([
+                    'status' => Cart::STATUS_CONVERTED,
+                    'converted_at' => now(),
+                ]);
+
             $this->pushToShiprocket($order);
+
+            DB::afterCommit(function () use ($order) {
+                $this->sendOrderConfirmation($order);
+            });
 
             return $order;
         });
+    }
+
+    /**
+     * Email the customer their order confirmation. Never throws.
+     */
+    protected function sendOrderConfirmation(Order $order): void
+    {
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->customer_email)
+                ->send(new \App\Mail\OrderConfirmationMail($order));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Order confirmation email failed', [
+                'order' => $order->order_number,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Email the customer when an online payment fails. Never throws.
+     */
+    protected function sendPaymentFailedMail(array $pending): void
+    {
+        try {
+            $customerName = trim(($pending['first_name'] ?? '') . ' ' . ($pending['last_name'] ?? ''));
+            $pending['_customer_name'] = $customerName;
+            $pending['_email'] = $pending['email'];
+
+            \Illuminate\Support\Facades\Mail::to($pending['email'])
+                ->send(new \App\Mail\OrderFailedMail($pending));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Order failed email could not be sent', [
+                'email' => $pending['email'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

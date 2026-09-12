@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -138,6 +139,88 @@ class CartController extends Controller
     public function items()
     {
         return response()->json(['items' => $this->resolvedCart()]);
+    }
+
+    /**
+     * Save the current cart (with the visitor's email) so an abandoned-cart
+     * reminder can be sent later. Idempotent per session; updates last activity.
+     */
+    public function save(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email|max:190',
+            'items' => 'nullable|array',
+            'items.*.id' => 'required|integer',
+            'items.*.quantity' => 'nullable|integer|min:1',
+            'items.*.size' => 'nullable|string',
+            'items.*.color' => 'nullable|string',
+        ]);
+
+        $items = $data['items'] ?? [];
+        if (!empty($items)) {
+            $this->replaceCartFromItems($items);
+        }
+
+        $cartItems = $this->resolvedCart();
+        if (empty($cartItems)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your cart is empty. Add items before saving.',
+            ], 422);
+        }
+
+        $record = $this->updateOrCreateCartRecord($data['email'], $cartItems);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your cart is saved! We\'ll remind you if you forget it.',
+            'cart_id' => $record->id,
+        ]);
+    }
+
+    /**
+     * Upsert the persistent cart record used by the abandoned-cart reminder.
+     */
+    public function updateOrCreateCartRecord(string $email, array $cartItems): Cart
+    {
+        $sessionId = session()->getId();
+        $userId = auth()->id();
+
+        $record = Cart::query()
+            ->where('user_id', $userId)
+            ->orWhere(function ($q) use ($sessionId) {
+                $q->whereNotNull('session_id')->where('session_id', $sessionId);
+            })
+            ->active()
+            ->latest()
+            ->first();
+
+        $subtotal = 0;
+        foreach ($cartItems as $item) {
+            $subtotal += ((float) ($item['price'] ?? 0)) * ((int) ($item['quantity'] ?? 1));
+        }
+
+        if ($record) {
+            $record->update([
+                'email' => $email,
+                'items' => $cartItems,
+                'subtotal' => $subtotal,
+                'last_activity_at' => now(),
+            ]);
+
+            return $record;
+        }
+
+        return Cart::create([
+            'session_id' => $sessionId,
+            'user_id' => $userId,
+            'email' => $email,
+            'items' => $cartItems,
+            'subtotal' => $subtotal,
+            'status' => Cart::STATUS_ACTIVE,
+            'last_activity_at' => now(),
+            'reminder_count' => 0,
+        ]);
     }
 
     public function resolvedCart(): array

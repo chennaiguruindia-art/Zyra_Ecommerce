@@ -439,6 +439,63 @@ const ZyraCart = {
         }
     },
 
+    saveCartForReminder(email) {
+        const feedback = document.getElementById('saveCartFeedback');
+        const input = document.getElementById('saveCartEmailInput');
+        const btn = document.getElementById('saveCartBtn');
+
+        const setFeedback = (html, type) => {
+            if (!feedback) return;
+            feedback.innerHTML = `<span class="${type === 'success' ? 'text-success' : 'text-danger'}"><i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'} me-1"></i>${html}</span>`;
+        };
+
+        const cleanEmail = (email || '').trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            setFeedback('Please enter a valid email address.', 'error');
+            if (input) input.focus();
+            return false;
+        }
+
+        const cart = this.getCart();
+        if (!cart.length) {
+            setFeedback('Your bag is empty. Add items before saving.', 'error');
+            return false;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+        }
+
+        fetch('/cart/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+            body: JSON.stringify({ email: cleanEmail, items: cart }),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.success) {
+                    setFeedback(data.message || 'Your bag is saved!', 'success');
+                    if (input) input.disabled = true;
+                } else {
+                    setFeedback(data.message || 'Could not save your bag. Please try again.', 'error');
+                }
+            })
+            .catch(() => setFeedback('Network error. Please try again.', 'error'))
+            .finally(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Save My Bag';
+                }
+            });
+
+        return true;
+    },
+
     init() {
         this.updateHeaderBadge();
         this.renderMiniCart();

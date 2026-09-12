@@ -85,7 +85,7 @@
 
     <!-- Application Modules -->
     <script src="{{ asset('js/app.js') }}?v=20260911b"></script>
-    <script src="{{ asset('js/cart.js') }}?v=20260911b"></script>
+    <script src="{{ asset('js/cart.js') }}?v=20260911c"></script>
     <script src="{{ asset('js/wishlist.js') }}"></script>
     <script src="{{ asset('js/checkout.js') }}?v=20260908d"></script>
     <script src="{{ asset('js/search.js') }}?v=20260911b"></script>

@@ -1556,6 +1556,13 @@ img {
     box-shadow: var(--zyra-shadow-sm);
 }
 
+.alert-zyra-reminder {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border: 1px solid #fcd34d;
+    border-radius: var(--zyra-radius-md);
+    color: #78350f;
+}
+
 .zyra-summary-row {
     display: flex;
     justify-content: space-between;

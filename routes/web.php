@@ -113,6 +113,7 @@ Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wi
 
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/sync', [CartController::class, 'sync'])->name('cart.sync');
+Route::post('/cart/save', [CartController::class, 'save'])->name('cart.save');
 Route::get('/cart/items', [CartController::class, 'items'])->name('cart.items');
 Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
