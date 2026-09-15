@@ -126,6 +126,71 @@
     }
 }
 
+/* Desktop (>= 992px): keep the filter as a normal sidebar column,
+   never as the mobile (fixed) bottom sheet. */
+@media (min-width: 992px) {
+    .zyra-filter-backdrop,
+    .zyra-sort-sheet {
+        display: none;
+    }
+
+    .zyra-filter-sheet-header {
+        display: none;
+    }
+
+    .zyra-mobile-toolbar,
+    .zyra-cat-chips {
+        display: none !important;
+    }
+}
+
+/* Filter column becomes a bottom-sheet drawer on mobile */
+@media (max-width: 991.98px) {
+    .zyra-filter-col {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-height: 88vh;
+        height: auto;
+        background: var(--zyra-white);
+        border-radius: 20px 20px 0 0;
+        z-index: 1050;
+        padding: 1rem 1.25rem 2.25rem;
+        overflow-y: auto;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+        box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .zyra-filter-col.open {
+        transform: translateY(0);
+    }
+
+    .zyra-filter-col .zyra-filter-card {
+        margin-bottom: 0.85rem;
+    }
+
+    .zyra-sort-sheet {
+        display: block;
+    }
+
+    .zyra-filter-backdrop {
+        display: block;
+    }
+
+    .zyra-mobile-toolbar {
+        top: 66px;
+        margin: -0.5rem -0.75rem 0.75rem;
+    }
+
+    .zyra-cat-chips {
+        margin-bottom: 0.75rem;
+    }
+}
+
 /* Mobile Devices (< 768px) */
 @media (max-width: 767.98px) {
     .zyra-header .container {

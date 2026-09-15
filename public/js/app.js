@@ -261,6 +261,53 @@ window.ZyraApp = {
         });
     },
 
+    // === Mobile App-Style Shop Toolbar (filter drawer + sort sheet + category chips) ===
+    toggleMobileFilters(forceOpen) {
+        const filterCol = document.getElementById('shopFilterCol');
+        const backdrop = document.getElementById('shopFilterBackdrop');
+        if (!filterCol) return;
+
+        const shouldOpen = forceOpen === undefined ? !filterCol.classList.contains('open') : forceOpen;
+        filterCol.classList.toggle('open', shouldOpen);
+        if (backdrop) backdrop.classList.toggle('show', shouldOpen);
+        document.body.classList.toggle('overflow-hidden', shouldOpen);
+    },
+
+    toggleMobileSort(forceOpen) {
+        const sheet = document.getElementById('mobileSortSheet');
+        const backdrop = document.getElementById('shopFilterBackdrop');
+        if (!sheet) return;
+
+        const shouldOpen = forceOpen === undefined ? !sheet.classList.contains('open') : forceOpen;
+
+        // Only one overlay at a time.
+        if (shouldOpen) {
+            const filterCol = document.getElementById('shopFilterCol');
+            if (filterCol) filterCol.classList.remove('open');
+        }
+        sheet.classList.toggle('open', shouldOpen);
+        if (backdrop) backdrop.classList.toggle('show', shouldOpen);
+        document.body.classList.toggle('overflow-hidden', shouldOpen);
+    },
+
+    selectMobileChip(chipEl) {
+        const cat = chipEl.getAttribute('data-cat') || 'all';
+        this.shopFilters.category = cat;
+        this.syncMobileChips(cat, cat);
+        this.applyShopFilters();
+    },
+
+    // Mirrors a selected category slug onto the mobile chip row + the sidebar
+    // category radio so both shared views stay visually in sync.
+    syncMobileChips(catSlug, radioSlug) {
+        document.querySelectorAll('#mobileCatChips .zyra-cat-chip').forEach(c => {
+            c.classList.toggle('active', (c.getAttribute('data-cat') || 'all') === (catSlug || 'all'));
+        });
+        document.querySelectorAll('.filter-category-radio').forEach(r => {
+            r.checked = (r.value.toLowerCase() === (radioSlug || 'all').toLowerCase());
+        });
+    },
+
     // Shop Page Dynamic AJAX Filtering & Sorting (server-side via /shop/filter)
     initShopPage() {
         const shopGrid = document.getElementById('shopProductGrid');
@@ -326,6 +373,31 @@ window.ZyraApp = {
             });
         }
 
+        // Bind Mobile Sort Sheet Options
+        document.querySelectorAll('#mobileSortOptions .zyra-sort-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const sortVal = opt.getAttribute('data-sort');
+                this.shopFilters.sort = sortVal;
+
+                if (sortSelect) sortSelect.value = sortVal;
+                document.querySelectorAll('#mobileSortOptions .zyra-sort-option').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+
+                this.toggleMobileSort(false);
+                this.applyShopFilters();
+            });
+        });
+
+        // Init mobile sort option highlight from current query param
+        const urlSort = new URLSearchParams(window.location.search).get('sort');
+        if (urlSort && sortSelect) {
+            sortSelect.value = urlSort;
+            this.shopFilters.sort = urlSort;
+            document.querySelectorAll('#mobileSortOptions .zyra-sort-option').forEach(o => {
+                o.classList.toggle('active', o.getAttribute('data-sort') === urlSort);
+            });
+        }
+
         // Bind Clear All Filters Button
         const clearBtn = document.getElementById('clearAllFiltersBtn');
         if (clearBtn) {
@@ -358,6 +430,7 @@ window.ZyraApp = {
         } else {
             document.querySelectorAll('.filter-category-radio[value="all"]').forEach(r => r.checked = true);
         }
+        this.syncMobileChips(pageCategory || 'all', pageCategory || 'all');
         document.querySelectorAll('.filter-price-radio[value="all"]').forEach(r => r.checked = true);
         document.querySelectorAll('.filter-rating-radio[value="0"]').forEach(r => r.checked = true);
         document.querySelectorAll('.filter-size-check').forEach(c => c.checked = false);
@@ -365,6 +438,9 @@ window.ZyraApp = {
 
         const sortSelect = document.getElementById('shopSortSelect');
         if (sortSelect) sortSelect.value = 'featured';
+        document.querySelectorAll('#mobileSortOptions .zyra-sort-option').forEach(o => {
+            o.classList.toggle('active', o.getAttribute('data-sort') === 'featured');
+        });
 
         this.applyShopFilters();
     },
@@ -372,6 +448,7 @@ window.ZyraApp = {
     applyShopFilters() {
         const shopGrid = document.getElementById('shopProductGrid');
         const countDisplay = document.getElementById('shopProductCount');
+        const countDisplayDesktop = document.getElementById('shopProductCountDesktop');
         const emptyState = document.getElementById('shopEmptyState');
         const activeFiltersBar = document.getElementById('shopActiveFiltersBar');
 
@@ -393,6 +470,13 @@ window.ZyraApp = {
             params.append('rating', this.shopFilters.rating);
         }
         params.append('sort', this.shopFilters.sort || 'featured');
+
+        // Preserve the page-level filter (new / sale / trending) from the URL so
+        // sorting and refining keeps the same curated collection on /shop?filter=...
+        const pageFilter = new URLSearchParams(window.location.search).get('filter');
+        if (pageFilter) {
+            params.append('filter', pageFilter);
+        }
 
         // Render Active Filters Tag Bar immediately
         if (activeFiltersBar) {
@@ -427,6 +511,9 @@ window.ZyraApp = {
                 if (countDisplay) {
                     countDisplay.textContent = `Showing ${data.count} products`;
                 }
+                if (countDisplayDesktop) {
+                    countDisplayDesktop.textContent = `Showing ${data.count} products`;
+                }
                 if (!data.html || data.count === 0) {
                     shopGrid.innerHTML = '';
                     if (emptyState) emptyState.style.display = 'block';
@@ -453,6 +540,7 @@ window.ZyraApp = {
             document.querySelectorAll('.filter-category-radio').forEach(r => {
                 r.checked = (r.value.toLowerCase() === (pageCategory || 'all').toLowerCase());
             });
+            this.syncMobileChips(pageCategory || 'all', pageCategory || 'all');
         } else if (type === 'price') {
             this.shopFilters.priceRange = 'all';
             document.querySelectorAll('.filter-price-radio[value="all"]').forEach(r => r.checked = true);

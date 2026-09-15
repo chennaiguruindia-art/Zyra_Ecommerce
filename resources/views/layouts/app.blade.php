@@ -53,8 +53,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v=20260912a">
-    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v=20260912a">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v=20260913a">
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v=20260913a">
 
     @stack('styles')
 </head>
@@ -84,7 +84,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <!-- Application Modules -->
-    <script src="{{ asset('js/app.js') }}?v=20260911b"></script>
+    <script src="{{ asset('js/app.js') }}?v=20260913a"></script>
     <script src="{{ asset('js/cart.js') }}?v=20260911c"></script>
     <script src="{{ asset('js/wishlist.js') }}"></script>
     <script src="{{ asset('js/checkout.js') }}?v=20260908d"></script>

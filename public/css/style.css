@@ -1279,6 +1279,190 @@ img {
     color: var(--zyra-text-muted);
 }
 
+/* Mobile App-Style Shop Toolbar */
+.zyra-mobile-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.65rem 0.9rem;
+    margin: -1rem -0.75rem 0.5rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--zyra-border);
+}
+
+.zyra-mobile-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--zyra-bg-muted);
+    border: 1px solid var(--zyra-border);
+    color: var(--zyra-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.5rem 0.85rem;
+    border-radius: 50px;
+    white-space: nowrap;
+    transition: var(--zyra-transition);
+}
+
+.zyra-mobile-tool-btn:active {
+    transform: scale(0.96);
+    background: var(--zyra-primary);
+    color: var(--zyra-white);
+}
+
+.zyra-mobile-tool-title {
+    text-align: center;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.zyra-mobile-tool-title-main {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--zyra-primary);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.zyra-mobile-tool-title span {
+    display: block;
+    font-size: 0.68rem;
+}
+
+/* Category Chips (horizontal scroll) */
+.zyra-cat-chips {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.25rem 0.1rem 0.75rem;
+    margin-bottom: 0.5rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.zyra-cat-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.zyra-cat-chip {
+    flex: 0 0 auto;
+    padding: 0.45rem 1.05rem;
+    border-radius: 50px;
+    border: 1px solid var(--zyra-border);
+    background: var(--zyra-white);
+    color: var(--zyra-text-main);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: var(--zyra-transition);
+}
+
+.zyra-cat-chip.active {
+    background: var(--zyra-primary);
+    border-color: var(--zyra-primary);
+    color: var(--zyra-white);
+}
+
+/* Mobile Filter Backdrop & Bottom Sheet (styled in responsive.css) */
+.zyra-filter-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 1040;
+}
+
+.zyra-filter-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mobile Sort Bottom Sheet */
+.zyra-sort-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--zyra-white);
+    border-radius: 20px 20px 0 0;
+    padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
+    z-index: 1050;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.zyra-sort-sheet.open {
+    transform: translateY(0);
+}
+
+.zyra-sort-sheet-handle {
+    width: 44px;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--zyra-border);
+    margin: 0 auto 0.9rem;
+}
+
+.zyra-sort-sheet-title {
+    font-weight: 700;
+    color: var(--zyra-primary);
+    margin-bottom: 0.75rem;
+}
+
+.zyra-sort-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.zyra-sort-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--zyra-text-main);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--zyra-transition);
+}
+
+.zyra-sort-option::after {
+    content: "\F272";
+    font-family: "bootstrap-icons";
+    font-size: 1.05rem;
+    opacity: 0;
+    color: var(--zyra-primary);
+}
+
+.zyra-sort-option.active {
+    background: var(--zyra-bg-muted);
+    border-color: var(--zyra-border);
+    color: var(--zyra-primary);
+    font-weight: 700;
+}
+
+.zyra-sort-option.active::after {
+    opacity: 1;
+}
+
 /* Product Details Page */
 .zyra-gallery-main-view {
     border-radius: 18px 18px 6px 18px;
