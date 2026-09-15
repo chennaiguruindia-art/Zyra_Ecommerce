@@ -268,13 +268,22 @@ img {
 
 .zyra-header .container > .d-flex {
     min-width: 0;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
 }
 
 .zyra-header nav {
     min-width: 0;
+    flex: 1 1 auto;
+    justify-content: center;
 }
 
 .zyra-header-icons {
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.zyra-header-icons > * {
     flex: 0 0 auto;
 }
 
@@ -316,6 +325,12 @@ img {
     position: relative;
 }
 
+.zyra-header-search {
+    width: 220px;
+    flex: 0 1 220px;
+    transition: width var(--zyra-transition);
+}
+
 .header-search-dropdown {
     position: absolute;
     top: 100%;
@@ -346,12 +361,15 @@ img {
         padding-right: 0.45rem;
     }
 
-    .header-search-container .input-group {
-        width: 170px !important;
-    }
-
     .zyra-header-icons {
         gap: 0.15rem !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .zyra-header-search {
+        width: 170px;
+        flex: 0 1 170px;
     }
 }
 

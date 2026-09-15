@@ -35,13 +35,24 @@
         flex: 0 0 40px;
     }
 
-    .zyra-brand-logo {
-        margin-right: auto;
-        margin-left: 0.75rem;
+    /* Center the brand on every non-desktop layout so the header stays
+       balanced no matter how wide the toggle / icons cluster is. */
+    .zyra-header .container > .d-flex {
+        position: relative;
+    }
+
+    .zyra-header .zyra-brand-logo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+        z-index: 2;
     }
 
     .zyra-header-icons {
-        margin-left: 0.75rem;
+        margin-left: auto;
+        margin-right: 0;
     }
 }
 
@@ -315,6 +326,51 @@
 
 /* Extra Small Phones (< 576px) */
 @media (max-width: 575.98px) {
+    .zyra-header .container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .zyra-header .d-lg-none {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+    }
+
+    .zyra-header .zyra-brand-logo {
+        left: 50%;
+        width: auto;
+    }
+
+    .zyra-logo-image {
+        width: 96px;
+        height: 40px;
+    }
+
+    .zyra-header-icons {
+        gap: 0.1rem !important;
+    }
+
+    .zyra-header-icons .icon-btn {
+        font-size: 1.05rem;
+        padding: 0.25rem;
+    }
+
+    .zyra-auth-dropdown .dropdown-toggle {
+        padding: 0.1rem !important;
+    }
+
+    .zyra-auth-dropdown .dropdown-toggle::after {
+        display: none;
+    }
+
+    .zyra-auth-dropdown .dropdown-menu {
+        right: 0;
+        left: auto;
+        min-width: 200px;
+        max-width: calc(100vw - 24px);
+    }
+
     .zyra-hero-title {
         font-size: 1.95rem;
     }
@@ -323,5 +379,24 @@
     }
     .zyra-product-thumb {
         padding-top: 135%;
+    }
+}
+
+/* Super compact layout for very narrow phones (< 380px) */
+@media (max-width: 379.98px) {
+    .zyra-logo-image {
+        width: 88px;
+        height: 36px;
+    }
+
+    .zyra-header-icons .icon-btn {
+        font-size: 1rem;
+        padding: 0.2rem;
+    }
+
+    .zyra-header .d-lg-none {
+        width: 32px;
+        height: 32px;
+        flex: 0 0 32px;
     }
 }

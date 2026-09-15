@@ -40,8 +40,8 @@
             <!-- Right-Side Action Icons -->
             <div class="zyra-header-icons d-flex align-items-center gap-2">
                 <!-- Search Trigger with Dropdown Input -->
-                <div class="header-search-container d-none d-sm-block">
-                    <div class="input-group input-group-sm" style="width: 220px;">
+                <div class="header-search-container d-none d-md-block">
+                    <div class="input-group input-group-sm zyra-header-search">
                         <input type="text" id="headerSearchInput" class="form-control rounded-start-pill ps-3" placeholder="Search kurtis, tops..." autocomplete="off">
                         <button class="btn btn-outline-secondary rounded-end-pill pe-3" type="button" onclick="window.location.href='/search?q=' + encodeURIComponent(document.getElementById('headerSearchInput').value)">
                             <i class="bi bi-search"></i>
