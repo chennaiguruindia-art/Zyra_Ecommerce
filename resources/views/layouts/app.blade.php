@@ -53,8 +53,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v=20260917e">
-    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v=20260917e">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v=20260917f">
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v=20260917f">
 
     @stack('styles')
 </head>

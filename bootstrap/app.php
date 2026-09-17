@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'seller' => EnsureUserIsSeller::class,
         ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackVisit::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, $request) {

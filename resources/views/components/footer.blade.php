@@ -6,7 +6,7 @@
             <!-- Brand Column -->
             <div class="col-lg-3 col-md-6">
                 <a href="{{ route('home') }}" class="zyra-brand-logo zyra-footer-brand text-white">
-                    <img src="{{ asset('images/logo/Zyra _logo.png') }}" alt="ZYRA" class="zyra-logo-image zyra-logo-image-footer">
+                    <img src="{{ asset('images/logo/white_logo.png') }}" alt="ZYRA" class="zyra-logo-image zyra-logo-image-footer">
                 </a>
                 <p class="text-muted small mb-3 pe-lg-3">
                     Redefining modern Indian women's everyday wardrobe with timeless silhouettes, breathable fabrics, and effortless elegance.
@@ -15,7 +15,6 @@
                     <a href="https://www.instagram.com/zyraofficial46/" target="_blank" rel="noopener noreferrer" title="Instagram"><i class="bi bi-instagram"></i></a>
                     <a href="https://www.facebook.com/profile.php?id=61591489273734" target="_blank" rel="noopener noreferrer" title="Facebook"><i class="bi bi-facebook"></i></a>
                     <a href="https://www.youtube.com/@ZyraOfficial46" target="_blank" rel="noopener noreferrer" title="YouTube"><i class="bi bi-youtube"></i></a>
-                    <a href="https://in.pinterest.com/Zyraofficial46/" target="_blank" rel="noopener noreferrer" title="Pinterest"><i class="bi bi-pinterest"></i></a>
                 </div>
             </div>
 
@@ -70,6 +69,10 @@
         <div class="zyra-footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
             <div>
                 &copy; {{ date('Y') }} ZYRA. All Rights Reserved. Designed with care for modern women.
+            </div>
+            <div class="zyra-visit-counter d-flex align-items-center gap-3 small">
+                <span title="Visits today"><i class="bi bi-eye me-1"></i> Today: {{ number_format($siteVisitStats['today'] ?? 0) }}</span>
+                <span title="Total visits"><i class="bi bi-graph-up me-1"></i> Total: {{ number_format($siteVisitStats['total'] ?? 0) }}</span>
             </div>
             <div class="d-flex gap-3">
                 <a href="{{ route('about') }}" class="text-muted">About Us</a>

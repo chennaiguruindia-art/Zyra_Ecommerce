@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Category;
 use App\Models\Color;
 use App\Models\Size;
+use App\Models\SiteVisit;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Throwable;
@@ -40,6 +41,7 @@ class ViewServiceProvider extends ServiceProvider
             $view->with('navCategories', $navCategories);
             $view->with('filterSizes', $filterSizes);
             $view->with('filterColors', $filterColors);
+            $view->with('siteVisitStats', SiteVisit::stats());
         });
     }
 }
