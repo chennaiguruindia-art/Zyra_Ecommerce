@@ -86,7 +86,7 @@
 </section>
 
 <!-- 3. New Arrivals Section -->
-<section class="py-5" style="background-color: var(--zyra-bg-light);">
+<section id="new-arrivals" class="py-5" style="background-color: var(--zyra-bg-light);">
     <div class="container py-3">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
             <div>
@@ -109,7 +109,7 @@
 </section>
 
 <!-- 4. Best Sellers Section -->
-<section class="py-5 bg-white">
+<section id="best-sellers" class="py-5 bg-white">
     <div class="container py-3">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
             <div>

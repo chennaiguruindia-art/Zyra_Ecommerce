@@ -24,17 +24,29 @@
             <!-- Desktop Primary Navigation -->
             <nav class="d-none d-lg-flex align-items-center gap-1">
                 <a href="{{ route('home') }}" class="zyra-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
-                <a href="{{ route('shop') }}" class="zyra-nav-link {{ request()->routeIs('shop') && !request()->has('filter') ? 'active' : '' }}">Shop</a>
-                @foreach($navCategories ?? [] as $navCat)
-                    @php
-                        $catSlug = $navCat['slug'] ?? '';
-                        $catRoute = \Illuminate\Support\Facades\Route::has('pages.' . $catSlug) ? route('pages.' . $catSlug) : route('category', $catSlug);
-                        $isActive = request()->is('category/' . $catSlug) || request()->is($catSlug);
-                    @endphp
-                    <a href="{{ $catRoute }}" class="zyra-nav-link {{ $isActive ? 'active' : '' }}">{{ $navCat['name'] ?? '' }}</a>
-                @endforeach
-                <a href="{{ route('pages.duppata') }}" class="zyra-nav-link {{ request()->routeIs('pages.duppata') ? 'active' : '' }}">Dupatta</a>
-                <a href="{{ route('shop') }}?filter=new" class="zyra-nav-link {{ request()->input('filter') === 'new' ? 'active' : '' }}">New Arrivals</a>
+
+                <!-- Zyra Collection Dropdown -->
+                <div class="dropdown zyra-collection-dropdown">
+                    <a href="{{ route('shop') }}" class="zyra-nav-link dropdown-toggle {{ request()->is('shop') || request()->is('category/*') || request()->is('kurtis') || request()->is('maxi') || request()->is('leggings') || request()->is('tops') || request()->is('nightwear') || request()->is('duppata') ? 'active' : '' }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                        Zyra Collection
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-lg-start shadow-lg border-0 rounded-4 py-2 zyra-collection-menu">
+                        <li><a href="{{ route('shop') }}" class="dropdown-item fw-bold">All Products</a></li>
+                        <li><hr class="dropdown-divider mx-2"></li>
+                        @foreach($navCategories ?? [] as $navCat)
+                            @php
+                                $catSlug = $navCat['slug'] ?? '';
+                                $catRoute = \Illuminate\Support\Facades\Route::has('pages.' . $catSlug) ? route('pages.' . $catSlug) : route('category', $catSlug);
+                            @endphp
+                            <li><a href="{{ $catRoute }}" class="dropdown-item">{{ $navCat['name'] ?? '' }}</a></li>
+                        @endforeach
+                        <li><hr class="dropdown-divider mx-2"></li>
+                        <li><a href="{{ route('pages.duppata') }}" class="dropdown-item">Dupatta</a></li>
+                    </ul>
+                </div>
+
+                <a href="{{ route('home') }}#best-sellers" class="zyra-nav-link">Top Seller</a>
+                <a href="{{ route('home') }}#new-arrivals" class="zyra-nav-link">New Arrival</a>
                 <a href="{{ route('shop') }}?filter=sale" class="zyra-nav-link sale-link {{ request()->input('filter') === 'sale' ? 'active' : '' }}">Sale</a>
             </nav>
 
@@ -151,6 +163,11 @@
             <li class="nav-item">
                 <a href="{{ route('home') }}" class="nav-link text-dark fw-bold border-bottom pb-2">Home</a>
             </li>
+
+            <!-- Zyra Collection Group -->
+            <li class="nav-item mt-1">
+                <span class="text-uppercase small fw-bold text-muted"><i class="bi bi-grid-3x3-gap me-1"></i> Zyra Collection</span>
+            </li>
             <li class="nav-item">
                 <a href="{{ route('shop') }}" class="nav-link text-dark fw-bold border-bottom pb-2">All Products</a>
             </li>
@@ -166,8 +183,12 @@
             <li class="nav-item">
                 <a href="{{ route('pages.duppata') }}" class="nav-link text-dark fw-medium border-bottom pb-2">Dupatta</a>
             </li>
+
+            <li class="nav-item mt-2">
+                <a href="{{ route('home') }}#best-sellers" class="nav-link text-dark fw-bold border-bottom pb-2"><i class="bi bi-trophy me-2"></i> Top Seller</a>
+            </li>
             <li class="nav-item">
-                <a href="{{ route('shop') }}?filter=new" class="nav-link text-dark fw-medium border-bottom pb-2">New Arrivals</a>
+                <a href="{{ route('home') }}#new-arrivals" class="nav-link text-dark fw-bold border-bottom pb-2"><i class="bi bi-stars me-2"></i> New Arrival</a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('shop') }}?filter=sale" class="nav-link text-danger fw-bold border-bottom pb-2">Sale (Up to 40% OFF)</a>

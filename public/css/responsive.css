@@ -114,11 +114,11 @@
     }
 
     .zyra-hero-section .col-lg-6:first-child {
-        order: 1;
+        order: 2;
     }
 
     .zyra-hero-section .col-lg-6:last-child {
-        order: 2;
+        order: 1;
     }
 
     .zyra-feature-box {
