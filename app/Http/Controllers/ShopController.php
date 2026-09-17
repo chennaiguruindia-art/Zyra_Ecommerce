@@ -62,6 +62,19 @@ class ShopController extends Controller
         return view($view, compact('products', 'categories', 'currentCategory'));
     }
 
+    /**
+     * The /duppata collection page. Shows every product that has the Dupatta
+     * option enabled via the Global Settings toggle.
+     */
+    public function duppata(Request $request)
+    {
+        $request->merge(['dupatta' => true]);
+        $products = $this->filteredQuery($request)->get()->map->toCatalogArray()->all();
+        $categories = $this->categoryPayload();
+
+        return view('pages.duppata', compact('products', 'categories'));
+    }
+
     public function filter(Request $request)
     {
         $query = $this->filteredQuery($request);
@@ -98,6 +111,11 @@ class ShopController extends Controller
         $query = Product::query()
             ->with(['category', 'subcategory', 'sizes', 'colors', 'images'])
             ->filter($filters);
+
+        // On the /duppata page only products with the Dupatta option enabled are shown.
+        if ($request->boolean('dupatta')) {
+            $query->where('dupatta_enabled', true);
+        }
 
         if ($request->input('filter') === 'new') {
             $query->where('badge', 'New');

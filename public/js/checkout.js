@@ -86,13 +86,14 @@ const ZyraCheckout = {
             const price = parseFloat(item.price) || 0;
             const qty = parseInt(item.quantity, 10) || 1;
             const itemTotal = price * qty;
+            const dupLabel = item.dupatta === false ? ' | Without Dupatta' : (item.dupatta === true ? ' | With Dupatta' : '');
             subtotal += itemTotal;
             html += `
-                <div class="checkout-item-row d-flex align-items-center gap-3 py-2 border-bottom" data-id="${item.id || ''}" data-price="${price}" data-size="${item.size || 'M'}" data-color="${item.color || ''}">
+                <div class="checkout-item-row d-flex align-items-center gap-3 py-2 border-bottom" data-id="${item.id || ''}" data-price="${price}" data-size="${item.size || 'M'}" data-color="${item.color || ''}" data-dupatta="${item.dupatta === undefined ? '' : (item.dupatta ? '1' : '0')}">
                     <img src="${item.image || ''}" alt="${item.name || 'Item'}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;">
                     <div class="flex-grow-1 overflow-hidden">
                         <div class="text-truncate fw-semibold small">${item.name || 'Item'}</div>
-                        <small class="text-muted d-block" style="font-size: 0.75rem;">Size: ${item.size || 'M'} | Color: ${item.color || 'Standard'}</small>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">Size: ${item.size || 'M'} | Color: ${item.color || 'Standard'}${dupLabel}</small>
                         <div class="zyra-qty-stepper mt-1" style="height: 28px;">
                             <button type="button" class="zyra-qty-btn checkout-qty-btn" data-dir="-1">−</button>
                             <input type="text" class="zyra-qty-input checkout-qty" value="${qty}" readonly style="width: 36px; height: 28px; font-size: 0.8rem;">
@@ -130,6 +131,7 @@ const ZyraCheckout = {
         const id = row.dataset.id;
         const size = row.dataset.size || 'M';
         const color = row.dataset.color || '';
+        const dupatta = row.dataset.dupatta === '0' ? false : (row.dataset.dupatta === '1' ? true : null);
         const dir = parseInt(btn.dataset.dir, 10) || 0;
         const input = row.querySelector('.checkout-qty');
         const currentQty = parseInt(input.value, 10) || 1;
@@ -138,11 +140,12 @@ const ZyraCheckout = {
         if (newQty < 1) return;
 
         const serverCart = Array.isArray(window.ZYRA_SERVER_CART) ? window.ZYRA_SERVER_CART : [];
-        const index = serverCart.findIndex(item =>
+        const matches = (item) =>
             String(item.id) === String(id) &&
             String(item.size || 'M') === String(size) &&
-            String(item.color || '') === String(color)
-        );
+            String(item.color || '') === String(color) &&
+            (dupatta === null || !!item.dupatta === dupatta);
+        const index = serverCart.findIndex(matches);
 
         try {
             const res = await fetch('/cart/update', {
@@ -157,7 +160,8 @@ const ZyraCheckout = {
             const bIdx = browserCart.findIndex(item =>
                 String(item.id) === String(id) &&
                 String(item.size || 'M') === String(size) &&
-                String(item.color || '') === String(color)
+                String(item.color || '') === String(color) &&
+                (dupatta === null || !!item.dupatta === dupatta)
             );
             if (bIdx >= 0) {
                 browserCart[bIdx].quantity = newQty;
@@ -565,13 +569,14 @@ const ZyraCheckout = {
             if (itemsListEl && order.items) {
                 let html = '';
                 order.items.forEach(item => {
+                    const dupLabel = item.dupatta === false ? ' | Without Dupatta' : (item.dupatta === true ? ' | With Dupatta' : '');
                     html += `
                         <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
                             <div class="d-flex align-items-center gap-3">
                                 <img src="${item.image}" alt="${item.name}" style="width: 45px; height: 60px; object-fit: cover; border-radius: 4px;">
                                 <div>
                                     <div class="fw-semibold small">${item.name}</div>
-                                    <small class="text-muted">Size: ${item.size} | Color: ${item.color} | Qty: ${item.quantity}</small>
+                                    <small class="text-muted">Size: ${item.size} | Color: ${item.color}${dupLabel} | Qty: ${item.quantity}</small>
                                 </div>
                             </div>
                             <span class="fw-bold small">₹${item.price * item.quantity}</span>

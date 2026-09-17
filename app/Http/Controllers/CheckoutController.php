@@ -231,6 +231,7 @@ class CheckoutController extends Controller
             'items.*.quantity' => 'nullable|integer|min:1',
             'items.*.size' => 'nullable|string',
             'items.*.color' => 'nullable|string',
+            'items.*.dupatta' => 'nullable|boolean',
             'coupon_code' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
@@ -398,6 +399,7 @@ class CheckoutController extends Controller
                     'quantity' => $line['quantity'],
                     'size' => $line['size'],
                     'color' => $line['color'],
+                    'dupatta' => $line['dupatta'] ? 'With Dupatta' : 'Without Dupatta',
                     'total' => $line['total'],
                 ]);
 

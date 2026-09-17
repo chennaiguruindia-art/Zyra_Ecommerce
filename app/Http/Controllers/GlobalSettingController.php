@@ -28,7 +28,7 @@ class GlobalSettingController extends Controller
     {
         $data = Validator::make($request->all(), [
             'product_id' => 'required|integer',
-            'field' => 'required|in:is_best_seller,is_trending',
+            'field' => 'required|in:is_best_seller,is_trending,dupatta_enabled',
             'value' => 'required|boolean',
         ])->validate();
 

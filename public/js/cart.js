@@ -26,7 +26,7 @@ const ZyraCart = {
         }
     },
 
-    addToCart(productId, size = 'M', color = null, quantity = 1, productData = null) {
+    addToCart(productId, size = 'M', color = null, quantity = 1, productData = null, withDupatta = true) {
         let product = productData;
         if (!product && window.ZYRA_CURRENT_PRODUCT && parseInt(window.ZYRA_CURRENT_PRODUCT.id) === parseInt(productId)) {
             product = window.ZYRA_CURRENT_PRODUCT;
@@ -49,13 +49,19 @@ const ZyraCart = {
             return false;
         }
 
+        const dupatta = withDupatta !== false;
+        const basePrice = parseFloat(product.price) || 0;
+        const unitPrice = dupatta
+            ? basePrice
+            : (parseFloat(product.without_dupatta_price) || (basePrice - parseFloat(product.dupatta_discount || 300)));
+
         const selectedColor = color || (product.colors && product.colors[0]) || 'Standard';
         const selectedSize = size || (product.sizes && product.sizes[0]) || 'M';
         const qty = parseInt(quantity) || 1;
 
         let cart = this.getCart();
         const existingIndex = cart.findIndex(item => 
-            parseInt(item.id) === parseInt(product.id) && item.size === selectedSize && item.color === selectedColor
+            parseInt(item.id) === parseInt(product.id) && item.size === selectedSize && item.color === selectedColor && !!item.dupatta === dupatta
         );
 
         if (existingIndex > -1) {
@@ -64,12 +70,13 @@ const ZyraCart = {
             cart.push({
                 id: parseInt(product.id),
                 name: product.name,
-                price: parseFloat(product.price) || 0,
+                price: unitPrice,
                 old_price: product.old_price ? parseFloat(product.old_price) : null,
                 image: product.image,
                 category: product.category || 'Apparel',
                 size: selectedSize,
                 color: selectedColor,
+                dupatta: dupatta,
                 quantity: qty
             });
         }
@@ -324,12 +331,15 @@ const ZyraCart = {
 
         let html = '';
         cart.forEach((item, index) => {
+            const dupLabel = item.dupatta === false
+                ? ' | <strong>Without Dupatta</strong>'
+                : (item.dupatta === true ? ' | <strong>With Dupatta</strong>' : '');
             html += `
                 <div class="zyra-mini-cart-item">
                     <img src="${item.image}" alt="${item.name}" class="mini-cart-thumb">
                     <div class="mini-cart-info">
                         <h6 class="mini-cart-title">${item.name}</h6>
-                        <div class="mini-cart-meta">Size: <strong>${item.size}</strong> | Color: <strong>${item.color}</strong></div>
+                        <div class="mini-cart-meta">Size: <strong>${item.size}</strong> | Color: <strong>${item.color}</strong>${dupLabel}</div>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <span class="small text-muted">Qty: ${item.quantity}</span>
                             <span class="mini-cart-price">₹${item.price * item.quantity}</span>
@@ -367,6 +377,8 @@ const ZyraCart = {
 
         let rowsHtml = '';
         cart.forEach((item, index) => {
+            const dupLabel = item.dupatta === false ? 'Without Dupatta' : (item.dupatta === true ? 'With Dupatta' : '');
+            const dupMeta = dupLabel ? ` | ${dupLabel}` : '';
             rowsHtml += `
                 <tr>
                     <td data-label="Product">
@@ -374,7 +386,7 @@ const ZyraCart = {
                             <img src="${item.image}" alt="${item.name}" class="cart-item-thumb">
                             <div>
                                 <a href="/product/${item.id}" class="fw-bold text-dark text-decoration-none d-block">${item.name}</a>
-                                <small class="text-muted d-block mt-1">Size: <span class="badge bg-light text-dark border">${item.size}</span> | Color: ${item.color}</small>
+                                <small class="text-muted d-block mt-1">Size: <span class="badge bg-light text-dark border">${item.size}</span> | Color: ${item.color}${dupMeta}</small>
                                 <small class="text-muted">SKU: ZYR-ITEM-${item.id}</small>
                             </div>
                         </div>

@@ -89,7 +89,7 @@
                         @if($items->isNotEmpty())
                             @foreach($items as $it)
                                 <div class="d-flex align-items-center justify-content-between py-1 border-bottom">
-                                    <span>{{ $it->product_name }} ({{ $it->size ?? 'M' }}) x {{ $it->quantity }}</span>
+                                    <span>{{ $it->product_name }} ({{ $it->size ?? 'M' }}{{ $it->dupatta ? ', ' . $it->dupatta : '' }}) x {{ $it->quantity }}</span>
                                     <span class="fw-bold">₹{{ number_format($it->total, 0) }}</span>
                                 </div>
                             @endforeach

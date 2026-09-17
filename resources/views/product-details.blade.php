@@ -75,7 +75,7 @@
             <!-- Pricing Box -->
             <div class="p-3 bg-light rounded-3 mb-3">
                 <div class="d-flex align-items-baseline gap-3">
-                    <span class="fs-2 fw-bold text-dark">₹{{ $product['price'] }}</span>
+                    <span id="pdPriceDisplay" class="fs-2 fw-bold text-dark">₹{{ $product['price'] }}</span>
                     @if($product['old_price'])
                         <span class="fs-5 text-muted text-decoration-line-through">₹{{ $product['old_price'] }}</span>
                     @endif
@@ -155,6 +155,25 @@
                 </div>
             </div>
 
+            @if(!empty($product['dupatta_enabled']) && !empty($product['without_dupatta_price']) && (float) $product['without_dupatta_price'] < (float) $product['price'])
+            <div class="mb-4">
+                <label class="form-label fw-bold small text-uppercase mb-2">Dupatta Option</label>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-dark pd-dupatta-btn active" data-dupatta="1">
+                        <i class="bi bi-check2-circle me-1"></i> With Dupatta
+                        <span class="text-muted small ms-1">₹{{ $product['price'] }}</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-dark pd-dupatta-btn" data-dupatta="0">
+                        Without Dupatta
+                        <span class="text-muted small ms-1">₹{{ $product['without_dupatta_price'] }}</span>
+                    </button>
+                </div>
+                <small class="text-muted d-block mt-1">
+                    <i class="bi bi-tag me-1"></i> Choose "Without Dupatta" and save ₹{{ (float) $product['price'] - (float) $product['without_dupatta_price'] }}.
+                </small>
+            </div>
+        @endif
+
             <!-- Quantity & Actions -->
             <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
                 <div class="d-flex align-items-center">
@@ -167,7 +186,7 @@
                     const size = document.querySelector('.pd-size-btn.active')?.getAttribute('data-size') || 'M';
                     const color = document.querySelector('.pd-color-swatch.active')?.getAttribute('data-color') || 'Standard';
                     const qty = parseInt(document.getElementById('pdQuantityInput')?.value) || 1;
-                    ZyraCart.addToCart({{ (int) $product['id'] }}, size, color, qty);
+                    ZyraCart.addToCart({{ (int) $product['id'] }}, size, color, qty, null, selectedDupatta);
                 ">
                     <i class="bi bi-bag-plus me-1"></i> Add to Cart
                 </button>
@@ -177,7 +196,7 @@
                     const size = document.querySelector('.pd-size-btn.active')?.getAttribute('data-size') || 'M';
                     const color = document.querySelector('.pd-color-swatch.active')?.getAttribute('data-color') || 'Standard';
                     const qty = parseInt(document.getElementById('pdQuantityInput')?.value) || 1;
-                    if (ZyraCart.addToCart({{ (int) $product['id'] }}, size, color, qty)) {
+                    if (ZyraCart.addToCart({{ (int) $product['id'] }}, size, color, qty, null, selectedDupatta)) {
                         setTimeout(() => window.location.href = '{{ route('checkout') }}', 300);
                     }
                 ">
@@ -458,5 +477,21 @@
 @push('scripts')
 <script>
     window.ZYRA_CURRENT_PRODUCT = @json($product);
+    let selectedDupatta = true;
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.pd-dupatta-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.pd-dupatta-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedDupatta = btn.getAttribute('data-dupatta') === '1';
+                const priceDisplay = document.getElementById('pdPriceDisplay');
+                if (priceDisplay) {
+                    priceDisplay.textContent = '₹' + (selectedDupatta
+                        ? {{ json_encode((float) $product['price']) }}
+                        : {{ json_encode((float) $product['without_dupatta_price']) }});
+                }
+            });
+        });
+    });
 </script>
 @endpush

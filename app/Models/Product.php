@@ -9,11 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
+    /** Amount deducted from the original price when "Without Dupatta" is selected. */
+    public const DUPATTA_DISCOUNT = 300;
+
     protected $fillable = [
         'category_id', 'subcategory_id', 'name', 'slug', 'sku', 'price', 'old_price',
         'discount', 'stock_units', 'in_stock', 'image', 'material', 'fit', 'care',
         'description', 'badge', 'is_featured', 'is_best_seller', 'is_trending',
-        'rating', 'reviews_count', 'weight',
+        'dupatta_enabled', 'rating', 'reviews_count', 'weight',
     ];
 
     protected $casts = [
@@ -21,6 +24,7 @@ class Product extends Model
         'is_featured' => 'boolean',
         'is_best_seller' => 'boolean',
         'is_trending' => 'boolean',
+        'dupatta_enabled' => 'boolean',
         'price' => 'decimal:2',
         'old_price' => 'decimal:2',
         'rating' => 'decimal:2',
@@ -147,6 +151,15 @@ class Product extends Model
         })->toArray();
     }
 
+    /**
+     * Price when the customer chooses "Without Dupatta" (original price minus
+     * the fixed dupatta discount). Never goes below zero.
+     */
+    public function withoutDupattaPrice(): float
+    {
+        return max(0, round((float) $this->price - self::DUPATTA_DISCOUNT, 2));
+    }
+
     public function scopeInStock($query)
     {
         return $query->where('in_stock', true);
@@ -205,6 +218,8 @@ class Product extends Model
             'featured' => (bool) $this->is_featured,
             'best_seller' => (bool) $this->is_best_seller,
             'trending' => (bool) $this->is_trending,
+            'dupatta_enabled' => (bool) $this->dupatta_enabled,
+            'without_dupatta_price' => $this->dupatta_enabled ? $this->withoutDupattaPrice() : null,
         ];
     }
 

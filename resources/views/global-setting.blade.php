@@ -27,7 +27,7 @@
         <div>
             <h1 class="fw-bold mb-1">Global Settings</h1>
             <p class="text-muted mb-0">
-                Enable a product's toggle to show it in the corresponding home page section (Best Sellers / Trending Collection). Toggles are saved to the database.
+                Enable a product's toggle to show it in the corresponding home page section (Best Sellers / Trending Collection). Toggle a product's <strong>Dupatta</strong> to feature it on the <code>/duppata</code> collection page and offer the "With / Without Dupatta" option on its detail page (Without Dupatta = ₹300 off the original price). Toggles are saved to the database.
             </p>
         </div>
         <a href="{{ route('home') }}" class="btn btn-outline-dark btn-sm">View Home Page</a>
@@ -192,7 +192,8 @@
                             <th>Product Name</th>
                             <th>Category</th>
                             <th class="text-center" style="width:150px;">Best Seller</th>
-                            <th class="text-center pe-4" style="width:180px;">Trending Collection</th>
+                            <th class="text-center" style="width:180px;">Trending Collection</th>
+                            <th class="text-center pe-4" style="width:150px;">Dupatta</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -220,10 +221,17 @@
                                                {{ $product->is_trending ? 'checked' : '' }}>
                                     </div>
                                 </td>
+                                <td class="text-center pe-4">
+                                    <div class="form-check form-switch gs-switch m-0">
+                                        <input class="form-check-input gs-toggle" type="checkbox" role="switch"
+                                               data-product-id="{{ $product->id }}" data-field="dupatta_enabled"
+                                               {{ $product->dupatta_enabled ? 'checked' : '' }}>
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">No products found.</td>
+                                <td colspan="6" class="text-center py-5 text-muted">No products found.</td>
                             </tr>
                         @endforelse
                     </tbody>

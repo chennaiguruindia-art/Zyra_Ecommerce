@@ -90,6 +90,7 @@ Route::get('/leggings', [ShopController::class, 'shortcut'])->defaults('slug', '
 Route::get('/kurtis', [ShopController::class, 'shortcut'])->defaults('slug', 'kurtis')->name('pages.kurtis');
 Route::get('/maxi', [ShopController::class, 'shortcut'])->defaults('slug', 'maxi')->name('pages.maxi');
 Route::get('/nightwear', [ShopController::class, 'shortcut'])->defaults('slug', 'nightwear')->name('pages.nightwear');
+Route::get('/duppata', [ShopController::class, 'duppata'])->name('pages.duppata');
 
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.details');
 Route::get('/product/{id}/quick-view', [ProductController::class, 'quickView'])->name('product.quick-view');

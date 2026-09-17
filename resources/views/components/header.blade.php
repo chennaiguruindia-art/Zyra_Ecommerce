@@ -33,6 +33,7 @@
                     @endphp
                     <a href="{{ $catRoute }}" class="zyra-nav-link {{ $isActive ? 'active' : '' }}">{{ $navCat['name'] ?? '' }}</a>
                 @endforeach
+                <a href="{{ route('pages.duppata') }}" class="zyra-nav-link {{ request()->routeIs('pages.duppata') ? 'active' : '' }}">Dupatta</a>
                 <a href="{{ route('shop') }}?filter=new" class="zyra-nav-link {{ request()->input('filter') === 'new' ? 'active' : '' }}">New Arrivals</a>
                 <a href="{{ route('shop') }}?filter=sale" class="zyra-nav-link sale-link {{ request()->input('filter') === 'sale' ? 'active' : '' }}">Sale</a>
             </nav>
@@ -162,6 +163,9 @@
                     <a href="{{ $catRoute }}" class="nav-link text-dark fw-medium border-bottom pb-2">{{ $navCat['name'] ?? '' }}</a>
                 </li>
             @endforeach
+            <li class="nav-item">
+                <a href="{{ route('pages.duppata') }}" class="nav-link text-dark fw-medium border-bottom pb-2">Dupatta</a>
+            </li>
             <li class="nav-item">
                 <a href="{{ route('shop') }}?filter=new" class="nav-link text-dark fw-medium border-bottom pb-2">New Arrivals</a>
             </li>

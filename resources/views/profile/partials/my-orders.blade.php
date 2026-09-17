@@ -58,6 +58,7 @@
                                                     Qty: {{ $item->quantity }}
                                                     @if($item->size) | Size: {{ $item->size }} @endif
                                                     @if($item->color) | Color: {{ $item->color }} @endif
+                                                    @if($item->dupatta) | {{ $item->dupatta }} @endif
                                                 </small>
                                             </div>
                                             <div class="text-end">

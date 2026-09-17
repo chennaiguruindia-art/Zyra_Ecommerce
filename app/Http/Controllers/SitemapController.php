@@ -61,7 +61,7 @@ class SitemapController extends Controller
         ];
 
         // Specific category shortcuts
-        $categoryShortcuts = ['tops', 'leggings', 'kurtis', 'maxi', 'nightwear'];
+        $categoryShortcuts = ['tops', 'leggings', 'kurtis', 'maxi', 'nightwear', 'duppata'];
         $shortcutUrls = array_map(fn ($slug) => [
             'url' => Seo::url('/' . $slug),
             'priority' => '0.8',

@@ -102,7 +102,7 @@ class SellerController extends Controller
                 'customer' => $order->customer_name,
                 'phone' => $order->customer_phone,
                 'city' => $order->city,
-                'items' => $order->items->map(fn ($item) => $item->product_name . ' (' . $item->size . ') x ' . $item->quantity)->implode(', '),
+                'items' => $order->items->map(fn ($item) => $item->product_name . ' (' . $item->size . ($item->dupatta ? ', ' . $item->dupatta : '') . ') x ' . $item->quantity)->implode(', '),
                 'total' => (float) $order->total,
                 'payment' => $paymentLabels[$order->payment_method] ?? $order->payment_method,
                 'status' => $order->order_status,

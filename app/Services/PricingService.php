@@ -30,7 +30,8 @@ class PricingService
                 continue;
             }
             $qty = (int) ($item['quantity'] ?? 1);
-            $price = (float) $product->price;
+            $withDupatta = filter_var($item['dupatta'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $price = $withDupatta ? (float) $product->price : $product->withoutDupattaPrice();
             $subtotal += $price * $qty;
 
             $lineItems[] = [
@@ -38,6 +39,7 @@ class PricingService
                 'quantity' => $qty,
                 'size' => $item['size'] ?? null,
                 'color' => $item['color'] ?? null,
+                'dupatta' => $withDupatta,
                 'price' => $price,
                 'total' => $price * $qty,
             ];

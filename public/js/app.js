@@ -478,6 +478,11 @@ window.ZyraApp = {
             params.append('filter', pageFilter);
         }
 
+        // Keep the dupatta-only constraint when filtering/sorting on /duppata.
+        if (shopGrid.getAttribute('data-dupatta') === '1') {
+            params.append('dupatta', '1');
+        }
+
         // Render Active Filters Tag Bar immediately
         if (activeFiltersBar) {
             let tagsHtml = '';

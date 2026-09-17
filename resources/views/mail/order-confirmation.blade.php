@@ -39,7 +39,7 @@
                                         <td valign="middle" style="padding:12px 12px;">
                                             <div style="font-size:15px; font-weight:600; color:#18181b;">{{ $item->product_name }}</div>
                                             <div style="font-size:13px; color:#71717a; margin-top:2px;">
-                                                {{ $item->size ?? '' }}{{ !empty($item->size) && !empty($item->color) ? ' · ' : '' }}{{ $item->color ?? '' }} × {{ $item->quantity }}
+                                                {{ $item->size ?? '' }}{{ !empty($item->size) && !empty($item->color) ? ' · ' : '' }}{{ $item->color ?? '' }}{{ $item->dupatta ? ' · ' . $item->dupatta : '' }} × {{ $item->quantity }}
                                             </div>
                                         </td>
                                         <td valign="middle" align="right" style="padding:12px 0; font-size:15px; font-weight:600; color:#18181b; white-space:nowrap;">

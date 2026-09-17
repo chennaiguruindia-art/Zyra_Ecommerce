@@ -157,11 +157,11 @@
                 <!-- Items Container -->
                 <div id="checkoutItemsList" class="mb-3 max-h-64 overflow-auto pe-1">
                     @forelse(($cartItems ?? []) as $item)
-                        <div class="checkout-item-row d-flex align-items-center gap-3 py-2 border-bottom" data-id="{{ $item['id'] ?? 0 }}" data-price="{{ (float) ($item['price'] ?? 0) }}" data-size="{{ $item['size'] ?? '' }}" data-color="{{ $item['color'] ?? '' }}">
+                        <div class="checkout-item-row d-flex align-items-center gap-3 py-2 border-bottom" data-id="{{ $item['id'] ?? 0 }}" data-price="{{ (float) ($item['price'] ?? 0) }}" data-size="{{ $item['size'] ?? '' }}" data-color="{{ $item['color'] ?? '' }}" data-dupatta="{{ isset($item['dupatta']) ? ($item['dupatta'] ? '1' : '0') : '' }}">
                             <img src="{{ $item['image'] ?? '' }}" alt="{{ $item['name'] ?? 'Item' }}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px;">
                             <div class="flex-grow-1 overflow-hidden">
                                 <div class="text-truncate fw-semibold small">{{ $item['name'] ?? 'Item' }}</div>
-                                <small class="text-muted d-block" style="font-size: 0.75rem;">Size: {{ $item['size'] ?? 'M' }} | Color: {{ $item['color'] ?? 'Standard' }}</small>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Size: {{ $item['size'] ?? 'M' }} | Color: {{ $item['color'] ?? 'Standard' }}@if(array_key_exists('dupatta', $item)) | {{ $item['dupatta'] ? 'With Dupatta' : 'Without Dupatta' }}@endif</small>
                                 <div class="zyra-qty-stepper mt-1" style="height: 28px;">
                                     <button type="button" class="zyra-qty-btn checkout-qty-btn" data-dir="-1" data-id="{{ $item['id'] ?? 0 }}" data-size="{{ $item['size'] ?? '' }}" data-color="{{ $item['color'] ?? '' }}">−</button>
                                     <input type="text" class="zyra-qty-input checkout-qty" value="{{ (int) ($item['quantity'] ?? 1) }}" readonly style="width: 36px; height: 28px; font-size: 0.8rem;">

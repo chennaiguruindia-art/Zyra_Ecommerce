@@ -16,11 +16,13 @@ class CartController extends Controller
             'size' => 'nullable|string',
             'color' => 'nullable|string',
             'quantity' => 'nullable|integer|min:1',
+            'dupatta' => 'nullable|boolean',
         ]);
 
         $product = Product::query()->with(['category', 'sizes', 'colors', 'images'])->findOrFail($data['product_id']);
         $qty = (int) ($data['quantity'] ?? 1);
         $size = $data['size'] ?? null;
+        $withDupatta = filter_var($data['dupatta'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
         if (!$product->in_stock) {
             return response()->json(['success' => false, 'message' => 'This item is currently out of stock.'], 422);
@@ -35,7 +37,8 @@ class CartController extends Controller
 
         $catalog = $product->toCatalogArray();
         $cart = session()->get('cart', []);
-        $key = $product->id . '|' . ($size ?? 'M') . '|' . ($data['color'] ?? ($catalog['colors'][0] ?? 'Standard'));
+        $key = $product->id . '|' . ($size ?? 'M') . '|' . ($data['color'] ?? ($catalog['colors'][0] ?? 'Standard')) . '|' . ($withDupatta ? '1' : '0');
+        $price = $withDupatta ? (float) $product->price : $product->withoutDupattaPrice();
 
         $existingQty = isset($cart[$key]) ? (int) $cart[$key]['quantity'] : 0;
         if ($existingQty + $qty > $availableForSize) {
@@ -54,12 +57,13 @@ class CartController extends Controller
             $cart[$key] = [
                 'id' => $product->id,
                 'name' => $product->name,
-                'price' => (float) $product->price,
+                'price' => $price,
                 'old_price' => $product->old_price ? (float) $product->old_price : null,
                 'image' => $catalog['image'],
                 'category' => $catalog['category'],
                 'size' => $size ?? ($catalog['sizes'][0] ?? 'M'),
                 'color' => $data['color'] ?? ($catalog['colors'][0] ?? 'Standard'),
+                'dupatta' => $withDupatta,
                 'quantity' => $qty,
             ];
         }
@@ -82,6 +86,7 @@ class CartController extends Controller
             'items.*.quantity' => 'nullable|integer|min:1',
             'items.*.size' => 'nullable|string',
             'items.*.color' => 'nullable|string',
+            'items.*.dupatta' => 'nullable|boolean',
         ]);
 
         $items = $data['items'] ?? [];
@@ -112,8 +117,10 @@ class CartController extends Controller
             $catalog = $product->toCatalogArray();
             $size = $item['size'] ?? ($catalog['sizes'][0] ?? 'M');
             $color = $item['color'] ?? ($catalog['colors'][0] ?? 'Standard');
+            $withDupatta = filter_var($item['dupatta'] ?? true, FILTER_VALIDATE_BOOLEAN);
             $qty = max(1, (int) ($item['quantity'] ?? 1));
-            $key = $product->id . '|' . $size . '|' . $color;
+            $key = $product->id . '|' . $size . '|' . $color . '|' . ($withDupatta ? '1' : '0');
+            $price = $withDupatta ? (float) $product->price : $product->withoutDupattaPrice();
 
             if (isset($cart[$key])) {
                 $cart[$key]['quantity'] += $qty;
@@ -123,12 +130,13 @@ class CartController extends Controller
             $cart[$key] = [
                 'id' => $product->id,
                 'name' => $product->name,
-                'price' => (float) $product->price,
+                'price' => $price,
                 'old_price' => $product->old_price ? (float) $product->old_price : null,
                 'image' => $catalog['image'],
                 'category' => $catalog['category'],
                 'size' => $size,
                 'color' => $color,
+                'dupatta' => $withDupatta,
                 'quantity' => $qty,
             ];
         }
@@ -230,7 +238,9 @@ class CartController extends Controller
         foreach ($cart as &$item) {
             $product = Product::query()->with(['images', 'category'])->find($item['id']);
             if ($product) {
-                $item['price'] = (float) $product->price;
+                $dup = filter_var($item['dupatta'] ?? true, FILTER_VALIDATE_BOOLEAN);
+                $item['dupatta'] = $dup;
+                $item['price'] = $dup ? (float) $product->price : $product->withoutDupattaPrice();
                 $item['old_price'] = $product->old_price ? (float) $product->old_price : null;
                 $item['image'] = $product->image_url;
                 $item['name'] = $product->name;
