@@ -427,18 +427,35 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="sizeChartModalLabel">Size Chart</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="zyra-sc-heading">
+                    <span class="zyra-size-chart-brand">ZYRA <span>FIT GUIDE</span></span>
+                    <h5 class="modal-title" id="sizeChartModalLabel">Size &amp; Fit Guide</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body zyra-size-chart-poster">
-                <div class="zyra-size-chart-brand">ZYRA <span>FIND YOUR PERFECT FIT</span></div>
-                <div class="zyra-size-chart-layout">
-                    <div class="zyra-size-chart-model">
-                        <img src="{{ $mainImg }}" alt="{{ $product['name'] }} size guide">
-                    </div>
-                    <div class="zyra-size-chart-data">
-                        <div class="zyra-size-chart-ribbon"><i class="bi bi-person-standing"></i> KURTI SIZE CHART</div>
-                        <table class="table table-bordered text-center small align-middle">
+            <div class="modal-body">
+                <div class="zyra-sc-tip-row">
+                    <span class="zyra-sc-tip"><i class="bi bi-arrows-expand"></i> Chest</span>
+                    <span class="zyra-sc-tip"><i class="bi bi-arrows-collapse"></i> Waist</span>
+                    <span class="zyra-sc-tip"><i class="bi bi-arrow-left-right"></i> Hip</span>
+                </div>
+
+                <ul class="nav zyra-sc-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#scKurti" type="button" role="tab" aria-selected="true">
+                            <i class="bi bi-person-standing me-1"></i> Kurti
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#scPant" type="button" role="tab" aria-selected="false">
+                            <i class="bi bi-person-walking me-1"></i> Pant
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="scKurti" role="tabpanel">
+                        <table class="table zyra-sc-table text-center align-middle">
                             <thead><tr><th>Size</th><th>Chest</th><th>Waist</th><th>Hip</th></tr></thead>
                             <tbody>
                                 <tr><td>XXS</td><td>32</td><td>28</td><td>35</td></tr>
@@ -450,9 +467,9 @@
                                 <tr><td>XXL</td><td>44</td><td>40</td><td>47</td></tr>
                             </tbody>
                         </table>
-                        <div class="zyra-size-chart-note"><i class="bi bi-rulers"></i> Kurti Length: 44 inch <span>|</span> Maxi Length: 46 inch</div>
-                        <div class="zyra-size-chart-ribbon"><i class="bi bi-person-standing"></i> PANT SIZE CHART</div>
-                        <table class="table table-bordered text-center small align-middle">
+                    </div>
+                    <div class="tab-pane fade" id="scPant" role="tabpanel">
+                        <table class="table zyra-sc-table text-center align-middle">
                             <thead><tr><th>Size</th><th>Length</th><th>Waist</th><th>Ankle</th></tr></thead>
                             <tbody>
                                 <tr><td>XXS</td><td>35½</td><td>23</td><td>10</td></tr>
@@ -466,7 +483,13 @@
                         </table>
                     </div>
                 </div>
-                <p class="zyra-size-chart-footnote"><i class="bi bi-info-circle me-1"></i> Measurements are in inches. For in-between sizes, choose the larger size.</p>
+
+                <div class="zyra-sc-length-row">
+                    <div class="zyra-sc-length"><i class="bi bi-rulers"></i> Kurti Length <strong>44"</strong></div>
+                    <div class="zyra-sc-length"><i class="bi bi-rulers"></i> Maxi Length <strong>46"</strong></div>
+                </div>
+
+                <p class="zyra-sc-footnote"><i class="bi bi-info-circle me-1"></i> Measurements are in inches. For in-between sizes, choose the larger size.</p>
             </div>
         </div>
     </div>
