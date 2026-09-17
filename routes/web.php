@@ -130,6 +130,7 @@ Route::get('/about', fn () => view('about'))->name('about');
 Route::get('/contact', fn () => view('contact'))->name('contact');
 Route::post('/contact', [QueryController::class, 'store'])->name('contact.submit');
 Route::get('/faq', fn () => view('faq'))->name('faq');
+Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy-policy');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

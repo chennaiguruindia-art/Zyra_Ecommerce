@@ -464,4 +464,77 @@
         height: 32px;
         flex: 0 0 32px;
     }
+
+    .zyra-pdp-tab-content {
+        padding: 1.25rem 1rem;
+    }
+}
+
+/* ── PDP Responsive ──────────────────────────────────────────── */
+@media (max-width: 991.98px) {
+    .zyra-pdp-gallery,
+    .zyra-pdp-buy {
+        position: static;
+    }
+
+    .zyra-pdp-gallery-main img {
+        height: 480px;
+    }
+
+    .zyra-pdp-review-summary {
+        border-right: none;
+        border-bottom: 1px solid var(--zyra-border-subtle);
+        padding-bottom: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .zyra-pdp-gallery-main img {
+        height: 420px;
+    }
+
+    .zyra-pdp-section-title {
+        font-size: 1.4rem;
+    }
+
+    .zyra-pdp-title {
+        font-size: 1.35rem;
+    }
+
+    .zyra-pdp-price {
+        font-size: 1.55rem;
+    }
+
+    .zyra-pdp-tab-content {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .zyra-pdp-add-to-cart,
+    .zyra-pdp-buy-now {
+        flex: 1 1 calc(50% - 0.5rem);
+        padding: 0.65rem 1rem;
+        font-size: 0.78rem;
+    }
+
+    .zyra-pdp-tab-nav .nav-link {
+        font-size: 0.72rem;
+        padding: 0.45rem 0.85rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .zyra-pdp-gallery-main img {
+        height: 340px;
+    }
+
+    .zyra-pdp-thumbs .zyra-thumb-item {
+        width: 60px;
+        height: 72px;
+    }
+
+    .zyra-pdp-tab-content {
+        padding: 1.25rem 1rem;
+        border-radius: 12px;
+    }
 }

@@ -73,7 +73,8 @@
             </div>
             <div class="d-flex gap-3">
                 <a href="{{ route('about') }}" class="text-muted">About Us</a>
-                <a href="{{ route('contact') }}" class="text-muted">Privacy Policy</a>
+                <a href="{{ route('privacy-policy') }}" class="text-muted">Privacy Policy</a>
+                <a href="{{ route('contact') }}" class="text-muted">Contact Us</a>
             </div>
         </div>
     </div>
