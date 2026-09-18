@@ -365,8 +365,8 @@
                     const code = btn.getAttribute('data-code');
                     if (!window.confirm('Delete coupon "' + code + '"? This cannot be undone.')) return;
                     btn.disabled = true;
-                    fetch('/global_setting/coupons/' + btn.getAttribute('data-id'), {
-                        method: 'DELETE',
+                    fetch('/global_setting/coupons/' + btn.getAttribute('data-id') + '/delete', {
+                        method: 'POST',
                         headers: {
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': csrf

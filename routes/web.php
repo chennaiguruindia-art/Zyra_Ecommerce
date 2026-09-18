@@ -71,7 +71,7 @@ Route::middleware(['auth', 'seller'])->group(function () {
     Route::post('/global_setting/toggle', [GlobalSettingController::class, 'toggle'])->name('global_setting.toggle');
     Route::post('/global_setting/coupon-dates', [GlobalSettingController::class, 'updateCouponDates'])->name('global_setting.coupon-dates');
     Route::post('/global_setting/coupons', [GlobalSettingController::class, 'storeCoupon'])->name('global_setting.coupons.store');
-    Route::delete('/global_setting/coupons/{id}', [GlobalSettingController::class, 'destroyCoupon'])->name('global_setting.coupons.destroy');
+    Route::post('/global_setting/coupons/{id}/delete', [GlobalSettingController::class, 'destroyCoupon'])->name('global_setting.coupons.destroy');
 
     Route::get('/instagram', [InstagramController::class, 'index'])->name('instagram');
     Route::post('/instagram', [InstagramController::class, 'store'])->name('instagram.store');
