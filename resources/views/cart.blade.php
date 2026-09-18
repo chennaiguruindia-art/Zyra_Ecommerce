@@ -87,11 +87,6 @@
                         <span id="cartSummaryShipping" class="fw-semibold">₹0</span>
                     </div>
 
-                    <div class="zyra-summary-row">
-                        <span class="text-muted">GST Taxes</span>
-                        <span class="text-success small fw-semibold">Inclusive</span>
-                    </div>
-
                     <div class="zyra-summary-row total-row">
                         <span>Total Payable</span>
                         <span id="cartSummaryTotal" class="fw-bold">₹0</span>

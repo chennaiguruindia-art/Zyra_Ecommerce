@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class PricingService
 {
     /** GST rate as a percentage applied after coupon discount. */
-    public const GST_RATE = 5.0;
+    public const GST_RATE = 0.0;
 
     /**
      * Build a pricing breakdown for the current session cart + coupon.

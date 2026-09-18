@@ -62,8 +62,8 @@
                                 </tr>
                                 @endif
                                 <tr>
-                                    <td style="padding:4px 0; font-size:14px; color:#52525b;">GST &amp; Shipping</td>
-                                    <td align="right" style="padding:4px 0; font-size:14px; color:#18181b;">₹{{ number_format($tax, 0) }}</td>
+                                    <td style="padding:4px 0; font-size:14px; color:#52525b;">Shipping</td>
+                                    <td align="right" style="padding:4px 0; font-size:14px; color:#16a34a;">FREE</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:10px 0 4px; font-size:16px; font-weight:700; color:#18181b;">Total</td>

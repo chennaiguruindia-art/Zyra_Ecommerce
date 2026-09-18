@@ -101,7 +101,7 @@
                         <span class="zyra-pdp-discount-badge">SAVE {{ $product['discount'] }}%</span>
                     @endif
                     <div class="zyra-pdp-tax-note">
-                        <i class="bi bi-check-circle-fill text-success me-1"></i>Inclusive of all taxes · Free shipping
+                        <i class="bi bi-check-circle-fill text-success me-1"></i>Free shipping
                     </div>
                 </div>
 

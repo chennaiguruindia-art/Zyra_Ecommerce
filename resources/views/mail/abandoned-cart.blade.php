@@ -57,7 +57,7 @@
                                 </tr>
                                 <tr>
                                     <td colspan="2" style="padding:0 0 24px; font-size:13px; color:#a1a1aa;">
-                                        GST &amp; shipping calculated at checkout.
+                                        Shipping calculated at checkout. GST not applicable.
                                     </td>
                                 </tr>
                             </table>

@@ -76,7 +76,6 @@ const ZyraCheckout = {
         const itemsContainer = document.getElementById('checkoutItemsList');
         const subtotalEl = document.getElementById('checkoutSubtotal');
         const shippingEl = document.getElementById('checkoutShipping');
-        const gstEl = document.getElementById('checkoutGst');
         const totalEl = document.getElementById('checkoutTotal');
         if (!itemsContainer || !Array.isArray(cart) || cart.length === 0) return;
 
@@ -107,11 +106,8 @@ const ZyraCheckout = {
         itemsContainer.innerHTML = html;
 
         const shipping = 0;
-        const gstRate = parseFloat(window.ZYRA_GST_RATE) || 5;
-        const gst = Math.round((subtotal * gstRate) / 100);
-        const total = subtotal + gst + shipping;
+        const total = subtotal + shipping;
         if (subtotalEl) subtotalEl.textContent = `₹${subtotal}`;
-        if (gstEl) gstEl.textContent = `₹${gst}`;
         if (shippingEl) shippingEl.textContent = shipping === 0 ? 'FREE' : `₹${shipping}`;
         if (totalEl) totalEl.textContent = `₹${total}`;
     },
@@ -191,7 +187,6 @@ const ZyraCheckout = {
     refreshCheckoutSummary() {
         const subtotalEl = document.getElementById('checkoutSubtotal');
         const shippingEl = document.getElementById('checkoutShipping');
-        const gstEl = document.getElementById('checkoutGst');
         const totalEl = document.getElementById('checkoutTotal');
         const discountEl = document.getElementById('checkoutDiscount');
         const discountRowEl = document.getElementById('checkoutDiscountRow');
@@ -204,15 +199,12 @@ const ZyraCheckout = {
         });
 
         const discount = this.appliedDiscount || 0;
-        const gstRate = parseFloat(window.ZYRA_GST_RATE) || 5;
-        const gst = Math.round(((subtotal - discount) * gstRate) / 100);
         const shipping = 0;
-        const total = (subtotal - discount) + gst + shipping;
+        const total = (subtotal - discount) + shipping;
 
         if (subtotalEl) subtotalEl.textContent = `₹${subtotal}`;
         if (discountEl) discountEl.textContent = `-₹${discount}`;
         if (discountRowEl) discountRowEl.style.display = discount > 0 ? 'flex' : 'none';
-        if (gstEl) gstEl.textContent = `₹${gst}`;
         if (shippingEl) shippingEl.textContent = shipping === 0 ? 'FREE' : `₹${shipping}`;
         if (totalEl) totalEl.textContent = `₹${total}`;
     },
@@ -304,12 +296,10 @@ const ZyraCheckout = {
         const subtotalEl = document.getElementById('checkoutSubtotal');
         const discountEl = document.getElementById('checkoutDiscount');
         const discountRowEl = document.getElementById('checkoutDiscountRow');
-        const gstEl = document.getElementById('checkoutGst');
         const totalEl = document.getElementById('checkoutTotal');
         if (subtotalEl) subtotalEl.textContent = `₹${pricing.subtotal}`;
         if (discountEl) discountEl.textContent = `-₹${pricing.discount}`;
         if (discountRowEl) discountRowEl.style.display = pricing.discount > 0 ? 'flex' : 'none';
-        if (gstEl) gstEl.textContent = `₹${pricing.gst}`;
         if (totalEl) totalEl.textContent = `₹${pricing.total}`;
     },
 

@@ -190,11 +190,6 @@
                 </div>
 
                 <div class="zyra-summary-row">
-                    <span class="text-muted">GST ({{ $gstRate ?? 5 }}%)</span>
-                    <span id="checkoutGst" class="fw-semibold">₹{{ $cartGst ?? 0 }}</span>
-                </div>
-
-                <div class="zyra-summary-row">
                     <span class="text-muted">Delivery</span>
                     <span id="checkoutShipping" class="fw-semibold">{{ ($cartShipping ?? 0) === 0 ? 'FREE' : '₹' . $cartShipping }}</span>
                 </div>
@@ -239,6 +234,5 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     window.ZYRA_SERVER_CART = JSON.parse(document.getElementById('zyraServerCart')?.dataset.cart || '[]');
-    window.ZYRA_GST_RATE = {{ $gstRate ?? 5 }};
 </script>
 @endpush
