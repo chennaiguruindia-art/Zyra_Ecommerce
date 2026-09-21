@@ -33,44 +33,6 @@
         <a href="{{ route('home') }}" class="btn btn-outline-dark btn-sm">View Home Page</a>
     </div>
 
-    <!-- Coupon Date Management -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <h5 class="fw-bold mb-1">Coupon Offer Window</h5>
-            <p class="text-muted small mb-3">
-                Set the start &amp; end dates for the <strong>WELCOME10</strong> launch offer.
-                The coupon is only valid (enabled) for orders placed within this date range.
-                <strong>FIRSTORDER</strong> (10% off first order) is always available for new customers.
-            </p>
-
-            <div class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label for="welcomeStart" class="form-label small fw-semibold">WELCOME10 Start Date</label>
-                    <input type="date" id="welcomeStart" class="form-control"
-                           value="{{ optional($welcomeCoupon)->start_date?->format('Y-m-d') }}">
-                </div>
-                <div class="col-md-4">
-                    <label for="welcomeEnd" class="form-label small fw-semibold">WELCOME10 End Date</label>
-                    <input type="date" id="welcomeEnd" class="form-control"
-                           value="{{ optional($welcomeCoupon)->expiry_date?->format('Y-m-d') }}">
-                </div>
-                <div class="col-md-4">
-                    <button type="button" id="saveCouponDates" class="btn btn-dark w-100">
-                        <i class="bi bi-calendar-check me-1"></i> Save Offer Dates
-                    </button>
-                </div>
-            </div>
-
-            @if(optional($welcomeCoupon)->status && optional($welcomeCoupon)->start_date)
-                <div class="mt-3 small text-muted" id="couponStatusText">
-                    <i class="bi bi-info-circle me-1"></i>
-                    WELCOME10 is enabled
-                    {{ \Carbon\Carbon::now()->between($welcomeCoupon->start_date, $welcomeCoupon->expiry_date?->endOfDay()) ? 'and active now.' : 'but is outside its active window.' }}
-                </div>
-            @endif
-        </div>
-    </div>
-
     <!-- Coupon Code Management -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
@@ -246,58 +208,6 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-        const saveBtn = document.getElementById('saveCouponDates');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                const start = document.getElementById('welcomeStart').value;
-                const end = document.getElementById('welcomeEnd').value;
-
-                if (!start || !end) {
-                    if (window.ZyraApp) {
-                        window.ZyraApp.showToast('Please choose both start and end dates.', 'danger');
-                    }
-                    return;
-                }
-                if (new Date(end) < new Date(start)) {
-                    if (window.ZyraApp) {
-                        window.ZyraApp.showToast('End date cannot be before the start date.', 'danger');
-                    }
-                    return;
-                }
-
-                saveBtn.disabled = true;
-                fetch('/global_setting/coupon-dates', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrf
-                    },
-                    body: JSON.stringify({ start_date: start, expiry_date: end })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        if (window.ZyraApp) {
-                            window.ZyraApp.showToast(data.message || 'Offer dates saved.', 'success');
-                        }
-                    } else {
-                        if (window.ZyraApp) {
-                            window.ZyraApp.showToast(data.message || 'Could not save.', 'danger');
-                        }
-                    }
-                })
-                .catch(() => {
-                    if (window.ZyraApp) {
-                        window.ZyraApp.showToast('Could not reach server.', 'danger');
-                    }
-                })
-                .finally(() => {
-                    saveBtn.disabled = false;
-                });
-            });
-        }
 
         // --- Coupon Code management ---
         const couponForm = document.getElementById('couponForm');

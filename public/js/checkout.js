@@ -502,6 +502,19 @@ const ZyraCheckout = {
             try { data = await verifyRes.json(); } catch (err) {}
 
             if (!verifyRes.ok || !data.success) {
+                if (data.payment_received) {
+                    // Money was taken but the order could not be created. Clear the bag and coupon
+                    // so the paid-for item does not keep sitting on the cart page.
+                    localStorage.removeItem('zyra_cart');
+                    localStorage.removeItem('zyra_coupon');
+                    placeOrderBtn.disabled = true;
+                    placeOrderBtn.innerHTML = `Payment received — Contact support`;
+                    if (window.ZyraApp) {
+                        window.ZyraApp.showToast(data.message || 'Payment received but your order could not be created. Please contact support.', 'danger');
+                    }
+                    return;
+                }
+
                 placeOrderBtn.disabled = false;
                 placeOrderBtn.innerHTML = `Place Order <i class="bi bi-check-lg ms-1"></i>`;
                 if (window.ZyraApp) {

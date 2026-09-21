@@ -57,7 +57,7 @@ window.ZyraSeller = {
                 if (Array.isArray(ords)) {
                     localStorage.setItem(this.ORDERS_KEY, JSON.stringify(ords));
                     const path = window.location.pathname;
-                    if (path.includes('/seller/sales') || path.includes('/seller/analytics') || path.endsWith('/seller') || path.includes('/seller/dashboard')) {
+                    if (path.includes('/seller/sales') || path.includes('/seller/analytics') || path.endsWith('/seller') || path.includes('/seller/dashboard') || path.includes('/seller/neworder')) {
                         this.detectPage();
                     }
                 }
@@ -382,6 +382,9 @@ window.ZyraSeller = {
             if (window.ZyraApp) {
                 window.ZyraApp.showToast(`Order ${orderId} marked as ${newStatus}`, 'success');
             }
+            if (window.ZyraSeller.page === 'neworders') {
+                this.renderNewOrdersPage();
+            }
             this.renderSalesPage();
         }
     },
@@ -693,6 +696,8 @@ window.ZyraSeller = {
             this.renderInventoryPage();
         } else if (path.includes('/seller/sales')) {
             this.renderSalesPage();
+        } else if (path.includes('/seller/neworder')) {
+            this.renderNewOrdersPage();
         } else if (path.includes('/seller/analytics')) {
             this.renderAnalyticsPage();
         } else if (path.includes('/seller/settings')) {
@@ -997,6 +1002,86 @@ window.ZyraSeller = {
             tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No orders found matching your search.</td></tr>`;
             return;
         }
+
+        tableBody.innerHTML = html;
+    },
+
+    renderNewOrdersPage() {
+        const tableBody = document.getElementById('sellerNewOrdersTableBody');
+        let orders = this.getOrders().filter(o => (o.status || '').toLowerCase() === 'pending');
+
+        const searchInput = document.getElementById('newOrderSearch');
+        const resultCount = document.getElementById('newOrdersResultCount');
+
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        if (query) {
+            orders = orders.filter(o =>
+                String(o.id || '').toLowerCase().includes(query) ||
+                String(o.customer || '').toLowerCase().includes(query) ||
+                String(o.phone || '').toLowerCase().includes(query) ||
+                String(o.db_id || '').includes(query)
+            );
+        }
+
+        const newOrders = this.getOrders().filter(o => (o.status || '').toLowerCase() === 'pending');
+        const pendingValue = newOrders.reduce((acc, o) => acc + (o.total || 0), 0);
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const now = new Date();
+        const todayStr = `${String(now.getDate()).padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        const dispatchedToday = this.getOrders().filter(o =>
+            o.status === 'Shipped' && o.date === todayStr
+        ).length;
+
+        const elCount = document.getElementById('newOrdersCount');
+        const elValue = document.getElementById('newOrdersValue');
+        const elDispatched = document.getElementById('newOrdersDispatched');
+
+        if (elCount) elCount.textContent = newOrders.length;
+        if (elValue) elValue.textContent = `₹${pendingValue.toLocaleString('en-IN')}`;
+        if (elDispatched) elDispatched.textContent = dispatchedToday;
+
+        if (resultCount) {
+            resultCount.textContent = `${orders.length} of ${newOrders.length} new orders`;
+        }
+
+        if (!tableBody) return;
+
+        if (orders.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No new orders right now. New orders will appear here as soon as customers place them.
+            </td></tr>`;
+            return;
+        }
+
+        let html = '';
+        orders.forEach(o => {
+            html += `
+                <tr>
+                    <td class="fw-bold">${o.id}</td>
+                    <td>
+                        <div class="fw-semibold">${o.customer}</div>
+                        <small class="text-muted"><i class="bi bi-geo-alt"></i> ${o.city} &bull; ${o.phone}</small>
+                    </td>
+                    <td class="small" style="max-width: 250px;">${o.items}</td>
+                    <td class="fw-bold">₹${o.total}</td>
+                    <td><small class="text-muted">${o.payment}</small></td>
+                    <td><small class="text-muted">${o.date}</small></td>
+                    <td style="min-width: 260px;">
+                        <div class="d-flex flex-column flex-md-row gap-2">
+                            <button type="button" class="btn btn-sm btn-warning text-dark" onclick="ZyraSeller.updateOrderStatus('${o.id}', 'Processing')">
+                                <i class="bi bi-box me-1"></i> Start Packing
+                            </button>
+                            <button type="button" class="btn btn-sm btn-success" onclick="ZyraSeller.updateOrderStatus('${o.id}', 'Shipped')">
+                                <i class="bi bi-truck me-1"></i> Packed & Dispatch
+                            </button>
+                        </div>
+                        <small class="text-muted d-inline-block mt-1">Once processed, the order moves to <a href="/seller/sales">Sales</a>.</small>
+                    </td>
+                </tr>
+            `;
+        });
 
         tableBody.innerHTML = html;
     },

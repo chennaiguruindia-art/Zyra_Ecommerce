@@ -53,6 +53,11 @@ class SellerController extends Controller
         return view('seller.sales');
     }
 
+    public function newOrders()
+    {
+        return view('seller.new-orders');
+    }
+
     public function inventory()
     {
         return view('seller.inventory');

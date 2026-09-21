@@ -192,10 +192,10 @@ class ShiprocketService
     }
 
     /**
-     * Push an order to Shiprocket (create the shipment) and persist the result on the order.
+     * Push an order to Shiprocket (create the order/shipment) and persist the result.
      *
-     * NOTE: AWB/courier assignment is intentionally left to the Shiprocket dashboard —
-     * we only push the order, we do not auto-assign a courier partner.
+     * NOTE: Only the order is created in Shiprocket. Courier/AWB assignment and
+     * ready-to-ship are intentionally left to the Shiprocket dashboard.
      *
      * Returns ['ok' => true] on success, or ['ok' => false, 'error' => msg] — callers
      * should NOT fail the checkout if this errors.
@@ -206,9 +206,9 @@ class ShiprocketService
             return ['ok' => false, 'error' => 'Shiprocket is not configured.'];
         }
 
-        // Idempotency: never create a duplicate shipment for an already-pushed order.
+        // Idempotency: never create a duplicate order for an already-pushed order.
         if (!empty($order->shiprocket_order_id)) {
-            return ['ok' => true, 'shipment_created' => false, 'awb' => false, 'already_pushed' => true];
+            return ['ok' => true, 'order_created' => false, 'already_pushed' => true];
         }
 
         try {
@@ -235,9 +235,8 @@ class ShiprocketService
 
         if (!$shipmentId) {
             Log::warning('Shiprocket created order but no shipment id', ['order' => $order->order_number, 'response' => $created]);
-            return ['ok' => false, 'error' => 'Shiprocket created order but no shipment id was returned.', 'response' => $created];
         }
 
-        return ['ok' => true, 'shipment_created' => true, 'awb' => false];
+        return ['ok' => true, 'order_created' => true];
     }
 }

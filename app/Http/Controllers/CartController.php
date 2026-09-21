@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
@@ -298,7 +299,33 @@ class CartController extends Controller
 
         $coupon = Coupon::query()->where('code', $code)->first();
 
-        if (!$coupon || !$coupon->isValidFor($subtotal)) {
+        if (!$coupon) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid coupon code. Try WELCOME10, SAVE20 or FASHION15',
+            ], 422);
+        }
+
+        if ($coupon->code === 'FIRSTORDER' && !$coupon->isValidFor($subtotal, Auth::id())) {
+            if (Auth::id() && \App\Models\Order::where('user_id', Auth::id())->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'FIRSTORDER is valid only for your very first order. It looks like you already used it.',
+                ], 422);
+            }
+            if (!Auth::id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please login to use the FIRSTORDER coupon. It is valid once for your very first order above ₹1,500.',
+                ], 422);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'FIRSTORDER gives ₹100 off on orders above ₹1,500 for your first order only.',
+            ], 422);
+        }
+
+        if (!$coupon->isValidFor($subtotal, Auth::id())) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid coupon code. Try WELCOME10, SAVE20 or FASHION15',

@@ -7,7 +7,7 @@ return [
     'site_url' => env('SEO_SITE_URL', 'https://zyralifestyle.in'),
     'tagline' => 'Modern Indian Women\'s Fashion & Clothing Store',
     'default_description' => 'Shop uniquely chic modern Indian women\'s fashion at ZYRA Lifestyle. Premium tops, cotton leggings, handprinted kurtis, maxi dresses & luxury nightwear with FREE shipping.',
-    'default_keywords' => 'zyra lifestyle, zyra fashion, women clothing india, women fashion online, kurtis online, cotton tops, leggings, maxi dresses, nightwear, indian ethnic wear, zyralifestyle.in',
+    'default_keywords' => 'zyra lifestyle, zyra fashion, women clothing india, women fashion online, kurtis online, cotton tops, leggings, maxi dresses, nightwear, indian ethnic wear, zyralifestyle.in, latest womens collection, latest kurtis collection and designs online in chennai, best online site for womens shopping, best online store for womens clothing, womens fashion online shopping india',
 
     'logo' => env('SEO_LOGO_URL', 'https://zyralifestyle.in/images/logo/Zyra _logo.png'),
 

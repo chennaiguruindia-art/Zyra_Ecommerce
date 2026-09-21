@@ -12,14 +12,10 @@ class GlobalSettingController extends Controller
     public function index()
     {
         $products = Product::query()->with('category')->orderBy('id')->get();
-        $welcomeCoupon = Coupon::query()->where('code', 'WELCOME10')->first();
-        $firstOrderCoupon = Coupon::query()->where('code', 'FIRSTORDER')->first();
         $coupons = Coupon::query()->orderBy('code')->get();
 
         return view('global-setting', [
             'products' => $products,
-            'welcomeCoupon' => $welcomeCoupon,
-            'firstOrderCoupon' => $firstOrderCoupon,
             'coupons' => $coupons,
         ]);
     }
@@ -40,38 +36,6 @@ class GlobalSettingController extends Controller
         return response()->json([
             'success' => true,
             'product' => $product->fresh()->load('category')->toCatalogArray(),
-        ]);
-    }
-
-    public function updateCouponDates(Request $request)
-    {
-        $data = Validator::make($request->all(), [
-            'start_date' => 'required|date',
-            'expiry_date' => 'required|date|after_or_equal:start_date',
-        ])->validate();
-
-        $coupon = Coupon::query()->where('code', 'WELCOME10')->first();
-
-        if (!$coupon) {
-            $coupon = Coupon::create([
-                'code' => 'WELCOME10',
-                'discount_type' => 'percent',
-                'discount_value' => 10.00,
-                'min_order_amount' => 0,
-                'status' => true,
-            ]);
-        }
-
-        $coupon->update([
-            'start_date' => $data['start_date'],
-            'expiry_date' => $data['expiry_date'],
-            'status' => true,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'WELCOME10 coupon window updated.',
-            'coupon' => $coupon->fresh(),
         ]);
     }
 

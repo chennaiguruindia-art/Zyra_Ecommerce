@@ -178,34 +178,61 @@ class CheckoutController extends Controller
             ], 422);
         }
 
-        $order = $this->createDatabaseOrder($pending, [
-            'razorpay_order_id' => $data['razorpay_order_id'],
-            'razorpay_payment_id' => $data['razorpay_payment_id'],
-            'razorpay_signature' => $data['razorpay_signature'],
-            'razorpay_amount' => $expectedAmount,
-            'razorpay_status' => $payment['status'] ?? 'captured',
-            'payment_status' => 'paid',
-        ]);
-
-        RazorpayTransaction::where('razorpay_order_id', $data['razorpay_order_id'])
-            ->update([
-                'order_id' => $order->id,
+        try {
+            $order = $this->createDatabaseOrder($pending, [
+                'razorpay_order_id' => $data['razorpay_order_id'],
                 'razorpay_payment_id' => $data['razorpay_payment_id'],
                 'razorpay_signature' => $data['razorpay_signature'],
-                'status' => $payment['status'] ?? 'captured',
-                'method' => $payment['method'] ?? null,
-                'fee' => $payment['fee'] ?? null,
-                'tax' => $payment['tax'] ?? null,
-                'raw_response' => $payment,
+                'razorpay_amount' => $expectedAmount,
+                'razorpay_status' => $payment['status'] ?? 'captured',
+                'payment_status' => 'paid',
             ]);
 
-        session()->forget('zyra_pending_order');
+            RazorpayTransaction::where('razorpay_order_id', $data['razorpay_order_id'])
+                ->update([
+                    'order_id' => $order->id,
+                    'razorpay_payment_id' => $data['razorpay_payment_id'],
+                    'razorpay_signature' => $data['razorpay_signature'],
+                    'status' => $payment['status'] ?? 'captured',
+                    'method' => $payment['method'] ?? null,
+                    'fee' => $payment['fee'] ?? null,
+                    'tax' => $payment['tax'] ?? null,
+                    'raw_response' => $payment,
+                ]);
 
-        return response()->json([
-            'success' => true,
-            'order_number' => $order->order_number,
-            'redirect' => route('order.success', $order->order_number),
-        ]);
+            session()->forget('zyra_pending_order');
+
+            return response()->json([
+                'success' => true,
+                'order_number' => $order->order_number,
+                'redirect' => route('order.success', $order->order_number),
+            ]);
+        } catch (\Throwable $e) {
+            // The money was captured but the order could not be created. Never leave the
+            // paid-for item sitting on the cart page, and flag the payment for a refund/review.
+            Log::error('Order creation failed after payment capture', [
+                'razorpay_order_id' => $data['razorpay_order_id'],
+                'error' => $e->getMessage(),
+            ]);
+
+            RazorpayTransaction::where('razorpay_order_id', $data['razorpay_order_id'])
+                ->update([
+                    'razorpay_payment_id' => $data['razorpay_payment_id'],
+                    'razorpay_signature' => $data['razorpay_signature'],
+                    'status' => 'needs_review',
+                    'raw_response' => $payment,
+                ]);
+
+            $this->sendPaymentFailedMail($pending);
+
+            session()->forget(['cart', 'coupon', 'zyra_pending_order']);
+
+            return response()->json([
+                'success' => false,
+                'payment_received' => true,
+                'message' => 'Your payment was received but the order could not be created. A refund will be issued. Please contact support.',
+            ], 422);
+        }
     }
 
     /**
@@ -248,6 +275,8 @@ class CheckoutController extends Controller
                 'message' => 'Order total must be greater than zero.',
             ], 422);
         }
+
+        $this->assertStockAvailable($data);
 
         $razorpay = app(RazorpayService::class);
 
@@ -297,6 +326,37 @@ class CheckoutController extends Controller
                 'theme' => ['color' => '#18181b'],
             ],
         ]);
+    }
+
+    /**
+     * Refuse to create a payment order when any item can't be fulfilled, so the
+     * customer is never charged for a product that is out of stock.
+     */
+    protected function assertStockAvailable(array $data): void
+    {
+        $cartItems = array_values(session()->get('cart', []));
+        if (empty($cartItems) && !empty($data['items'])) {
+            (new CartController())->replaceCartFromItems($data['items']);
+            $cartItems = array_values(session()->get('cart', []));
+        }
+
+        foreach ($cartItems as $item) {
+            $product = Product::query()->find($item['id'] ?? 0);
+            if (!$product) {
+                continue;
+            }
+            $size = $item['size'] ?? null;
+            $qty = (int) ($item['quantity'] ?? 1);
+            $label = $product->name . ($size ? " (size {$size})" : '');
+            $available = $product->stockForSize($size);
+
+            if ($available <= 0) {
+                abort(422, "{$label} is out of stock. Please remove it from your bag and try again.");
+            }
+            if ($qty > $available) {
+                abort(422, "Only {$available} unit(s) of {$label} are left. Please reduce the quantity and try again.");
+            }
+        }
     }
 
     /**
@@ -468,7 +528,8 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Auto-push a freshly created, paid order to Shiprocket (create shipment + AWB).
+     * Auto-push a freshly created, paid order to Shiprocket (create order only — no
+     * courier/AWB assignment; that is done from the Shiprocket dashboard).
      * Never throws — failures are logged and stored on the order so checkout is unaffected.
      */
     protected function pushToShiprocket(Order $order): void

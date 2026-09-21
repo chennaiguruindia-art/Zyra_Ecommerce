@@ -11,6 +11,14 @@
             </a>
         </li>
         <li class="seller-nav-item">
+            <a href="{{ route('seller.orders.new') }}" class="seller-nav-link {{ request()->routeIs('seller.orders.new') ? 'active' : '' }}">
+                <i class="bi bi-inbox me-2"></i> New Orders
+                @if($newOrdersCount = \App\Models\Order::where('order_status', 'Pending')->count())
+                    <span class="badge bg-danger ms-auto">{{ $newOrdersCount }}</span>
+                @endif
+            </a>
+        </li>
+        <li class="seller-nav-item">
             <a href="{{ route('seller.products') }}" class="seller-nav-link {{ request()->routeIs('seller.products', 'seller.products.edit') ? 'active' : '' }}">
                 <i class="bi bi-box-seam me-2"></i> My Products
             </a>

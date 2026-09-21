@@ -9,7 +9,15 @@ class CouponSeeder extends Seeder
 {
     public function run(): void
     {
-        $coupons = [
+$coupons = [
+            [
+                'code' => 'FIRSTORDER',
+                'discount_type' => 'fixed',
+                'discount_value' => 100,
+                'min_order_amount' => 1500,
+                'max_discount' => null,
+                'status' => true,
+            ],
             [
                 'code' => 'WELCOME10',
                 'discount_type' => 'percent',

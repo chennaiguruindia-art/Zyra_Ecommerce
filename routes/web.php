@@ -49,6 +49,7 @@ Route::prefix('seller')->name('seller.')->middleware(['auth', 'seller'])->group(
     Route::get('/products', [SellerController::class, 'products'])->name('products');
     Route::get('/products/{id}/edit', [SellerController::class, 'editProduct'])->name('products.edit');
     Route::get('/sales', [SellerController::class, 'sales'])->name('sales');
+    Route::get('/neworder', [SellerController::class, 'newOrders'])->name('orders.new');
     Route::get('/inventory', [SellerController::class, 'inventory'])->name('inventory');
     Route::get('/analytics', [SellerController::class, 'analytics'])->name('analytics');
     Route::get('/settings', [SellerController::class, 'settings'])->name('settings');
@@ -69,7 +70,6 @@ Route::middleware(['auth', 'seller'])->group(function () {
 
     Route::get('/global_setting', [GlobalSettingController::class, 'index'])->name('global_setting');
     Route::post('/global_setting/toggle', [GlobalSettingController::class, 'toggle'])->name('global_setting.toggle');
-    Route::post('/global_setting/coupon-dates', [GlobalSettingController::class, 'updateCouponDates'])->name('global_setting.coupon-dates');
     Route::post('/global_setting/coupons', [GlobalSettingController::class, 'storeCoupon'])->name('global_setting.coupons.store');
     Route::post('/global_setting/coupons/{id}/delete', [GlobalSettingController::class, 'destroyCoupon'])->name('global_setting.coupons.destroy');
 

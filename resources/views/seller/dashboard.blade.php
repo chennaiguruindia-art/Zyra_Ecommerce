@@ -108,8 +108,8 @@
                 <a href="{{ route('seller.inventory') }}" class="btn btn-zyra-outline text-start py-2">
                     <i class="bi bi-boxes me-2"></i> Update Stock Levels
                 </a>
-                <a href="{{ route('seller.sales') }}" class="btn btn-zyra-outline text-start py-2">
-                    <i class="bi bi-receipt me-2"></i> Process Pending Orders
+                <a href="{{ route('seller.orders.new') }}" class="btn btn-zyra-outline text-start py-2">
+                    <i class="bi bi-inbox me-2"></i> Process Pending Orders
                 </a>
                 <a href="{{ route('seller.analytics') }}" class="btn btn-outline-dark text-start py-2">
                     <i class="bi bi-graph-up-arrow me-2"></i> Revenue & Payouts
