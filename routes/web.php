@@ -20,6 +20,7 @@ use App\Http\Controllers\QueryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicStorageController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\ChatBotController;
 
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
@@ -125,6 +126,11 @@ Route::get('/order-success/{order_number}', [OrderController::class, 'success'])
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/search/live', [SearchController::class, 'live'])->name('search.live');
+
+// Rule-based shop assistant (public, rate-limited: 30 messages/min per IP)
+Route::post('/chatbot/reply', [ChatBotController::class, 'reply'])
+    ->name('chatbot.reply')
+    ->middleware('throttle:30,1');
 
 Route::get('/about', fn () => view('about'))->name('about');
 Route::get('/contact', fn () => view('contact'))->name('contact');

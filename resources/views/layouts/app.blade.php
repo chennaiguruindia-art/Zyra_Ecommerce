@@ -77,6 +77,9 @@
     <!-- Quick View Modal -->
     @include('components.quick-view-modal')
 
+    <!-- Shop Assistant Chatbot Widget -->
+    @include('components.chatbot-widget')
+
     <!-- Dynamic Toast Notification Container -->
     <div id="zyraToastContainer" class="zyra-toast-container"></div>
 
