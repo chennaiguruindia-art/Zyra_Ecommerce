@@ -1,16 +1,33 @@
-<!-- Top Announcement Bar -->
-<div class="zyra-announcement-bar text-center">
-    <div class="container d-flex justify-content-between align-items-center">
-        <span class="d-none d-md-inline-block"><i class="bi bi-geo-alt me-1"></i> Pan-India Express Delivery</span>
-        <span class="mx-auto mx-md-0 fw-semibold">Free Shipping on All Orders</span>
-    </div>
-</div>
+<!-- Gold Promo Bar -->
+<div class="zyra-top-promo">NEW SEASON IS HERE! Discover Elegant Kurtis, Dresses &amp; More &#x1F496;</div>
+
+<style>
+.zyra-top-promo { background: #F5B301; color: #3a2b00; text-align: center; font-size: .8rem; font-weight: 600; letter-spacing: .4px; padding: 7px 12px; }
+.zyra-header-row { display: flex; align-items: center; gap: 16px; padding: 14px 0; }
+.zyra-shipto { font-size: .8rem; color: #444; white-space: nowrap; }
+.zyra-shipto small { color: #888; }
+.zyra-search-pill { flex: 1; max-width: 560px; margin: 0 auto; }
+.zyra-search-pill .zyra-search-wrap { position: relative; }
+.zyra-search-pill input { width: 100%; border: 1px solid #e2ddd6; border-radius: 999px; padding: 10px 18px 10px 44px; font-size: .9rem; background: #faf9f7; outline: none; }
+.zyra-search-pill input:focus { border-color: #8d5a5a; background: #fff; }
+.zyra-search-pill .zyra-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #777; pointer-events: none; }
+.zyra-header-icons .icon-btn { position: relative; }
+.zyra-header-icons .zyra-badge-count { position: absolute; top: -7px; right: -9px; background: #F5B301; color: #3a2b00; font-size: .65rem; font-weight: 700; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 999px; padding: 0 4px; }
+.zyra-catnav { border-top: 1px solid #f0ebe4; }
+.zyra-catnav-inner { display: flex; align-items: center; gap: 26px; overflow-x: auto; scrollbar-width: none; }
+.zyra-catnav-inner::-webkit-scrollbar { display: none; }
+.zyra-catnav-inner a { font-size: .78rem; font-weight: 600; letter-spacing: .8px; color: #333; text-decoration: none; padding: 12px 2px; white-space: nowrap; text-transform: uppercase; border-bottom: 2px solid transparent; }
+.zyra-catnav-inner a:hover { color: #8d5a5a; }
+.zyra-catnav-inner a.cat-active { color: #8d5a5a; border-bottom-color: #8d5a5a; }
+.zyra-catnav-inner a.cat-hot { background: #8d5a5a; color: #fff; padding: 6px 14px; border-bottom: none; }
+.zyra-catnav-inner a.cat-hot:hover { color: #fff; opacity: .9; }
+</style>
 
 <!-- Main Sticky Header -->
 <header class="zyra-header">
-    <div class="container py-3">
-        <div class="d-flex align-items-center justify-content-between">
-            
+    <div class="container">
+        <div class="zyra-header-row">
+
             <!-- Mobile Menu Toggle Button -->
             <button class="btn d-lg-none p-0 border-0 fs-3 text-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#zyraMobileMenu" aria-controls="zyraMobileMenu">
                 <i class="bi bi-list"></i>
@@ -21,48 +38,21 @@
                 <img src="{{ asset('images/logo/Zyra _logo.png') }}" alt="ZYRA" class="zyra-logo-image">
             </a>
 
-            <!-- Desktop Primary Navigation -->
-            <nav class="d-none d-lg-flex align-items-center gap-1">
-                <a href="{{ route('home') }}" class="zyra-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
+            <!-- Ship-to (desktop) -->
+            <span class="zyra-shipto d-none d-xl-inline">Ship to &#x1F1EE;&#x1F1F3; <strong>India (&#x20B9;)</strong> <small>&#x25BE;</small></span>
 
-                <!-- Zyra Collection Dropdown -->
-                <div class="dropdown zyra-collection-dropdown">
-                    <a href="{{ route('shop') }}" class="zyra-nav-link dropdown-toggle {{ request()->is('shop') || request()->is('category/*') || request()->is('kurtis') || request()->is('maxi') || request()->is('leggings') || request()->is('tops') || request()->is('nightwear') || request()->is('duppata') ? 'active' : '' }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                        Zyra Collection
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-lg-start shadow-lg border-0 rounded-4 py-2 zyra-collection-menu">
-                        <li><a href="{{ route('shop') }}" class="dropdown-item fw-bold">All Products</a></li>
-                        <li><hr class="dropdown-divider mx-2"></li>
-                        @foreach($navCategories ?? [] as $navCat)
-                            @php
-                                $catSlug = $navCat['slug'] ?? '';
-                                $catRoute = \Illuminate\Support\Facades\Route::has('pages.' . $catSlug) ? route('pages.' . $catSlug) : route('category', $catSlug);
-                            @endphp
-                            <li><a href="{{ $catRoute }}" class="dropdown-item">{{ $navCat['name'] ?? '' }}</a></li>
-                        @endforeach
-                        <li><hr class="dropdown-divider mx-2"></li>
-                        <li><a href="{{ route('pages.duppata') }}" class="dropdown-item">Dupatta</a></li>
-                    </ul>
+            <!-- Center Search Pill (desktop) -->
+            <div class="zyra-search-pill header-search-container d-none d-md-block">
+                <div class="zyra-search-wrap">
+                    <i class="bi bi-search zyra-search-icon"></i>
+                    <input type="text" id="headerSearchInput" placeholder="Search kurtis, tops and dresses" autocomplete="off">
                 </div>
-
-                <a href="{{ route('home') }}#best-sellers" class="zyra-nav-link">Top Seller</a>
-                <a href="{{ route('home') }}#new-arrivals" class="zyra-nav-link">New Arrival</a>
-                <a href="{{ route('shop') }}?filter=sale" class="zyra-nav-link sale-link {{ request()->input('filter') === 'sale' ? 'active' : '' }}">Sale</a>
-            </nav>
+                <!-- Live Search Overlay Dropdown -->
+                <div id="headerSearchDropdown" class="header-search-dropdown"></div>
+            </div>
 
             <!-- Right-Side Action Icons -->
-            <div class="zyra-header-icons d-flex align-items-center gap-2">
-                <!-- Search Trigger with Dropdown Input -->
-                <div class="header-search-container d-none d-md-block">
-                    <div class="input-group input-group-sm zyra-header-search">
-                        <input type="text" id="headerSearchInput" class="form-control rounded-start-pill ps-3" placeholder="Search kurtis, tops..." autocomplete="off">
-                        <button class="btn btn-outline-secondary rounded-end-pill pe-3" type="button" onclick="window.location.href='/search?q=' + encodeURIComponent(document.getElementById('headerSearchInput').value)">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                    <!-- Live Search Overlay Dropdown -->
-                    <div id="headerSearchDropdown" class="header-search-dropdown"></div>
-                </div>
+            <div class="zyra-header-icons d-flex align-items-center gap-2 ms-auto">
 
                 <!-- Wishlist Icon with Dynamic Badge -->
                 <a href="{{ route('wishlist') }}" class="icon-btn" title="Wishlist">
@@ -138,6 +128,26 @@
             </div>
         </div>
     </div>
+
+    <!-- Category Nav Row (desktop) -->
+    <nav class="zyra-catnav d-none d-lg-block">
+        <div class="container">
+            <div class="zyra-catnav-inner">
+                <a href="{{ route('home') }}#new-arrivals" class="cat-hot">New In</a>
+                @foreach($navCategories ?? [] as $navCat)
+                    @php
+                        $catSlug = $navCat['slug'] ?? '';
+                        $catRoute = \Illuminate\Support\Facades\Route::has('pages.' . $catSlug) ? route('pages.' . $catSlug) : route('category', $catSlug);
+                        $catActive = request()->is('category/' . $catSlug) || request()->is($catSlug);
+                    @endphp
+                    <a href="{{ $catRoute }}" class="{{ $catActive ? 'cat-active' : '' }}">{{ $navCat['name'] ?? '' }}</a>
+                @endforeach
+                <a href="{{ route('pages.duppata') }}" class="{{ request()->is('duppata') ? 'cat-active' : '' }}">Dupatta</a>
+                <a href="{{ route('home') }}#best-sellers">Top Seller</a>
+                <a href="{{ route('shop') }}?filter=sale" class="cat-hot {{ request()->input('filter') === 'sale' ? 'cat-active' : '' }}">Sale</a>
+            </div>
+        </div>
+    </nav>
 </header>
 
 <!-- Mobile Offcanvas Navigation Menu -->
