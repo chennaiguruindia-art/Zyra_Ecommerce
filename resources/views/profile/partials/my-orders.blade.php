@@ -6,7 +6,18 @@
         'card' => 'Credit / Debit Card',
         'netbanking' => 'Net Banking',
     ];
+    $userReviews = $userReviews ?? collect();
 @endphp
+
+<style>
+.zyra-stars { direction: rtl; display: inline-flex; gap: 2px; }
+.zyra-stars input { display: none; }
+.zyra-stars label { cursor: pointer; font-size: 1.5rem; color: #ddd; line-height: 1; }
+.zyra-stars input:checked ~ label,
+.zyra-stars label:hover,
+.zyra-stars label:hover ~ label { color: #f5a623; }
+.zyra-review-box { background: #faf8f6; }
+</style>
 
 <!-- Order History -->
 <div class="{{ $wrapClass ?? 'row mt-5' }}">
@@ -66,6 +77,35 @@
                                                 <small class="text-muted">₹{{ number_format($item->price, 2) }} each</small>
                                             </div>
                                         </div>
+
+                                        {{-- Review this product (verified purchase) --}}
+                                        @if ($item->product_id && $order->order_status !== 'Cancelled')
+                                            @php $existingReview = $userReviews[$item->product_id] ?? null; @endphp
+                                            <div class="zyra-review-box mt-1 mb-2 p-3 rounded border" data-review-box="{{ $item->product_id }}">
+                                                @if ($existingReview)
+                                                    <div class="zyra-review-done small">
+                                                        <span class="text-muted">Your rating:</span>
+                                                        <span class="text-warning">{{ str_repeat('★', (int) $existingReview->rating) }}{{ str_repeat('☆', 5 - (int) $existingReview->rating) }}</span>
+                                                        <a href="{{ route('product.details', $item->product_id) }}" class="ms-2">View on product →</a>
+                                                        <button type="button" class="btn btn-link btn-sm p-0 ms-2 zyra-review-edit">Edit</button>
+                                                    </div>
+                                                @endif
+                                                <form class="zyra-review-form mt-1" data-product-id="{{ $item->product_id }}" @if($existingReview) hidden @endif>
+                                                    <div class="small fw-semibold mb-1">{{ $existingReview ? 'Update your review' : 'Rate this product' }}</div>
+                                                    <div class="zyra-stars mb-2">
+                                                        @for ($s = 5; $s >= 1; $s--)
+                                                            <input type="radio" id="rv-{{ $order->id }}-{{ $item->product_id }}-{{ $s }}" name="rating" value="{{ $s }}" @if($existingReview && (int) $existingReview->rating === $s) checked @endif>
+                                                            <label for="rv-{{ $order->id }}-{{ $item->product_id }}-{{ $s }}" title="{{ $s }} star{{ $s === 1 ? '' : 's' }}">★</label>
+                                                        @endfor
+                                                    </div>
+                                                    <textarea name="comment" rows="2" maxlength="1000" class="form-control form-control-sm mb-2" placeholder="Share what you liked (optional)…">{{ $existingReview->comment ?? '' }}</textarea>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <button type="submit" class="btn btn-sm btn-dark">Submit review</button>
+                                                        <span class="zyra-review-msg small"></span>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        @endif
                                     @endforeach
 
                                     <div class="row g-3 mt-2">
@@ -130,3 +170,76 @@
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    function csrf() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
+    function stars(n) {
+        n = Math.max(1, Math.min(5, parseInt(n, 10) || 0));
+        return '★'.repeat(n) + '☆'.repeat(5 - n);
+    }
+    document.addEventListener('click', function (e) {
+        const editBtn = e.target.closest('.zyra-review-edit');
+        if (editBtn) {
+            const box = editBtn.closest('[data-review-box]');
+            const form = box?.querySelector('.zyra-review-form');
+            if (form) form.hidden = !form.hidden;
+        }
+    });
+    document.addEventListener('submit', function (e) {
+        const form = e.target.closest('.zyra-review-form');
+        if (!form) return;
+        e.preventDefault();
+
+        const box = form.closest('[data-review-box]');
+        const msg = form.querySelector('.zyra-review-msg');
+        const checked = form.querySelector('input[name="rating"]:checked');
+        const comment = form.querySelector('textarea[name="comment"]').value.trim();
+
+        if (!checked) {
+            msg.textContent = 'Please pick a star rating first.';
+            msg.className = 'zyra-review-msg small text-danger';
+            return;
+        }
+
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        msg.textContent = 'Publishing…';
+        msg.className = 'zyra-review-msg small text-muted';
+
+        fetch('/reviews', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrf()
+            },
+            body: JSON.stringify({
+                product_id: parseInt(form.dataset.productId, 10),
+                rating: parseInt(checked.value, 10),
+                comment: comment
+            })
+        })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) throw new Error(data.message || 'Could not save your review.');
+                return data;
+            })
+            .then((data) => {
+                box.innerHTML =
+                    '<div class="small"><span class="text-success fw-semibold">✓ ' +
+                    (data.message || 'Review published!') +
+                    '</span><br><span class="text-muted">Your rating:</span> ' +
+                    '<span class="text-warning">' + stars(data.rating) + '</span> ' +
+                    '<a href="/product/' + encodeURIComponent(form.dataset.productId) + '" class="ms-2">View on product →</a></div>';
+            })
+            .catch((err) => {
+                msg.textContent = err.message;
+                msg.className = 'zyra-review-msg small text-danger';
+                btn.disabled = false;
+            });
+    });
+})();
+</script>

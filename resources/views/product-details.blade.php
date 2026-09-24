@@ -374,22 +374,25 @@
                     </div>
                     <div class="col-md-9">
                         <div class="zyra-pdp-review-list">
-                            <div class="zyra-pdp-review-item">
-                                <div class="d-flex justify-content-between">
-                                    <strong>Meera Deshmukh</strong>
-                                    <span class="text-warning small"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span>
+                            @forelse($reviews ?? [] as $review)
+                                <div class="zyra-pdp-review-item">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>{{ $review->customer_name }}</strong>
+                                        <span class="text-warning small">
+                                            @for($i = 1; $i <= 5; $i++)<i class="bi bi-star{{ $i <= (int) $review->rating ? '-fill' : '' }}"></i>@endfor
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">@if($review->is_verified)Verified Buyer · @endif{{ $review->created_at?->diffForHumans() }}</small>
+                                    @if($review->comment)
+                                        <p class="text-muted small mt-2 mb-0">{{ $review->comment }}</p>
+                                    @endif
                                 </div>
-                                <small class="text-muted">Verified Buyer · 2 weeks ago</small>
-                                <p class="text-muted small mt-2 mb-0">The fabric handfeel is remarkably soft. True to size and colors matched the photography exactly!</p>
-                            </div>
-                            <div class="zyra-pdp-review-item">
-                                <div class="d-flex justify-content-between">
-                                    <strong>Swati Sen</strong>
-                                    <span class="text-warning small"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i></span>
+                            @empty
+                                <div class="zyra-pdp-review-item">
+                                    <p class="text-muted small mb-1"><strong>No reviews yet</strong> — be the first to share your experience!</p>
+                                    <small class="text-muted">Bought this item? Rate it from your <a href="{{ route('my-orders') }}">My Orders</a> page.</small>
                                 </div>
-                                <small class="text-muted">Verified Buyer · 1 month ago</small>
-                                <p class="text-muted small mt-2 mb-0">Very well made. Stitching and finishing are high grade. Would definitely recommend sizing up if you prefer a relaxed silhouette.</p>
-                            </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>

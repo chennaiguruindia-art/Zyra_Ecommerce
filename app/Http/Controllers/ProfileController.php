@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Order;
+use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,10 @@ class ProfileController extends Controller
                 ->with('items')
                 ->latest()
                 ->get(),
+            'userReviews' => Review::query()
+                ->where('user_id', $request->user()->id)
+                ->get()
+                ->keyBy('product_id'),
         ]);
     }
 
