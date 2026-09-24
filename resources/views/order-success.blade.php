@@ -22,7 +22,7 @@
 
             @php
                 $orderNumber = $order->order_number;
-                $orderDate = $order->created_at->format('F d, Y');
+                $orderDate = $order->created_at->timezone('Asia/Kolkata')->format('F d, Y');
                 $paymentMethodMap = [
                     'cod' => 'Cash on Delivery',
                     'upi' => 'UPI',

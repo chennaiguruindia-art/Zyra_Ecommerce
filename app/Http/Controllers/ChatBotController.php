@@ -595,7 +595,7 @@ class ChatBotController extends Controller
                 ' Please check the number (it looks like <b>ZYRA-XXXXXX</b> on your confirmation message).<br><br>Or open your <a href="/my-orders">My Orders</a> page.';
         }
 
-        $placed = $order->created_at ? $order->created_at->format('d M Y') : '';
+        $placed = $order->created_at ? $order->created_at->timezone('Asia/Kolkata')->format('d M Y') : '';
 
         return
             'Order ' . $this->orderLink($order) . ' (₹' . number_format((float) $order->total, 0) . ($placed !== '' ? ', placed ' . e($placed) : '') . ') is currently: <b>' . e($order->order_status) . '</b> — ' . $this->statusHint($order) .

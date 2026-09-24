@@ -44,7 +44,7 @@
                                     <div class="d-flex flex-wrap gap-3 align-items-center w-100 pe-2">
                                         <div>
                                             <span class="fw-bold">{{ $order->order_number }}</span>
-                                            <small class="d-block text-muted">{{ \Carbon\Carbon::parse($order->created_at)->format('d M Y, h:i A') }}</small>
+                                            <small class="d-block text-muted">{{ \Carbon\Carbon::parse($order->created_at)->timezone('Asia/Kolkata')->format('d M Y, h:i A') }} IST</small>
                                         </div>
                                         <span class="bg-zyra-primary px-2 py-1 rounded text-white small fw-semibold">
                                             {{ \Illuminate\Support\Str::title($order->order_status) }}
