@@ -1,8 +1,30 @@
-<!-- Gold Promo Bar -->
-<div class="zyra-top-promo">NEW SEASON IS HERE! Discover Elegant Kurtis, Dresses &amp; More &#x1F496;</div>
+<!-- Gold Promo Bar (rotating messages) -->
+<div class="zyra-top-promo">
+    <div class="zyra-promo-track" id="zyraPromoTrack">
+        <span class="zyra-promo-msg active">NEW SEASON IS HERE! Discover Elegant Kurtis, Dresses &amp; More &#x1F496;</span>
+        <span class="zyra-promo-msg">PAN-WORLD SHIPPING &mdash; Delivery In 3&ndash;5 Days</span>
+        <span class="zyra-promo-msg">FREE SHIPPING ON ALL ORDERS </span>
+        <span class="zyra-promo-msg">CASH ON DELIVERY AVAILABLE</span>
+    </div>
+</div>
+<script>
+(function () {
+    const msgs = document.querySelectorAll('#zyraPromoTrack .zyra-promo-msg');
+    if (msgs.length < 2) return;
+    let i = 0;
+    setInterval(function () {
+        msgs[i].classList.remove('active');
+        i = (i + 1) % msgs.length;
+        msgs[i].classList.add('active');
+    }, 4000);
+})();
+</script>
 
 <style>
-.zyra-top-promo { background: #F5B301; color: #3a2b00; text-align: center; font-size: .8rem; font-weight: 600; letter-spacing: .4px; padding: 7px 12px; }
+.zyra-top-promo { background: #5d2c11; color: #FFFF; font-size: .8rem; font-weight: 600; letter-spacing: .4px; padding: 7px 12px; }
+.zyra-promo-track { display: grid; text-align: center; }
+.zyra-promo-msg { grid-area: 1 / 1; opacity: 0; transform: translateY(10px); transition: opacity .6s ease, transform .6s ease; }
+.zyra-promo-msg.active { opacity: 1; transform: none; }
 .zyra-header-row { display: flex; align-items: center; gap: 16px; padding: 14px 0; }
 .zyra-shipto { font-size: .8rem; color: #444; white-space: nowrap; }
 .zyra-shipto small { color: #888; }

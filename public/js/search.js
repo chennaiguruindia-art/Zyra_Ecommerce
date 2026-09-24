@@ -128,28 +128,78 @@ const ZyraSearch = {
 
     initSearchPage() {
         const urlParams = new URLSearchParams(window.location.search);
-        const initialQuery = urlParams.get('q') || '';
-        const searchInput = document.getElementById('searchPageInput');
-        const resultsContainer = document.getElementById('searchResultsContainer');
-        const countEl = document.getElementById('searchResultCount');
-        const queryDisplayEl = document.getElementById('searchQueryDisplay');
-        const emptyState = document.getElementById('searchEmptyState');
+        this.searchState = {
+            query: urlParams.get('q') || '',
+            sort: 'relevance',
+        };
 
-        if (searchInput) {
-            searchInput.value = initialQuery;
-            searchInput.addEventListener('input', (e) => {
-                clearTimeout(this.debounceTimer);
-                this.debounceTimer = setTimeout(() => {
-                    this.filterSearchPage(e.target.value.trim(), resultsContainer, countEl, queryDisplayEl, emptyState);
-                }, 200);
+        const rerender = () => this.renderSearchResults();
+
+        const sortRow = document.getElementById('searchSortRow');
+        if (sortRow) {
+            sortRow.addEventListener('click', (e) => {
+                const btn = e.target.closest('.msrch-sort[data-sort]');
+                if (!btn) return;
+                sortRow.querySelectorAll('.msrch-sort[data-sort]').forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.searchState.sort = btn.dataset.sort;
+                rerender();
             });
         }
 
-        this.filterSearchPage(initialQuery, resultsContainer, countEl, queryDisplayEl, emptyState);
+        document.querySelectorAll('.msrch-f-cat, .msrch-f-price, .msrch-f-disc, .msrch-f-rate').forEach((el) => {
+            el.addEventListener('change', rerender);
+        });
+
+        const clearBtn = document.getElementById('searchClearFilters');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                document.querySelectorAll('.msrch-f-cat').forEach((c) => { c.checked = false; });
+                document.querySelectorAll('.msrch-f-price, .msrch-f-disc, .msrch-f-rate').forEach((r) => {
+                    const first = r.name ? document.querySelector(`input[name="${r.name}"]`) : null;
+                    if (first) first.checked = true;
+                });
+                rerender();
+            });
+        }
+
+        const filterToggle = document.getElementById('searchFilterToggle');
+        const filterCol = document.getElementById('searchFilterCol');
+        if (filterToggle && filterCol) {
+            filterToggle.addEventListener('click', () => {
+                filterCol.classList.toggle('d-none');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        this.renderSearchResults();
     },
 
-    filterSearchPage(query, container, countEl, queryDisplayEl, emptyState) {
+    getSearchFilters() {
+        const cats = Array.from(document.querySelectorAll('.msrch-f-cat:checked')).map((c) => c.value.toLowerCase());
+        const price = document.querySelector('.msrch-f-price:checked')?.value || '';
+        const disc = parseFloat(document.querySelector('.msrch-f-disc:checked')?.value || '') || 0;
+        const rate = parseFloat(document.querySelector('.msrch-f-rate:checked')?.value || '') || 0;
+        let minPrice = null;
+        let maxPrice = null;
+        if (price) {
+            const parts = price.split('-');
+            minPrice = parseFloat(parts[0]);
+            maxPrice = parseFloat(parts[1]);
+        }
+        return { cats, minPrice, maxPrice, disc, rate };
+    },
+
+    renderSearchResults() {
+        const container = document.getElementById('searchResultsContainer');
+        const countEl = document.getElementById('searchResultCount');
+        const queryDisplayEl = document.getElementById('searchQueryDisplay');
+        const emptyState = document.getElementById('searchEmptyState');
         if (!container) return;
+
+        const query = (this.searchState && this.searchState.query) || '';
+        const sort = (this.searchState && this.searchState.sort) || 'relevance';
+        const filters = this.getSearchFilters();
 
         const allProducts = Array.isArray(window.ZYRA_SEARCH_PRODUCTS)
             ? window.ZYRA_SEARCH_PRODUCTS
@@ -157,7 +207,7 @@ const ZyraSearch = {
 
         let results = [];
         if (!query) {
-            results = allProducts;
+            results = allProducts.slice();
             if (queryDisplayEl) queryDisplayEl.textContent = 'All Products';
         } else {
             const q = query.toLowerCase();
@@ -171,7 +221,34 @@ const ZyraSearch = {
             if (queryDisplayEl) queryDisplayEl.textContent = `"${query}"`;
         }
 
-        if (countEl) countEl.textContent = `${results.length} Products Found`;
+        // Sidebar filters
+        if (filters.cats.length) {
+            results = results.filter((p) => filters.cats.includes((p.category || '').toLowerCase()));
+        }
+        if (filters.minPrice !== null) {
+            results = results.filter((p) => parseFloat(p.price) >= filters.minPrice);
+        }
+        if (filters.maxPrice !== null) {
+            results = results.filter((p) => parseFloat(p.price) <= filters.maxPrice);
+        }
+        if (filters.disc > 0) {
+            results = results.filter((p) => parseFloat(p.discount || 0) >= filters.disc);
+        }
+        if (filters.rate > 0) {
+            results = results.filter((p) => parseFloat(p.rating || 0) >= filters.rate);
+        }
+
+        // Sorting
+        const priceOf = (p) => parseFloat(p.price) || 0;
+        const ratingOf = (p) => parseFloat(p.rating) || 0;
+        const discOf = (p) => parseFloat(p.discount) || 0;
+        if (sort === 'price-asc') results.sort((a, b) => priceOf(a) - priceOf(b));
+        else if (sort === 'price-desc') results.sort((a, b) => priceOf(b) - priceOf(a));
+        else if (sort === 'rating') results.sort((a, b) => ratingOf(b) - ratingOf(a));
+        else if (sort === 'discount') results.sort((a, b) => discOf(b) - discOf(a));
+        else if (sort === 'new') results.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+        if (countEl) countEl.textContent = results.length === 1 ? '1 Product Found' : `${results.length} Products Found`;
 
         if (results.length === 0) {
             container.innerHTML = '';
@@ -181,42 +258,37 @@ const ZyraSearch = {
 
         if (emptyState) emptyState.style.display = 'none';
 
-        let html = '<div class="row g-4">';
+        let html = '<div class="row g-3 g-md-4">';
         results.forEach(p => {
+            const rating = Math.round(parseFloat(p.rating) || 0);
+            const price = parseFloat(p.price) || 0;
+            const oldPrice = parseFloat(p.old_price) || 0;
+            const discount = parseFloat(p.discount) || 0;
+            const freeDel = price >= 999;
             html += `
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="zyra-product-card">
-                        <div class="zyra-product-thumb">
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="msrch-card">
+                        <a class="msrch-thumb" href="/product/${p.id}">
                             <img src="${p.image}" alt="${this.escapeHtml(p.name)}" loading="lazy">
-                            <div class="zyra-badge-stack">
+                            <span class="msrch-badges">
                                 ${p.badge ? `<span class="badge-zyra-${p.badge.toLowerCase().replace(/\s+/g, '')}">${p.badge}</span>` : ''}
-                                ${p.discount ? `<span class="badge-zyra-discount">${p.discount}% OFF</span>` : ''}
-                            </div>
-                            <button type="button" class="zyra-wishlist-btn" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Love it" aria-label="Love it">
-                                <i class="bi bi-heart"></i>
-                            </button>
-                            <div class="zyra-card-actions">
-                                <button type="button" class="btn-card-quickview" onclick="ZyraApp.openQuickView(${this.escapeAttr(JSON.stringify(p))})">
-                                    <i class="bi bi-eye"></i> Quick View
-                                </button>
-                                <button type="button" class="btn-card-addcart" onclick="ZyraCart.addToCart(${p.id}, null, null, 1, ${this.escapeAttr(JSON.stringify(p))})" title="Add to Cart">
-                                    <i class="bi bi-bag-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="zyra-product-body">
-                            <span class="zyra-product-category">${p.category}</span>
-                            <h6 class="zyra-product-title">
+                            </span>
+                        </a>
+                        <button type="button" class="msrch-wish" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Wishlist" aria-label="Wishlist">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                        <div class="msrch-body">
+                            <div class="msrch-name" title="${this.escapeHtml(p.name)}">
                                 <a href="/product/${p.id}">${this.escapeHtml(p.name)}</a>
-                            </h6>
-                            <div class="zyra-product-rating">
-                                <span>${'★'.repeat(Math.round(p.rating))}${'☆'.repeat(5 - Math.round(p.rating))}</span>
-                                <span class="review-count">(${p.reviews})</span>
                             </div>
-                            <div class="zyra-product-price-box">
-                                <span class="zyra-current-price">₹${p.price}</span>
-                                ${p.old_price ? `<span class="zyra-old-price">₹${p.old_price}</span>` : ''}
-                                ${p.discount ? `<span class="zyra-discount-tag">${p.discount}% OFF</span>` : ''}
+                            <div class="msrch-price">
+                                <span class="now">₹${price.toLocaleString('en-IN')}</span>
+                                ${oldPrice > price ? `<s>₹${oldPrice.toLocaleString('en-IN')}</s>` : ''}
+                                ${discount > 0 ? `<span class="off">${discount}% off</span>` : ''}
+                            </div>
+                            <div class="msrch-meta">
+                                ${rating > 0 ? `<span class="msrch-rating">${rating} ★ <small>(${(p.reviews ?? 0)})</small></span>` : ''}
+                                ${freeDel ? '<span class="msrch-freedel">Free Delivery</span>' : ''}
                             </div>
                         </div>
                     </div>
@@ -229,6 +301,11 @@ const ZyraSearch = {
         if (window.ZyraWishlist) {
             window.ZyraWishlist.syncHeartIcons();
         }
+    },
+
+    filterSearchPage(query) {
+        if (this.searchState) this.searchState.query = query || '';
+        this.renderSearchResults();
     },
 
     escapeHtml(str) {

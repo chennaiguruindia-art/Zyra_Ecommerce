@@ -322,13 +322,15 @@
         font-size: 0.7rem;
     }
     .btn-card-quickview {
-        font-size: 0.7rem;
-        padding: 0.45rem 0.6rem;
+        font-size: 0.68rem;
+        height: 38px;
+        padding: 0 10px;
     }
     .btn-card-addcart {
-        width: 32px;
-        height: 32px;
-        font-size: 0.78rem;
+        flex-basis: 38px;
+        width: 38px;
+        height: 38px;
+        font-size: 0.9rem;
     }
     .zyra-gallery-main-view img {
         height: 380px;
