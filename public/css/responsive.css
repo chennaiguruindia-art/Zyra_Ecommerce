@@ -199,8 +199,9 @@
     }
 
     .zyra-logo-image {
-        width: 105px;
-        height: 42px;
+        width: 170px;
+        height: 170px;
+        transform: translateY(-44px);
     }
 
     .zyra-header-icons {
@@ -410,8 +411,10 @@
     }
 
     .zyra-logo-image {
-        width: 96px;
-        height: 40px;
+        width: 145px;
+        height: 145px;
+        transform: translateY(-38px);
+        margin-top: 10px;
     }
 
     .zyra-header-icons {
@@ -452,8 +455,9 @@
 /* Super compact layout for very narrow phones (< 380px) */
 @media (max-width: 379.98px) {
     .zyra-logo-image {
-        width: 88px;
-        height: 36px;
+        width: 125px;
+        height: 125px;
+        transform: translateY(-32px);
     }
 
     .zyra-header-icons .icon-btn {

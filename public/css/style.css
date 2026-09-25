@@ -183,18 +183,24 @@ img {
     flex: 0 0 auto;
 }
 
+.zyra-header .zyra-brand-logo {
+    height: 90px;
+    overflow: hidden;
+}
+
 .zyra-logo-image {
     display: block;
-    width: 124px;
-    height: 46px;
-    object-fit: cover;
-    object-position: center 30%;
+    width: 190px;
+    height: 190px;
+    object-fit: contain;
+    transform: translateY(-58px);
     flex: 0 0 auto;
 }
 
 .zyra-logo-image-mobile {
-    width: 96px;
-    height: 40px;
+    width: 150px;
+    height: 150px;
+    transform: translateY(-46px);
 }
 
 .zyra-logo-image-footer {
