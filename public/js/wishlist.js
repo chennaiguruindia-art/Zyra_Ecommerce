@@ -60,17 +60,34 @@ const ZyraWishlist = {
         return this.isInWishlist(id);
     },
 
-    removeFromWishlist(productId) {
+    removeFromWishlist(productId, silent = false) {
         const id = parseInt(productId);
         let list = this.getWishlist();
         const index = list.indexOf(id);
         if (index > -1) {
             list.splice(index, 1);
             this.saveWishlist(list);
-            if (window.ZyraApp) {
+            if (!silent && window.ZyraApp) {
                 window.ZyraApp.showToast('Product removed from wishlist', 'info');
             }
         }
+    },
+
+    moveAllToBag() {
+        const items = this._lastRendered || [];
+        if (!items.length || !window.ZyraCart) return;
+        const movedIds = [];
+        items.forEach((p) => {
+            if (window.ZyraCart.addToCart(p.id, 'M', null, 1, p)) movedIds.push(parseInt(p.id));
+        });
+        if (movedIds.length > 0) {
+            this.saveWishlist(this.getWishlist().filter((id) => !movedIds.includes(parseInt(id))));
+            if (window.ZyraApp) window.ZyraApp.showToast(`${movedIds.length} item${movedIds.length === 1 ? '' : 's'} moved to bag!`, 'success');
+        }
+    },
+
+    esc(s) {
+        return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
     },
 
     clearWishlist() {
@@ -208,52 +225,80 @@ const ZyraWishlist = {
         const container = document.getElementById('wishlistGridContainer');
         if (!container) return;
 
-        let html = '<div class="row g-4">';
+        this._lastRendered = Array.isArray(products) ? products : [];
+        this.renderWishlistSummary(this._lastRendered);
+
+        if (products.length === 0) {
+            container.innerHTML = '';
+            const emptyState = document.getElementById('wishlistEmptyState');
+            if (emptyState) emptyState.style.display = 'block';
+            return;
+        }
+
+        const emptyState = document.getElementById('wishlistEmptyState');
+        if (emptyState) emptyState.style.display = 'none';
+
+        let html = '<div class="d-flex flex-column gap-3">';
         products.forEach(p => {
+            const price = parseFloat(p.price) || 0;
+            const oldPrice = parseFloat(p.old_price) || 0;
+            const discount = parseFloat(p.discount) || 0;
+            const rating = Math.round(parseFloat(p.rating) || 0);
+            const reviews = p.reviews ?? p.reviews_count ?? 0;
+            const outOfStock = p.in_stock === false || parseInt(p.stock_units ?? 1) <= 0;
+            const lowStock = !outOfStock && p.stock_units !== undefined && parseInt(p.stock_units) <= 5;
             html += `
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="zyra-product-card">
-                        <div class="zyra-product-thumb">
-                            <img src="${p.image}" alt="${p.name}">
-                            <div class="zyra-badge-stack">
-                                ${p.discount ? `<span class="badge-zyra-discount">${p.discount}% OFF</span>` : ''}
-                            </div>
-                            <button type="button" class="zyra-wishlist-btn active" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Loved" aria-label="Loved">
-                                <i class="bi bi-heart-fill"></i>
-                            </button>
+                <div class="wl-row">
+                    <a class="wl-img" href="/product/${p.id}">
+                        <img src="${p.image}" alt="${this.esc(p.name)}" loading="lazy">
+                        ${discount > 0 ? `<span class="wl-off">${discount}% OFF</span>` : ''}
+                    </a>
+                    <button type="button" class="wl-heart" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Loved" aria-label="Loved">
+                        <i class="bi bi-heart-fill"></i>
+                    </button>
+                    <div class="wl-mid">
+                        <span class="wl-cat">${this.esc(p.category || 'Apparel')}</span>
+                        <div class="wl-name"><a href="/product/${p.id}">${this.esc(p.name)}</a></div>
+                        ${rating > 0 ? `<div class="wl-stars">${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} <small>(${reviews})</small></div>` : ''}
+                        <div class="wl-price">
+                            <span class="now">₹${price.toLocaleString('en-IN')}</span>
+                            ${oldPrice > price ? `<s>₹${oldPrice.toLocaleString('en-IN')}</s><span class="off">${discount > 0 ? discount + '% off' : 'Sale'}</span>` : ''}
                         </div>
-                        <div class="zyra-product-body">
-                            <span class="zyra-product-category">${p.category}</span>
-                            <h6 class="zyra-product-title">
-                                <a href="/product/${p.id}">${p.name}</a>
-                            </h6>
-                            <div class="zyra-product-price-box mb-3">
-                                <span class="zyra-current-price">₹${p.price}</span>
-                                ${p.old_price ? `<span class="zyra-old-price">₹${p.old_price}</span>` : ''}
-                            </div>
-                            <div class="mt-auto d-grid gap-2">
-                                <button type="button" class="btn btn-sm btn-zyra-primary" onclick="ZyraWishlist.moveToCart(${p.id})">
-                                    <i class="bi bi-bag-plus me-1"></i> Move to Cart
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="ZyraWishlist.removeFromWishlist(${p.id})">
-                                    <i class="bi bi-trash3 me-1"></i> Remove
-                                </button>
-                            </div>
-                        </div>
+                        ${outOfStock
+                            ? '<div class="wl-stock text-danger">Out of stock</div>'
+                            : (lowStock ? `<div class="wl-stock text-warning">Only ${p.stock_units} left in stock!</div>` : '<div class="wl-stock text-success">In stock</div>')}
+                    </div>
+                    <div class="wl-side">
+                        <button type="button" class="wl-move" ${outOfStock ? 'disabled' : ''} onclick="ZyraWishlist.moveToCart(${p.id})">
+                            <i class="bi bi-bag-plus me-1"></i> Move to Bag
+                        </button>
+                        <button type="button" class="wl-remove" onclick="ZyraWishlist.removeFromWishlist(${p.id})">
+                            <i class="bi bi-trash3 me-1"></i>Remove
+                        </button>
                     </div>
                 </div>
             `;
         });
         html += '</div>';
 
-        const emptyState = document.getElementById('wishlistEmptyState');
-        if (products.length === 0) {
-            container.innerHTML = '';
-            if (emptyState) emptyState.style.display = 'block';
-        } else {
-            container.innerHTML = html;
-            if (emptyState) emptyState.style.display = 'none';
+        container.innerHTML = html;
+    },
+
+    renderWishlistSummary(products) {
+        const box = document.getElementById('wishlistSummary');
+        if (!box) return;
+        if (!products.length) {
+            box.innerHTML = '';
+            return;
         }
+        let savings = 0;
+        products.forEach((p) => {
+            const diff = (parseFloat(p.old_price) || 0) - (parseFloat(p.price) || 0);
+            if (diff > 0) savings += diff;
+        });
+        box.innerHTML =
+            (savings > 0 ? `<span class="wl-save-pill"><i class="bi bi-piggy-bank"></i> You're saving ₹${Math.round(savings).toLocaleString('en-IN')}</span>` : '') +
+            `<button type="button" class="btn btn-sm btn-dark rounded-pill px-3" onclick="ZyraWishlist.moveAllToBag()"><i class="bi bi-bag-check me-1"></i> Move all to Bag</button>`;
     },
 
     init() {
