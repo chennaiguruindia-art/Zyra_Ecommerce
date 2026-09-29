@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Search Products | ZYRA Lifestyle')
+@section('title', ($search ?? '') !== '' ? 'Search "' . $search . '" | ZYRA Lifestyle' : 'Search Products | ZYRA Lifestyle')
 @section('meta_description', 'Search and find women\'s tops, cotton leggings, kurtis, maxi dresses and nightwear at ZYRA Lifestyle.')
 @section('robots', 'noindex, follow')
 
@@ -42,13 +42,14 @@
 .msrch-rating { display: inline-flex; align-items: center; gap: 3px; background: #038d2c; color: #fff; font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 2px 8px; }
 .msrch-rating small { font-weight: 400; opacity: .9; }
 .msrch-freedel { font-size: .7rem; color: #666; background: #f4f4f4; border-radius: 999px; padding: 2px 8px; }
+.msrch-partial { display: flex; align-items: center; font-size: .82rem; color: #7a5c00; background: #fff8e1; border: 1px solid #f3e2a7; border-radius: 10px; padding: 9px 13px; margin: 4px 0 14px; }
 </style>
 
 <div class="container py-4">
 
     <div class="d-flex align-items-baseline gap-2 flex-wrap">
-        <h1 class="msrch-title mb-0">Results for “<span id="searchQueryDisplay">All Products</span>”</h1>
-        <span class="msrch-count" id="searchResultCount">Loading…</span>
+        <h1 class="msrch-title mb-0">Results for “<span id="searchQueryDisplay">{{ ($search ?? '') !== '' ? $search : 'All Products' }}</span>”</h1>
+        <span class="msrch-count" id="searchResultCount">{{ count($allProducts ?? []) }} {{ count($allProducts ?? []) === 1 ? 'Product' : 'Products' }} Found</span>
     </div>
 
     <div class="msrch-sortrow" id="searchSortRow">
@@ -100,11 +101,17 @@
         </aside>
 
         <div class="col-lg-9">
+            <div id="searchPartialNotice" class="msrch-partial" style="display: none;" role="status">
+                <i class="bi bi-funnel me-1"></i>
+                Showing partial matches for “<strong>{{ $search ?? '' }}</strong>” — try fewer or different words for exact results.
+            </div>
+
             <div id="searchResultsContainer"></div>
 
             @push('scripts')
             <script>
                 window.ZYRA_SEARCH_PRODUCTS = @json($allProducts ?? []);
+                window.ZYRA_SEARCH_PARTIAL = @json((bool) ($partial ?? false));
             </script>
             @endpush
 

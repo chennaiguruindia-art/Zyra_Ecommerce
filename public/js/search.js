@@ -205,21 +205,14 @@ const ZyraSearch = {
             ? window.ZYRA_SEARCH_PRODUCTS
             : [];
 
-        let results = [];
-        if (!query) {
-            results = allProducts.slice();
-            if (queryDisplayEl) queryDisplayEl.textContent = 'All Products';
-        } else {
-            const q = query.toLowerCase();
-            results = allProducts.filter(p =>
-                (p.name || '').toLowerCase().includes(q) ||
-                (p.category || '').toLowerCase().includes(q) ||
-                (p.subcategory || '').toLowerCase().includes(q) ||
-                (p.description || '').toLowerCase().includes(q) ||
-                (p.material || '').toLowerCase().includes(q)
-            );
-            if (queryDisplayEl) queryDisplayEl.textContent = `"${query}"`;
+        // Server (SearchMatcher) already filtered by query tokens and
+        // relevance-ranked this array — client only layers sidebar filters/sort.
+        let results = allProducts.slice();
+        if (queryDisplayEl) {
+            queryDisplayEl.textContent = query || 'All Products';
         }
+
+        const partialNotice = document.getElementById('searchPartialNotice');
 
         // Sidebar filters
         if (filters.cats.length) {
@@ -253,10 +246,12 @@ const ZyraSearch = {
         if (results.length === 0) {
             container.innerHTML = '';
             if (emptyState) emptyState.style.display = 'block';
+            if (partialNotice) partialNotice.style.display = 'none';
             return;
         }
 
         if (emptyState) emptyState.style.display = 'none';
+        if (partialNotice && window.ZYRA_SEARCH_PARTIAL) partialNotice.style.display = 'flex';
 
         let html = '<div class="row g-3 g-md-4">';
         results.forEach(p => {
