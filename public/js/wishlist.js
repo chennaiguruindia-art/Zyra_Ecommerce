@@ -238,7 +238,7 @@ const ZyraWishlist = {
         const emptyState = document.getElementById('wishlistEmptyState');
         if (emptyState) emptyState.style.display = 'none';
 
-        let html = '<div class="d-flex flex-column gap-3">';
+        let html = '<div class="wl-grid">';
         products.forEach(p => {
             const price = parseFloat(p.price) || 0;
             const oldPrice = parseFloat(p.old_price) || 0;
@@ -248,33 +248,36 @@ const ZyraWishlist = {
             const outOfStock = p.in_stock === false || parseInt(p.stock_units ?? 1) <= 0;
             const lowStock = !outOfStock && p.stock_units !== undefined && parseInt(p.stock_units) <= 5;
             html += `
-                <div class="wl-row">
-                    <a class="wl-img" href="/product/${p.id}">
-                        <img src="${p.image}" alt="${this.esc(p.name)}" loading="lazy">
-                        ${discount > 0 ? `<span class="wl-off">${discount}% OFF</span>` : ''}
-                    </a>
-                    <button type="button" class="wl-heart" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Loved" aria-label="Loved">
-                        <i class="bi bi-heart-fill"></i>
-                    </button>
-                    <div class="wl-mid">
-                        <span class="wl-cat">${this.esc(p.category || 'Apparel')}</span>
-                        <div class="wl-name"><a href="/product/${p.id}">${this.esc(p.name)}</a></div>
-                        ${rating > 0 ? `<div class="wl-stars">${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} <small>(${reviews})</small></div>` : ''}
-                        <div class="wl-price">
-                            <span class="now">₹${price.toLocaleString('en-IN')}</span>
-                            ${oldPrice > price ? `<s>₹${oldPrice.toLocaleString('en-IN')}</s><span class="off">${discount > 0 ? discount + '% off' : 'Sale'}</span>` : ''}
+                <div class="zyra-product-card">
+                    <div class="zyra-product-thumb">
+                        <a href="/product/${p.id}" class="d-block w-100 h-100"><img src="${p.image}" alt="${this.esc(p.name)}" loading="lazy"></a>
+                        <div class="zyra-badge-stack">
+                            ${p.badge ? `<span class="badge-zyra-${String(p.badge).toLowerCase().replace(/\s+/g, '')}">${this.esc(p.badge)}</span>` : ''}
+                            ${discount > 0 ? `<span class="badge-zyra-discount">${discount}% OFF</span>` : ''}
+                        </div>
+                        <button type="button" class="zyra-wishlist-btn active" data-product-id="${p.id}" onclick="ZyraWishlist.toggleWishlist(${p.id}, this)" title="Loved" aria-label="Loved">
+                            <i class="bi bi-heart-fill"></i>
+                        </button>
+                    </div>
+                    <div class="zyra-product-body">
+                        <span class="zyra-product-category">${this.esc(p.category || 'Apparel')}</span>
+                        <h6 class="zyra-product-title"><a href="/product/${p.id}" title="${this.esc(p.name)}">${this.esc(p.name)}</a></h6>
+                        ${rating > 0 ? `<div class="zyra-product-rating"><span>${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</span><span class="review-count">(${reviews})</span></div>` : ''}
+                        <div class="zyra-product-price-box">
+                            <span class="zyra-current-price">₹${price.toLocaleString('en-IN')}</span>
+                            ${oldPrice > price ? `<span class="zyra-old-price">₹${oldPrice.toLocaleString('en-IN')}</span><span class="zyra-discount-tag">${discount > 0 ? discount + '% OFF' : 'Sale'}</span>` : ''}
                         </div>
                         ${outOfStock
                             ? '<div class="wl-stock text-danger">Out of stock</div>'
-                            : (lowStock ? `<div class="wl-stock text-warning">Only ${p.stock_units} left in stock!</div>` : '<div class="wl-stock text-success">In stock</div>')}
-                    </div>
-                    <div class="wl-side">
-                        <button type="button" class="wl-move" ${outOfStock ? 'disabled' : ''} onclick="ZyraWishlist.moveToCart(${p.id})">
-                            <i class="bi bi-bag-plus me-1"></i> Move to Bag
-                        </button>
-                        <button type="button" class="wl-remove" onclick="ZyraWishlist.removeFromWishlist(${p.id})">
-                            <i class="bi bi-trash3 me-1"></i>Remove
-                        </button>
+                            : (lowStock ? `<div class="wl-stock text-warning">Only ${p.stock_units} left!</div>` : '')}
+                        <div class="wl-card-btns">
+                            <button type="button" class="wl-move" ${outOfStock ? 'disabled' : ''} onclick="ZyraWishlist.moveToCart(${p.id})">
+                                <i class="bi bi-bag-plus me-1"></i> Move to Bag
+                            </button>
+                            <button type="button" class="wl-remove" onclick="ZyraWishlist.removeFromWishlist(${p.id})">
+                                <i class="bi bi-trash3 me-1"></i>Remove
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -285,20 +288,8 @@ const ZyraWishlist = {
     },
 
     renderWishlistSummary(products) {
-        const box = document.getElementById('wishlistSummary');
-        if (!box) return;
-        if (!products.length) {
-            box.innerHTML = '';
-            return;
-        }
-        let savings = 0;
-        products.forEach((p) => {
-            const diff = (parseFloat(p.old_price) || 0) - (parseFloat(p.price) || 0);
-            if (diff > 0) savings += diff;
-        });
-        box.innerHTML =
-            (savings > 0 ? `<span class="wl-save-pill"><i class="bi bi-piggy-bank"></i> You're saving ₹${Math.round(savings).toLocaleString('en-IN')}</span>` : '') +
-            `<button type="button" class="btn btn-sm btn-dark rounded-pill px-3" onclick="ZyraWishlist.moveAllToBag()"><i class="bi bi-bag-check me-1"></i> Move all to Bag</button>`;
+        const bar = document.getElementById('wishlistToolbar');
+        if (bar) bar.style.display = (products && products.length) ? '' : 'none';
     },
 
     init() {

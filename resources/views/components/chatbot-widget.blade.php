@@ -64,6 +64,14 @@
 .zyra-ai-form button:disabled { opacity: .5; cursor: not-allowed; }
 .zyra-ai-footnote { display: block; text-align: center; font-size: .68rem; color: #a99; padding: 0 12px 10px; background: #fff; }
 .zyra-ai-footnote a { color: #8d5a5a; font-weight: 600; }
+@media (max-width: 575.98px) {
+    #zyraAiChat { right: 12px; bottom: 12px; }
+    #zyraAiChat .zyra-ai-toggle { width: 52px; height: 52px; font-size: 1.25rem; }
+    #zyraAiChat .zyra-ai-panel { right: 12px; left: 12px; width: auto; max-width: none; bottom: 76px; max-height: 68dvh; }
+    #zyraAiChat .zyra-ai-messages { height: 240px; max-height: none; min-height: 140px; }
+    #zyraAiChat .zyra-ai-msg { font-size: .82rem; }
+    #zyraAiChat .zyra-ai-suggestions button { font-size: .7rem; }
+}
 </style>
 
 <script src="{{ asset('js/chatbot.js') }}?v=20260923a"></script>

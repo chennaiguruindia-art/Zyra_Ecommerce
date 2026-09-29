@@ -1,7 +1,7 @@
 <!-- Gold Promo Bar (rotating messages) -->
 <div class="zyra-top-promo">
     <div class="zyra-promo-track" id="zyraPromoTrack">
-        <span class="zyra-promo-msg active">NEW SEASON IS HERE! Discover Elegant Kurtis, Dresses &amp; More &#x1F496;</span>
+        <span class="zyra-promo-msg active">NEW SEASON IS HERE! Discover Elegant Kurtis, Dresses &amp; More</span>
         <span class="zyra-promo-msg">PAN-WORLD SHIPPING &mdash; Delivery In 3&ndash;5 Days</span>
         <span class="zyra-promo-msg">FREE SHIPPING ON ALL ORDERS </span>
         <span class="zyra-promo-msg">CASH ON DELIVERY AVAILABLE</span>
