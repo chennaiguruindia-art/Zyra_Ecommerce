@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\Product;
+use App\Models\CustomerActivity;
+use App\Services\ActivityTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -70,6 +72,12 @@ class CartController extends Controller
         }
 
         session(['cart' => $cart]);
+
+        ActivityTracker::track(CustomerActivity::CART_ADDED, $product->id, [
+            'size' => $size,
+            'color' => $data['color'] ?? ($catalog['colors'][0] ?? 'Standard'),
+            'quantity' => $qty,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -268,7 +276,15 @@ class CartController extends Controller
 
         $key = $keys[$index];
         if ($data['quantity'] <= 0) {
+            $removed = $cart[$key] ?? null;
             unset($cart[$key]);
+            if (is_array($removed) && !empty($removed['id'])) {
+                ActivityTracker::track(CustomerActivity::CART_REMOVED, (int) $removed['id'], [
+                    'size' => $removed['size'] ?? null,
+                    'color' => $removed['color'] ?? null,
+                    'quantity' => $removed['quantity'] ?? null,
+                ]);
+            }
         } else {
             $cart[$key]['quantity'] = $data['quantity'];
         }
@@ -285,8 +301,16 @@ class CartController extends Controller
         $keys = array_keys($cart);
 
         if (isset($keys[$index])) {
+            $removed = $cart[$keys[$index]] ?? null;
             unset($cart[$keys[$index]]);
             session(['cart' => $cart]);
+            if (is_array($removed) && !empty($removed['id'])) {
+                ActivityTracker::track(CustomerActivity::CART_REMOVED, (int) $removed['id'], [
+                    'size' => $removed['size'] ?? null,
+                    'color' => $removed['color'] ?? null,
+                    'quantity' => $removed['quantity'] ?? null,
+                ]);
+            }
         }
 
         return response()->json(['success' => true, 'cart' => array_values($cart)]);

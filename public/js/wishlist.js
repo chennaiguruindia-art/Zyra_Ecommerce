@@ -83,10 +83,34 @@ const ZyraWishlist = {
 
     moveToCart(productId, size = 'M') {
         const id = parseInt(productId);
-        if (window.ZyraCart) {
-            window.ZyraCart.addToCart(id, size);
-            this.removeFromWishlist(id);
+        if (!window.ZyraCart || !(id > 0)) return;
+
+        const local = window.ZyraDB ? window.ZyraDB.getProductById(id) : null;
+        if (local) {
+            if (window.ZyraCart.addToCart(id, size, null, 1, local)) {
+                this.removeFromWishlist(id);
+            }
+            return;
         }
+
+        // Wishlist page has no local catalog — fetch the product, then move.
+        fetch(`/wishlist/items?ids=${id}`, {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                const p = data && Array.isArray(data.products) ? data.products[0] : null;
+                if (!p) {
+                    if (window.ZyraApp) window.ZyraApp.showToast('Product not found', 'danger');
+                    return;
+                }
+                if (window.ZyraCart.addToCart(id, size, null, 1, p)) {
+                    this.removeFromWishlist(id);
+                }
+            })
+            .catch(() => {
+                if (window.ZyraApp) window.ZyraApp.showToast('Could not move item to bag. Please try again.', 'danger');
+            });
     },
 
     updateHeaderBadge() {

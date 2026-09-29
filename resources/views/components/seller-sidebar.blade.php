@@ -49,6 +49,11 @@
             </a>
         </li>
         <li class="seller-nav-item">
+            <a href="{{ route('seller.activity') }}" class="seller-nav-link {{ request()->routeIs('seller.activity*') ? 'active' : '' }}">
+                <i class="bi bi-people me-2"></i> Shopping Analytics
+            </a>
+        </li>
+        <li class="seller-nav-item">
             <a href="{{ route('seller.settings') }}" class="seller-nav-link {{ request()->routeIs('seller.settings') ? 'active' : '' }}">
                 <i class="bi bi-gear me-2"></i> Store Settings
             </a>

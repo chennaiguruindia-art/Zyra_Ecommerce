@@ -92,6 +92,7 @@
     <script src="{{ asset('js/wishlist.js') }}"></script>
     <script src="{{ asset('js/checkout.js') }}?v=20260908d"></script>
     <script src="{{ asset('js/search.js') }}?v=20260918a"></script>
+    <script src="{{ asset('js/analytics.js') }}?v=20260924a"></script>
 
     @stack('scripts')
 </body>

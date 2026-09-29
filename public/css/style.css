@@ -713,7 +713,7 @@ html {
     border-radius: 4px;
 }
 
-.zyra-wishlist-btn {
+.zyra-product-thumb .zyra-wishlist-btn {
     position: absolute;
     top: 12px;
     right: 12px;
@@ -2402,6 +2402,7 @@ html {
 }
 
 .zyra-pdp-wishlist-btn {
+    position: static;
     width: 44px;
     height: 44px;
     border-radius: 10px;

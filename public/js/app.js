@@ -263,6 +263,17 @@ window.ZyraApp = {
 
     // === Mobile App-Style Shop Toolbar (filter drawer + sort sheet + category chips) ===
     toggleMobileFilters(forceOpen) {
+        const sheet = document.getElementById('mobileFilterSheet');
+        if (sheet) {
+            const backdrop = document.getElementById('shopFilterBackdrop');
+            const shouldOpen = forceOpen === undefined ? !sheet.classList.contains('open') : forceOpen;
+            sheet.classList.toggle('open', shouldOpen);
+            sheet.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+            if (backdrop) backdrop.classList.toggle('show', shouldOpen);
+            document.body.classList.toggle('overflow-hidden', shouldOpen);
+            if (shouldOpen) this.syncMobileFilterSheet();
+            return;
+        }
         const filterCol = document.getElementById('shopFilterCol');
         const backdrop = document.getElementById('shopFilterBackdrop');
         if (!filterCol) return;
@@ -288,6 +299,121 @@ window.ZyraApp = {
         sheet.classList.toggle('open', shouldOpen);
         if (backdrop) backdrop.classList.toggle('show', shouldOpen);
         document.body.classList.toggle('overflow-hidden', shouldOpen);
+    },
+
+    // === Flipkart-style mobile filter sheet (mirrors the sidebar inputs) ===
+    bindMobileFilterSheet() {
+        const sheet = document.getElementById('mobileFilterSheet');
+        if (!sheet || sheet.dataset.bound) return;
+        sheet.dataset.bound = '1';
+
+        const mirrorRadio = (sheetSel, sideSel) => {
+            sheet.querySelectorAll(sheetSel).forEach(el => {
+                el.addEventListener('change', () => {
+                    const side = document.querySelector(`${sideSel}[value="${CSS.escape(el.value)}"]`);
+                    if (side) {
+                        side.checked = true;
+                        side.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    this.updateMobileFilterCount();
+                });
+            });
+        };
+        const mirrorCheck = (sheetSel, sideSel, chipClass) => {
+            sheet.querySelectorAll(sheetSel).forEach(el => {
+                el.addEventListener('change', () => {
+                    const side = document.querySelector(`${sideSel}[value="${CSS.escape(el.value)}"]`);
+                    if (side) {
+                        side.checked = el.checked;
+                        if (chipClass && side.parentElement) {
+                            side.parentElement.classList.toggle(chipClass, el.checked);
+                        }
+                        side.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    if (el.closest('.mfilter-chip')) {
+                        el.closest('.mfilter-chip').classList.toggle('on', el.checked);
+                    }
+                    this.updateMobileFilterCount();
+                });
+            });
+        };
+
+        mirrorRadio('.mf-category', '.filter-category-radio');
+        mirrorRadio('.mf-price', '.filter-price-radio');
+        mirrorRadio('.mf-rating', '.filter-rating-radio');
+        mirrorCheck('.mf-size', '.filter-size-check', null);
+        mirrorCheck('.mf-color', '.filter-color-check', null);
+
+        // Size chips + color rows visual state
+        sheet.querySelectorAll('.mf-size').forEach(el => {
+            el.closest('.mfilter-chip')?.classList.toggle('on', el.checked);
+        });
+
+        // Tabs
+        sheet.querySelectorAll('.mfilter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                sheet.querySelectorAll('.mfilter-tab').forEach(t => t.classList.remove('active'));
+                sheet.querySelectorAll('.mfilter-pane').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                sheet.querySelector(`.mfilter-pane[data-pane="${tab.dataset.pane}"]`)?.classList.add('active');
+            });
+        });
+
+        // Clear + Apply
+        sheet.querySelector('#mobileFilterClear')?.addEventListener('click', () => {
+            this.resetShopFilters();
+            this.syncMobileFilterSheet();
+        });
+        sheet.querySelector('#mobileFilterApply')?.addEventListener('click', () => {
+            this.toggleMobileFilters(false);
+        });
+
+        this.syncMobileFilterSheet();
+    },
+
+    // Copy sidebar filter state into the mobile sheet (open + after reset).
+    syncMobileFilterSheet() {
+        const sheet = document.getElementById('mobileFilterSheet');
+        if (!sheet) return;
+
+        const copyRadio = (sheetSel, sideSel) => {
+            const checked = document.querySelector(`${sideSel}:checked`);
+            const val = checked ? checked.value : null;
+            sheet.querySelectorAll(sheetSel).forEach(el => {
+                el.checked = (val !== null && el.value === val);
+            });
+        };
+        const copyCheck = (sheetSel, sideSel) => {
+            const vals = Array.from(document.querySelectorAll(`${sideSel}:checked`)).map(c => c.value);
+            sheet.querySelectorAll(sheetSel).forEach(el => {
+                el.checked = vals.includes(el.value);
+                if (el.closest('.mfilter-chip')) {
+                    el.closest('.mfilter-chip').classList.toggle('on', el.checked);
+                }
+            });
+        };
+
+        copyRadio('.mf-category', '.filter-category-radio');
+        copyRadio('.mf-price', '.filter-price-radio');
+        copyRadio('.mf-rating', '.filter-rating-radio');
+        copyCheck('.mf-size', '.filter-size-check');
+        copyCheck('.mf-color', '.filter-color-check');
+        this.updateMobileFilterCount();
+    },
+
+    updateMobileFilterCount() {
+        const label = document.getElementById('mobileFilterCount');
+        if (!label) return;
+        const countEl = document.getElementById('shopProductCount');
+        const m = countEl ? (countEl.textContent || '').match(/(\d+)/) : null;
+        if (m) {
+            const n = parseInt(m[1], 10);
+            label.textContent = `${n} product${n === 1 ? '' : 's'} found`;
+            return;
+        }
+        const grid = document.getElementById('shopProductGrid');
+        const n = grid ? grid.children.length : 0;
+        label.textContent = `${n} product${n === 1 ? '' : 's'} found`;
     },
 
     selectMobileChip(chipEl) {
@@ -405,6 +531,9 @@ window.ZyraApp = {
                 this.resetShopFilters();
             });
         }
+
+        // Flipkart-style mobile filter sheet (listing pages)
+        this.bindMobileFilterSheet();
     },
 
     resetShopFilters() {
@@ -443,6 +572,7 @@ window.ZyraApp = {
         });
 
         this.applyShopFilters();
+        this.syncMobileFilterSheet();
     },
 
     applyShopFilters() {

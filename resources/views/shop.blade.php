@@ -53,33 +53,11 @@
         <!-- Right Product Section -->
         <div class="col-lg-9">
 
-            <!-- Mobile App-Style Toolbar -->
-            <div class="zyra-mobile-toolbar d-lg-none">
-                <button type="button" class="zyra-mobile-tool-btn" id="mobileFilterBtn" onclick="ZyraApp.toggleMobileFilters(true)">
-                    <i class="bi bi-funnel"></i>
-                    <span>Filter</span>
-                </button>
-
-                <div class="zyra-mobile-tool-title">
-                    <div class="zyra-mobile-tool-title-main">{{ $toolbarTitle }}</div>
-                    <span id="shopProductCount" class="text-muted">Showing {{ count($products) }} products</span>
-                </div>
-
-                <button type="button" class="zyra-mobile-tool-btn" id="mobileSortBtn" onclick="ZyraApp.toggleMobileSort(true)">
-                    <i class="bi bi-arrow-down-up"></i>
-                    <span>Sort</span>
-                </button>
-            </div>
-
-            <!-- Mobile Category Chips -->
-            <div class="zyra-cat-chips d-lg-none" id="mobileCatChips">
-                @foreach($chips as $chip)
-                    <button type="button" class="zyra-cat-chip {{ $chip['slug'] === $activeCategory ? 'active' : '' }}"
-                        data-cat="{{ $chip['slug'] }}" onclick="ZyraApp.selectMobileChip(this)">
-                        {{ $chip['name'] }}
-                    </button>
-                @endforeach
-            </div>
+            @include('components.mobile-listing-tools', [
+                'toolsTitle' => $toolbarTitle,
+                'toolsActive' => $activeCategory,
+                'toolsCount' => count($products),
+            ])
 
             <!-- Desktop Toolbar -->
             <div class="d-none d-lg-flex justify-content-between align-items-center pb-3 mb-3 border-bottom gap-2">
@@ -99,20 +77,6 @@
                         <option value="rating">Best Rated</option>
                         <option value="popular">Most Popular</option>
                     </select>
-                </div>
-            </div>
-
-            <!-- Sort Bottom Sheet -->
-            <div class="zyra-sort-sheet" id="mobileSortSheet">
-                <div class="zyra-sort-sheet-handle"></div>
-                <h6 class="zyra-sort-sheet-title">Sort By</h6>
-                <div class="zyra-sort-options" id="mobileSortOptions">
-                    <button type="button" class="zyra-sort-option active" data-sort="featured">Featured</button>
-                    <button type="button" class="zyra-sort-option" data-sort="newest">Newest Arrivals</button>
-                    <button type="button" class="zyra-sort-option" data-sort="price-low">Price: Low to High</button>
-                    <button type="button" class="zyra-sort-option" data-sort="price-high">Price: High to Low</button>
-                    <button type="button" class="zyra-sort-option" data-sort="rating">Best Rated</button>
-                    <button type="button" class="zyra-sort-option" data-sort="popular">Most Popular</button>
                 </div>
             </div>
 

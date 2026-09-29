@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Review;
+use App\Models\CustomerActivity;
+use App\Services\ActivityTracker;
 
 class ProductController extends Controller
 {
@@ -20,6 +22,8 @@ class ProductController extends Controller
 
         $product = $productModel->toCatalogArray();
         $reviews = $productModel->reviews->all();
+
+        ActivityTracker::track(CustomerActivity::VIEWED, $productModel->id);
 
         $relatedProducts = Product::query()
             ->with(['category', 'subcategory', 'sizes', 'colors', 'images'])
@@ -51,6 +55,8 @@ class ProductController extends Controller
         if (!$product) {
             return response()->json(['error' => 'Product not found'], 404);
         }
+
+        ActivityTracker::track(CustomerActivity::VIEWED, $product->id);
 
         return response()->json($product->toCatalogArray());
     }

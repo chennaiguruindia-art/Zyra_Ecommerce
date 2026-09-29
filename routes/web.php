@@ -22,6 +22,8 @@ use App\Http\Controllers\PublicStorageController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ChatBotController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ActivityTrackController;
+use App\Http\Controllers\ActivityAnalyticsController;
 
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
@@ -64,6 +66,10 @@ Route::prefix('seller')->name('seller.')->middleware(['auth', 'seller'])->group(
     Route::post('/products/{id}/inventory', [SellerController::class, 'updateInventory'])->name('products.inventory');
     Route::post('/orders/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('orders.status');
     Route::post('/orders/{id}/tracking', [SellerController::class, 'updateOrderTracking'])->name('orders.tracking');
+
+    Route::get('/activity', [ActivityAnalyticsController::class, 'index'])->name('activity');
+    Route::get('/activity/data', [ActivityAnalyticsController::class, 'data'])->name('activity.data');
+    Route::get('/activity/export', [ActivityAnalyticsController::class, 'export'])->name('activity.export');
 });
 
 Route::middleware(['auth', 'seller'])->group(function () {
@@ -128,6 +134,11 @@ Route::get('/order-success/{order_number}', [OrderController::class, 'success'])
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/search/live', [SearchController::class, 'live'])->name('search.live');
+
+// Anonymous shopping-analytics beacon (public, rate-limited: 60/min per IP)
+Route::post('/track', [ActivityTrackController::class, 'store'])
+    ->name('track.store')
+    ->middleware('throttle:60,1');
 
 // Rule-based shop assistant (public, rate-limited: 30 messages/min per IP)
 Route::post('/chatbot/reply', [ChatBotController::class, 'reply'])

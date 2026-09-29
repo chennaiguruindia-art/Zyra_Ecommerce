@@ -81,7 +81,10 @@
         <div class="zyra-filter-heading">Color</div>
         <div class="color-swatches-grid">
             @php
-                $filterColors = \App\Models\Color::query()->orderBy('name')->get();
+                // Only colors actually used by products — no defaults/unused colors.
+                $filterColors = \App\Models\Color::query()
+                    ->whereIn('id', function ($q) { $q->select('color_id')->from('product_color'); })
+                    ->orderBy('name')->get();
             @endphp
             @forelse($filterColors as $color)
                 <label class="color-swatch-btn" style="background-color: {{ $color->hex_code ?? '#cccccc' }};" title="{{ $color->name }}"

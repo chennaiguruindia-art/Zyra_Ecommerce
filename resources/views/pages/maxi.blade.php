@@ -44,11 +44,24 @@
 
 <div class="container py-5">
     <div class="row g-4">
-        <div class="col-lg-3">
+        <div class="col-lg-3 zyra-filter-col" id="shopFilterCol">
+            <div class="zyra-filter-sheet-header d-lg-none">
+                <h5 class="fw-bold m-0"><i class="bi bi-funnel me-1"></i> Filters</h5>
+                <button type="button" class="btn-close" aria-label="Close" onclick="ZyraApp.toggleMobileFilters(false)"></button>
+            </div>
             <x-filter-sidebar />
+            <button type="button" class="btn btn-zyra-primary w-100 mt-3 d-lg-none" onclick="ZyraApp.toggleMobileFilters(false)">
+                Done <i class="bi bi-check2 ms-1"></i>
+            </button>
         </div>
+        <div class="zyra-filter-backdrop" id="shopFilterBackdrop" onclick="ZyraApp.toggleMobileFilters(false)"></div>
         <div class="col-lg-9">
-            <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+            @include('components.mobile-listing-tools', [
+                'toolsTitle' => 'Maxi Dresses',
+                'toolsActive' => 'maxi',
+                'toolsCount' => count($products),
+            ])
+            <div class="d-none d-lg-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
                 <span id="shopProductCount" class="text-muted small">Showing {{ count($products) }} products</span>
                 <div class="d-flex align-items-center gap-2">
                     <label for="shopSortSelect" class="small text-muted text-nowrap">Sort By:</label>

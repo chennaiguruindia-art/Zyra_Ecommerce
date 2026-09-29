@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\Coupon;
+use App\Models\CustomerActivity;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\RazorpayTransaction;
+use App\Services\ActivityTracker;
 use App\Services\PricingService;
 use App\Services\RazorpayService;
 use App\Services\ShiprocketService;
@@ -65,6 +67,15 @@ class CheckoutController extends Controller
         $pricing = app(PricingService::class)->breakdown(null, $user->id);
 
         $hasOrders = Order::where('user_id', $user->id)->exists();
+
+        if (!empty($cartItems)) {
+            ActivityTracker::trackMany(CustomerActivity::CHECKOUT_STARTED, array_map(fn ($item) => [
+                'product_id' => $item['id'] ?? 0,
+                'size' => $item['size'] ?? null,
+                'color' => $item['color'] ?? null,
+                'quantity' => $item['quantity'] ?? 1,
+            ], $cartItems));
+        }
 
         return view('checkout', [
             'user' => $user,
@@ -469,6 +480,8 @@ class CheckoutController extends Controller
 
                 $line['product']->decrementSizeStock($line['size'], $line['quantity']);
             }
+
+            ActivityTracker::trackMany(CustomerActivity::PURCHASED, $order->items()->get(['product_id', 'size', 'color', 'quantity'])->all());
 
             session()->forget(['cart', 'coupon']);
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\CustomerActivity;
+use App\Services\ActivityTracker;
 use Illuminate\Http\Request;
 
 class WishlistController extends Controller
@@ -38,6 +40,11 @@ class WishlistController extends Controller
         }
 
         session(['wishlist' => $wishlist]);
+
+        ActivityTracker::track(
+            $added ? CustomerActivity::WISHLIST_ADDED : CustomerActivity::WISHLIST_REMOVED,
+            $id
+        );
 
         return response()->json(['success' => true, 'added' => $added, 'ids' => $wishlist]);
     }

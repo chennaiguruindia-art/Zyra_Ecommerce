@@ -322,10 +322,21 @@
     .zyra-discount-tag {
         font-size: 0.7rem;
     }
+    .zyra-card-actions {
+        left: auto;
+        right: 10px;
+        bottom: 10px;
+    }
+    .btn-card-quickview span {
+        display: none;
+    }
     .btn-card-quickview {
-        font-size: 0.68rem;
+        flex: 0 0 38px;
+        width: 38px;
         height: 38px;
-        padding: 0 10px;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 0.9rem;
     }
     .btn-card-addcart {
         flex-basis: 38px;
