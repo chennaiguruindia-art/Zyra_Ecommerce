@@ -173,104 +173,104 @@
 </header>
 
 <!-- Mobile Offcanvas Navigation Menu -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="zyraMobileMenu" aria-labelledby="zyraMobileMenuLabel">
-    <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title zyra-brand-logo fs-3" id="zyraMobileMenuLabel">
-            <img src="{{ asset('images/logo/Zyra _logo.png') }}" alt="ZYRA" class="zyra-logo-image zyra-logo-image-mobile">
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+<style>
+#zyraMobileMenu { width: min(340px, 88vw); }
+.mnav-head { background: linear-gradient(135deg, #2b2323 0%, #8d5a5a 100%); padding: 18px 18px 16px; }
+.mnav-head img { height: 34px; width: auto; }
+.mnav-head .btn-close { background-color: #fff; border-radius: 50%; width: 26px; height: 26px; font-size: .7rem; }
+.mnav-tag { color: rgba(255,255,255,.75); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+.mnav-search { padding: 12px 16px 4px; background: #fff; }
+.mnav-search .input-group { border: 1px solid #e8e0d8; border-radius: 999px; overflow: hidden; }
+.mnav-search input { border: none; font-size: .85rem; padding: 9px 6px 9px 16px; }
+.mnav-search input:focus { box-shadow: none; }
+.mnav-search .btn { background: #18181b; color: #fff; border: none; padding: 0 16px; }
+.mnav-link { display: flex; align-items: center; gap: 12px; padding: 11px 18px; color: #2b2323; text-decoration: none; font-weight: 600; font-size: .9rem; border-bottom: 1px solid #f4f0eb; }
+.mnav-link:hover { color: #8d5a5a; background: #faf8f6; }
+.mnav-ic { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 12px; background: #faf0f0; color: #8d5a5a; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
+.mnav-link .bi-chevron-right { margin-left: auto; color: #c9bcb4; font-size: .8rem; }
+.mnav-sec { font-size: .68rem; font-weight: 800; letter-spacing: 1.5px; color: #a98f8f; padding: 16px 18px 4px; text-transform: uppercase; }
+.mnav-sale { color: #d6336c !important; }
+.mnav-sale .mnav-ic { background: #fdeef3; color: #d6336c; }
+.mnav-user { margin: 14px 16px; background: #faf8f6; border: 1px solid #f0e6e1; border-radius: 16px; padding: 14px; }
+.mnav-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 1px solid #e5d9d3; background: #fff; border-radius: 12px; padding: 10px 14px; font-size: .85rem; font-weight: 600; color: #2b2323; text-decoration: none; margin-top: 8px; }
+.mnav-foot { padding: 4px 18px 22px; font-size: .78rem; color: #8a7a74; }
+.mnav-foot a { color: #8d5a5a; font-weight: 700; text-decoration: none; }
+</style>
+<div class="offcanvas offcanvas-start p-0" tabindex="-1" id="zyraMobileMenu" aria-labelledby="zyraMobileMenuLabel">
+    <div class="mnav-head">
+        <div class="d-flex align-items-start justify-content-between">
+            <div>
+                <img src="{{ asset('images/logo/white_logo.png') }}" alt="ZYRA" id="zyraMobileMenuLabel">
+                <div class="mnav-tag">Feel Beautiful Everyday</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
     </div>
-    <div class="offcanvas-body">
-        <!-- Mobile Live Search -->
-        <div class="mb-4">
+    <div class="offcanvas-body p-0">
+        <div class="mnav-search">
             <div class="input-group">
-                <input type="text" id="mobileSearchInput" class="form-control" placeholder="Search female fashion...">
-                <button class="btn btn-dark" type="button" onclick="window.location.href='/search?q=' + encodeURIComponent(document.getElementById('mobileSearchInput').value)">
+                <input type="text" id="mobileSearchInput" class="form-control border-0" placeholder="Search kurtis, tops, dresses...">
+                <button class="btn" type="button" onclick="window.location.href='/search?q=' + encodeURIComponent(document.getElementById('mobileSearchInput').value)">
                     <i class="bi bi-search"></i>
                 </button>
             </div>
         </div>
 
-        <ul class="nav flex-column gap-2 mb-4">
-            <li class="nav-item">
-                <a href="{{ route('home') }}" class="nav-link text-dark fw-bold border-bottom pb-2">Home</a>
-            </li>
+        <a href="{{ route('home') }}" class="mnav-link"><span class="mnav-ic"><i class="bi bi-house"></i></span> Home <i class="bi bi-chevron-right"></i></a>
 
-            <!-- Zyra Collection Group -->
-            <li class="nav-item mt-1">
-                <span class="text-uppercase small fw-bold text-muted"><i class="bi bi-grid-3x3-gap me-1"></i> Zyra Collection</span>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('shop') }}" class="nav-link text-dark fw-bold border-bottom pb-2">All Products</a>
-            </li>
-            @foreach($navCategories ?? [] as $navCat)
-                @php
-                    $catSlug = $navCat['slug'] ?? '';
-                    $catRoute = \Illuminate\Support\Facades\Route::has('pages.' . $catSlug) ? route('pages.' . $catSlug) : route('category', $catSlug);
-                @endphp
-                <li class="nav-item">
-                    <a href="{{ $catRoute }}" class="nav-link text-dark fw-medium border-bottom pb-2">{{ $navCat['name'] ?? '' }}</a>
-                </li>
-            @endforeach
-            <li class="nav-item">
-                <a href="{{ route('pages.duppata') }}" class="nav-link text-dark fw-medium border-bottom pb-2">Dupatta</a>
-            </li>
+        <div class="mnav-sec">Zyra Collection</div>
+        <a href="{{ route('shop') }}" class="mnav-link"><span class="mnav-ic"><i class="bi bi-grid"></i></span> All Products <i class="bi bi-chevron-right"></i></a>
+        @foreach($navCategories ?? [] as $navCat)
+            @php
+                $mCatSlug = $navCat['slug'] ?? '';
+                $mCatRoute = \Illuminate\Support\Facades\Route::has('pages.' . $mCatSlug) ? route('pages.' . $mCatSlug) : route('category', $mCatSlug);
+            @endphp
+            <a href="{{ $mCatRoute }}" class="mnav-link"><span class="mnav-ic"><i class="bi bi-bag"></i></span> {{ $navCat['name'] ?? '' }} <i class="bi bi-chevron-right"></i></a>
+        @endforeach
+        <a href="{{ route('pages.duppata') }}" class="mnav-link"><span class="mnav-ic"><i class="bi bi-bag"></i></span> Dupatta <i class="bi bi-chevron-right"></i></a>
 
-            <li class="nav-item mt-2">
-                <a href="{{ route('home') }}#best-sellers" class="nav-link text-dark fw-bold border-bottom pb-2"><i class="bi bi-trophy me-2"></i> Top Seller</a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('home') }}#new-arrivals" class="nav-link text-dark fw-bold border-bottom pb-2"><i class="bi bi-stars me-2"></i> New Arrival</a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ route('shop') }}?filter=sale" class="nav-link text-danger fw-bold border-bottom pb-2">Sale (Up to 40% OFF)</a>
-            </li>
-        </ul>
+        <div class="mnav-sec">Discover</div>
+        <a href="{{ route('home') }}#best-sellers" class="mnav-link"><span class="mnav-ic"><i class="bi bi-trophy"></i></span> Top Seller <i class="bi bi-chevron-right"></i></a>
+        <a href="{{ route('home') }}#new-arrivals" class="mnav-link"><span class="mnav-ic"><i class="bi bi-stars"></i></span> New Arrival <i class="bi bi-chevron-right"></i></a>
+        <a href="{{ route('shop') }}?filter=sale" class="mnav-link mnav-sale"><span class="mnav-ic"><i class="bi bi-lightning-charge"></i></span> Sale · Up to 40% OFF <i class="bi bi-chevron-right"></i></a>
 
-        <div class="d-grid gap-2 mb-4">
+        <div class="mnav-user">
             @auth
-                <div class="p-3 bg-light rounded-3 mb-2">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        @if (auth()->user()->avatar_url)
-                            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 50%;">
-                        @else
-                            <span class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 0.9rem;">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                            </span>
-                        @endif
-                        <div>
-                            <div class="fw-bold small text-dark">{{ auth()->user()->name }}</div>
-                            <div class="text-muted small" style="font-size: 0.75rem;">{{ auth()->user()->email }}</div>
-                        </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    @if (auth()->user()->avatar_url)
+                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 50%;">
+                    @else
+                        <span class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 0.9rem;">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </span>
+                    @endif
+                    <div>
+                        <div class="fw-bold small text-dark">{{ auth()->user()->name }}</div>
+                        <div class="text-muted small" style="font-size: 0.75rem;">{{ auth()->user()->email }}</div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-outline-dark flex-grow-1">Profile</a>
-                        <a href="{{ route('my-orders') }}" class="btn btn-sm btn-outline-dark flex-grow-1">Orders</a>
-                        <form method="POST" action="{{ route('logout') }}" class="m-0">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Sign Out</button>
-                        </form>
-                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-outline-dark flex-grow-1">Profile</a>
+                    <a href="{{ route('my-orders') }}" class="btn btn-sm btn-outline-dark flex-grow-1">Orders</a>
+                    <form method="POST" action="{{ route('logout') }}" class="m-0">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Sign Out</button>
+                    </form>
                 </div>
             @else
-                <div class="p-3 bg-light rounded-3 mb-2 text-center">
-                    <div class="fw-bold small mb-1">Welcome to ZYRA</div>
-                    <p class="text-muted small mb-2" style="font-size: 0.75rem;">Login for faster checkout & saved items</p>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('login') }}" class="btn btn-sm btn-zyra-primary flex-grow-1">Sign In</a>
-                        <a href="{{ route('register') }}" class="btn btn-sm btn-zyra-outline flex-grow-1">Register</a>
-                    </div>
+                <div class="fw-bold small mb-1">Welcome to ZYRA</div>
+                <p class="text-muted small mb-2" style="font-size: 0.75rem;">Login for faster checkout &amp; saved items</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('login') }}" class="btn btn-sm btn-zyra-primary flex-grow-1">Sign In</a>
+                    <a href="{{ route('register') }}" class="btn btn-sm btn-zyra-outline flex-grow-1">Register</a>
                 </div>
             @endauth
+            <a href="{{ route('wishlist') }}" class="mnav-btn"><span><i class="bi bi-heart me-2"></i> My Wishlist</span><span class="badge bg-secondary wishlist-count-badge">0</span></a>
+            <a href="{{ route('cart') }}" class="mnav-btn"><span><i class="bi bi-bag me-2"></i> View Cart</span><span class="badge bg-dark cart-count-badge">0</span></a>
+        </div>
 
-            <a href="{{ route('wishlist') }}" class="btn btn-outline-dark btn-sm d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-heart me-2"></i> My Wishlist</span>
-                <span class="badge bg-secondary wishlist-count-badge">0</span>
-            </a>
-            <a href="{{ route('cart') }}" class="btn btn-outline-dark btn-sm d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-bag me-2"></i> View Cart</span>
-                <span class="badge bg-dark cart-count-badge">0</span>
-            </a>
+        <div class="mnav-foot">
+            Need help? Call <a href="tel:+919884125555">+91 98841 25555</a> or <a href="{{ route('contact') }}">contact us</a>.
         </div>
     </div>
 </div>
