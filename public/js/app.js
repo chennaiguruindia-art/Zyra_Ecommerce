@@ -225,7 +225,7 @@ window.ZyraApp = {
             feedback.innerHTML = `
                 <div class="alert alert-success py-2 px-3 small mt-2 mb-0">
                     <i class="bi bi-truck me-1"></i> <strong>Delivery available by ${formattedDate}</strong><br>
-                    <span class="text-muted">Standard Delivery (Free over ₹999) | Cash on Delivery Available</span>
+                    <span class="text-muted">Standard Delivery - Order Anything | Free Delivery Available</span>
                 </div>
             `;
         });

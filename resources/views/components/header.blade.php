@@ -4,7 +4,7 @@
         <span class="zyra-promo-msg active">NEW SEASON IS HERE! Discover Elegant Kurtis, Dresses &amp; More</span>
         <span class="zyra-promo-msg">PAN-WORLD SHIPPING &mdash; Delivery In 3&ndash;5 Days</span>
         <span class="zyra-promo-msg">FREE SHIPPING ON ALL ORDERS </span>
-        <span class="zyra-promo-msg">CASH ON DELIVERY AVAILABLE</span>
+        <span class="zyra-promo-msg">FAST DELIVERY AVAILABLE</span>
     </div>
 </div>
 <script>
