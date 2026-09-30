@@ -188,7 +188,7 @@ window.ZyraApp = {
             addBtn.onclick = () => {
                 const qty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
                 if (window.ZyraCart) {
-                    window.ZyraCart.addToCart(product.id, selectedSize, selectedColor, qty);
+                    window.ZyraCart.addToCart(product.id, selectedSize, selectedColor, qty, product);
                     const bsModal = bootstrap.Modal.getInstance(modalEl);
                     if (bsModal) bsModal.hide();
                 }
