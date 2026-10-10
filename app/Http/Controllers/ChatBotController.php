@@ -394,12 +394,6 @@ class ChatBotController extends Controller
         if ($p->fit) {
             $html .= '<br>Fit: ' . e($p->fit);
         }
-        if ($p->rating) {
-            $html .= '<br>Rated ⭐' . rtrim(rtrim((string) $p->rating, '0'), '.');
-            if ($p->reviews_count) {
-                $html .= ' (' . (int) $p->reviews_count . ' reviews)';
-            }
-        }
 
         return $html . '<br><br><a href="/product/' . $p->id . '">View &amp; order →</a>';
     }

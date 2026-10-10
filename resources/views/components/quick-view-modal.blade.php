@@ -18,11 +18,6 @@
                     <!-- Right: Product Details -->
                     <div class="col-md-6">
                         <h4 class="fw-bold mb-1" id="qvProductTitle">Product Title</h4>
-                        
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="text-warning small" id="qvProductRating">★★★★☆</span>
-                            <span class="text-muted small" id="qvProductReviews">(0 reviews)</span>
-                        </div>
 
                         <div class="d-flex align-items-baseline gap-2 mb-3">
                             <span class="fs-4 fw-bold text-dark" id="qvProductPrice">₹0</span>

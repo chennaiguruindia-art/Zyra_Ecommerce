@@ -69,25 +69,8 @@
                 <div class="zyra-pdp-eyebrow">{{ $product['category'] }} / {{ $product['subcategory'] }}</div>
                 <h1 class="zyra-pdp-title">{{ $product['name'] }}</h1>
 
-                {{-- Rating Row --}}
+                {{-- SKU Row --}}
                 <div class="zyra-pdp-rating-row">
-                    <div class="d-flex align-items-center gap-1 text-warning">
-                        <span class="d-inline-flex gap-1">
-                            @for($i = 1; $i <= 5; $i++)
-                                @if($i <= (int)round($product['rating']))
-                                    <i class="bi bi-star-fill"></i>
-                                @elseif($i - 0.5 <= $product['rating'])
-                                    <i class="bi bi-star-half"></i>
-                                @else
-                                    <i class="bi bi-star"></i>
-                                @endif
-                            @endfor
-                        </span>
-                        <span class="text-dark fw-bold ms-1">{{ $product['rating'] }}</span>
-                    </div>
-                    <span class="text-muted">·</span>
-                    <span class="text-muted">{{ $product['reviews'] }} reviews</span>
-                    <span class="text-muted">·</span>
                     <span class="text-muted">SKU {{ $product['sku'] }}</span>
                 </div>
 
@@ -269,9 +252,6 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#shipping-tab-pane" type="button" role="tab">Shipping & Returns</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews-tab-pane" type="button" role="tab">Reviews ({{ $product['reviews'] }})</button>
-            </li>
         </ul>
 
         <div class="zyra-pdp-tab-content tab-content">
@@ -349,50 +329,6 @@
                                 <li><i class="bi bi-check2"></i> Item must have original tags intact and remain unworn</li>
                                 <li><i class="bi bi-check2"></i> Refunds processed within 48 hours of return receipt</li>
                             </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Reviews --}}
-            <div class="tab-pane fade" id="reviews-tab-pane" role="tabpanel">
-                <div class="row g-4 align-items-start">
-                    <div class="col-md-3 text-center zyra-pdp-review-summary">
-                        <div class="zyra-pdp-review-big">{{ $product['rating'] }}</div>
-                        <div class="text-warning fs-5 mb-2">
-                            @for($i = 1; $i <= 5; $i++)
-                                @if($i <= (int)round($product['rating']))
-                                    <i class="bi bi-star-fill"></i>
-                                @elseif($i - 0.5 <= $product['rating'])
-                                    <i class="bi bi-star-half"></i>
-                                @else
-                                    <i class="bi bi-star"></i>
-                                @endif
-                            @endfor
-                        </div>
-                        <p class="text-muted small">Based on {{ $product['reviews'] }} authentic ratings</p>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="zyra-pdp-review-list">
-                            @forelse($reviews ?? [] as $review)
-                                <div class="zyra-pdp-review-item">
-                                    <div class="d-flex justify-content-between">
-                                        <strong>{{ $review->customer_name }}</strong>
-                                        <span class="text-warning small">
-                                            @for($i = 1; $i <= 5; $i++)<i class="bi bi-star{{ $i <= (int) $review->rating ? '-fill' : '' }}"></i>@endfor
-                                        </span>
-                                    </div>
-                                    <small class="text-muted">@if($review->is_verified)Verified Buyer · @endif{{ $review->created_at?->diffForHumans() }}</small>
-                                    @if($review->comment)
-                                        <p class="text-muted small mt-2 mb-0">{{ $review->comment }}</p>
-                                    @endif
-                                </div>
-                            @empty
-                                <div class="zyra-pdp-review-item">
-                                    <p class="text-muted small mb-1"><strong>No reviews yet</strong> — be the first to share your experience!</p>
-                                    <small class="text-muted">Bought this item? Rate it from your <a href="{{ route('my-orders') }}">My Orders</a> page.</small>
-                                </div>
-                            @endforelse
                         </div>
                     </div>
                 </div>

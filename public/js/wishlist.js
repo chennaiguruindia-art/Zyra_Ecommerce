@@ -243,8 +243,6 @@ const ZyraWishlist = {
             const price = parseFloat(p.price) || 0;
             const oldPrice = parseFloat(p.old_price) || 0;
             const discount = parseFloat(p.discount) || 0;
-            const rating = Math.round(parseFloat(p.rating) || 0);
-            const reviews = p.reviews ?? p.reviews_count ?? 0;
             const outOfStock = p.in_stock === false || parseInt(p.stock_units ?? 1) <= 0;
             const lowStock = !outOfStock && p.stock_units !== undefined && parseInt(p.stock_units) <= 5;
             html += `
@@ -262,7 +260,6 @@ const ZyraWishlist = {
                     <div class="zyra-product-body">
                         <span class="zyra-product-category">${this.esc(p.category || 'Apparel')}</span>
                         <h6 class="zyra-product-title"><a href="/product/${p.id}" title="${this.esc(p.name)}">${this.esc(p.name)}</a></h6>
-                        ${rating > 0 ? `<div class="zyra-product-rating"><span>${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</span><span class="review-count">(${reviews})</span></div>` : ''}
                         <div class="zyra-product-price-box">
                             <span class="zyra-current-price">₹${price.toLocaleString('en-IN')}</span>
                             ${oldPrice > price ? `<span class="zyra-old-price">₹${oldPrice.toLocaleString('en-IN')}</span><span class="zyra-discount-tag">${discount > 0 ? discount + '% OFF' : 'Sale'}</span>` : ''}

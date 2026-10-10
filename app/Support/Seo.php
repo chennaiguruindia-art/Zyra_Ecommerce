@@ -234,23 +234,6 @@ class Seo
             ],
         ];
 
-        $aggregate = [];
-        $rating = (float) ($product['rating'] ?? 0);
-        $reviewCount = (int) ($product['reviews_count'] ?? $product['reviews'] ?? 0);
-        // Only emit aggregateRating when there is at least one real review:
-        // Google requires "reviewCount" to be positive.
-        if ($rating > 0 && $reviewCount > 0) {
-            $aggregate = [
-                'aggregateRating' => [
-                    '@type' => 'AggregateRating',
-                    'ratingValue' => $rating,
-                    'reviewCount' => $reviewCount,
-                    'bestRating' => '5',
-                    'worstRating' => '1',
-                ],
-            ];
-        }
-
         return self::jsonld(array_filter([
             '@context' => 'https://schema.org',
             '@type' => 'Product',
@@ -264,7 +247,6 @@ class Seo
             'sku' => $product['sku'] ?? ('ZYR-' . ($product['id'] ?? '1')),
             'category' => $product['category'] ?? null,
             'offers' => $offers,
-            ...$aggregate,
         ], fn ($v) => $v !== null));
     }
 

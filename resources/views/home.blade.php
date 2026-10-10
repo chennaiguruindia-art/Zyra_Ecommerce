@@ -232,24 +232,7 @@
     </div>
 </section>
 
-<!-- 8. Customer Reviews Section -->
-<section class="py-5" style="background-color: var(--zyra-bg-beige);">
-    <div class="container py-3">
-        <div class="text-center mb-5">
-            <span class="text-uppercase small fw-bold text-muted">Real Experiences</span>
-            <h2 class="display-6 fw-bold mt-1">What Our Customers Say</h2>
-            <div class="mx-auto" style="width: 60px; height: 2px; background-color: var(--zyra-secondary);"></div>
-        </div>
-
-        <div class="text-center py-5">
-            <i class="bi bi-chat-square-heart display-4 text-muted"></i>
-            <h4 class="fw-bold mt-3 text-muted">Customer Reviews Coming Soon</h4>
-            <p class="text-muted mb-0">Our customers are still writing their love letters. Check back soon for real experiences from ZYRA shoppers!</p>
-        </div>
-    </div>
-</section>
-
-<!-- 9. Instagram/Fashion Gallery Section -->
+<!-- 8. Instagram/Fashion Gallery Section -->
 <section class="py-5 bg-white">
     <div class="container py-3">
         <div class="text-center mb-4">

@@ -21,7 +21,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicStorageController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ChatBotController;
-use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ActivityTrackController;
 use App\Http\Controllers\ActivityAnalyticsController;
 
@@ -113,7 +112,6 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->get('/my-orders', [OrderController::class, 'myOrders'])->name('my-orders');
-Route::middleware('auth')->post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
 Route::get('/wishlist', fn () => view('wishlist'))->name('wishlist');
 Route::get('/cart', fn () => view('cart'))->name('cart');

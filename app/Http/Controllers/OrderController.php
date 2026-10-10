@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\Review;
 
 class OrderController extends Controller
 {
@@ -25,11 +24,6 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
-        $userReviews = Review::query()
-            ->where('user_id', auth()->id())
-            ->get()
-            ->keyBy('product_id');
-
-        return view('my-orders', compact('orders', 'userReviews'));
+        return view('my-orders', compact('orders'));
     }
 }

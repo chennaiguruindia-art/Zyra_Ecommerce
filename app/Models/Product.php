@@ -61,11 +61,6 @@ class Product extends Model
         return $this->belongsToMany(Color::class, 'product_color');
     }
 
-    public function reviews(): HasMany
-    {
-        return $this->hasMany(Review::class);
-    }
-
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
@@ -200,7 +195,6 @@ class Product extends Model
             'old_price' => $this->old_price !== null ? (float) $this->old_price : null,
             'discount' => (int) ($this->discount ?? 0),
             'rating' => (float) $this->rating,
-            'reviews' => (int) $this->reviews_count,
             'image' => $this->image_url,
             'images' => $images,
             'sizes' => $this->size_names,

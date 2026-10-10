@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Review;
 use App\Models\CustomerActivity;
 use App\Services\ActivityTracker;
 
@@ -12,16 +11,15 @@ class ProductController extends Controller
     public function show(string $idOrSlug)
     {
         $productModel = Product::query()
-            ->with(['category', 'subcategory', 'sizes', 'colors', 'images', 'reviews'])
+            ->with(['category', 'subcategory', 'sizes', 'colors', 'images'])
             ->when(is_numeric($idOrSlug), fn ($q) => $q->where('id', $idOrSlug), fn ($q) => $q->where('slug', $idOrSlug))
             ->first();
 
         if (!$productModel) {
-            $productModel = Product::query()->with(['category', 'subcategory', 'sizes', 'colors', 'images', 'reviews'])->firstOrFail();
+            $productModel = Product::query()->with(['category', 'subcategory', 'sizes', 'colors', 'images'])->firstOrFail();
         }
 
         $product = $productModel->toCatalogArray();
-        $reviews = $productModel->reviews->all();
 
         ActivityTracker::track(CustomerActivity::VIEWED, $productModel->id);
 
@@ -43,7 +41,7 @@ class ProductController extends Controller
             ->map->toCatalogArray()
             ->all();
 
-        return view('product-details', compact('product', 'relatedProducts', 'recentlyViewed', 'reviews'));
+        return view('product-details', compact('product', 'relatedProducts', 'recentlyViewed'));
     }
 
     public function quickView(string $id)

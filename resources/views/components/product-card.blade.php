@@ -7,12 +7,9 @@
     $price = $product['price'] ?? 0;
     $oldPrice = $product['old_price'] ?? null;
     $discount = $product['discount'] ?? 0;
-    $rating = $product['rating'] ?? 4.5;
-    $reviews = $product['reviews'] ?? 50;
     $rawImage = $product['image'] ?? 'https://images.unsplash.com/photo-1534126511673-b6899657816a?auto=format&fit=crop&w=800&q=80';
     $image = (str_starts_with($rawImage, 'http://') || str_starts_with($rawImage, 'https://')) ? $rawImage : asset('storage/' . $rawImage);
     $badge = $product['badge'] ?? '';
-    $starsFull = (int) round($rating);
 @endphp
 
 <div class="zyra-product-card">
@@ -53,12 +50,6 @@
         <h6 class="zyra-product-title">
             <a href="{{ route('product.details', $id) }}" title="{{ $name }}">{{ $name }}</a>
         </h6>
-
-        <!-- Rating -->
-        <div class="zyra-product-rating">
-            <span>{!! str_repeat('★', $starsFull) . str_repeat('☆', 5 - $starsFull) !!}</span>
-            <span class="review-count">({{ $reviews }})</span>
-        </div>
 
         <!-- Pricing -->
         <div class="zyra-product-price-box">

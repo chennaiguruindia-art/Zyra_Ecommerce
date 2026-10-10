@@ -255,7 +255,6 @@ const ZyraSearch = {
 
         let html = '<div class="row g-3 g-md-4">';
         results.forEach(p => {
-            const rating = Math.round(parseFloat(p.rating) || 0);
             const price = parseFloat(p.price) || 0;
             const oldPrice = parseFloat(p.old_price) || 0;
             const discount = parseFloat(p.discount) || 0;
@@ -282,7 +281,6 @@ const ZyraSearch = {
                                 ${discount > 0 ? `<span class="off">${discount}% off</span>` : ''}
                             </div>
                             <div class="msrch-meta">
-                                ${rating > 0 ? `<span class="msrch-rating">${rating} ★ <small>(${(p.reviews ?? 0)})</small></span>` : ''}
                                 ${freeDel ? '<span class="msrch-freedel">Free Delivery</span>' : ''}
                             </div>
                         </div>
