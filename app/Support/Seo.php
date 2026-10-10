@@ -233,12 +233,16 @@ class Seo
         ];
 
         $aggregate = [];
-        if (isset($product['rating']) && $product['rating'] > 0) {
+        $rating = (float) ($product['rating'] ?? 0);
+        $reviewCount = (int) ($product['reviews_count'] ?? $product['reviews'] ?? 0);
+        // Only emit aggregateRating when there is at least one real review:
+        // Google requires "reviewCount" to be positive.
+        if ($rating > 0 && $reviewCount > 0) {
             $aggregate = [
                 'aggregateRating' => [
                     '@type' => 'AggregateRating',
-                    'ratingValue' => (float) $product['rating'],
-                    'reviewCount' => (int) ($product['reviews_count'] ?? $product['reviews'] ?? 10),
+                    'ratingValue' => $rating,
+                    'reviewCount' => $reviewCount,
                     'bestRating' => '5',
                     'worstRating' => '1',
                 ],
