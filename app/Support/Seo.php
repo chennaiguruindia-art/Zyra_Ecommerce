@@ -186,6 +186,8 @@ class Seo
             'priceCurrency' => 'INR',
             'price' => number_format($price, 2, '.', ''),
             'priceValidUntil' => date('Y-12-31', strtotime('+1 year')),
+            // Offer start date (must be in the past for the offer to be currently valid).
+            'validFrom' => date('Y-m-d', strtotime('-1 day')),
             'url' => self::url('/product/' . ($product['id'] ?? 0)),
             'availability' => isset($product['in_stock']) && $product['in_stock']
                 ? 'https://schema.org/InStock'
