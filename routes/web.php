@@ -86,6 +86,8 @@ Route::middleware(['auth', 'seller'])->group(function () {
 });
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/catelog', [CatalogController::class, 'index'])->name('catalog');
+Route::get('/catalog', fn () => redirect()->route('catalog'));
 Route::get('/catalog.json', [CatalogController::class, 'json'])->name('catalog.json');
 
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');

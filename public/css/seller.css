@@ -8,17 +8,21 @@
     min-height: 100vh;
     font-family: var(--zyra-font-sans, 'Plus Jakarta Sans', sans-serif);
     color: #222;
+    /* Live-measured topbar height (updated by JS) - used for sticky offsets */
+    --seller-topbar-h: 70px;
 }
 
-/* Seller Topbar */
+/* Seller Topbar - stays pinned to the top while the panel content scrolls */
 .seller-topbar {
     background-color: #1a1a1a;
     color: #fff;
     padding: 0.85rem 0;
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 1030;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    will-change: transform;
 }
 
 .seller-brand {
@@ -78,6 +82,58 @@
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Rose-tinted topbar variant (New Orders page) */
+.seller-topbar-rose {
+    background-color: var(--zyra-secondary, #e8b4b8);
+    color: #1a1a1a;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.seller-topbar-rose .seller-brand,
+.seller-topbar-rose .seller-brand:hover {
+    color: #1a1a1a;
+}
+
+.seller-topbar-rose .seller-brand span {
+    background-color: #1a1a1a;
+    color: var(--zyra-secondary, #e8b4b8);
+}
+
+.seller-topbar-rose .seller-topbar-link {
+    color: #3d2b2e;
+}
+
+.seller-topbar-rose .seller-topbar-link:hover,
+.seller-topbar-rose .seller-topbar-link:focus {
+    color: #1a1a1a;
+    background-color: rgba(255, 255, 255, 0.45);
+}
+
+.seller-topbar-rose .seller-user-btn {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(26, 26, 26, 0.25);
+    color: #1a1a1a;
+}
+
+.seller-topbar-rose .seller-user-btn:hover,
+.seller-topbar-rose .seller-user-btn:focus {
+    background: rgba(255, 255, 255, 0.8);
+    color: #1a1a1a;
+}
+
+.seller-topbar-rose .btn-zyra-primary {
+    background-color: #1a1a1a;
+    border-color: #1a1a1a;
+    color: #fff;
+}
+
+.seller-topbar-rose .btn-zyra-primary:hover,
+.seller-topbar-rose .btn-zyra-primary:focus {
+    background-color: #333;
+    border-color: #333;
+    color: #fff;
+}
+
 .seller-user-btn {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -95,12 +151,35 @@
     color: #fff;
 }
 
-/* Seller Sidebar */
+/* Seller Sidebar - sticky: stays visible while the main panel scrolls */
 .seller-sidebar {
     background-color: #fff;
     border-right: 1px solid #e8e3dc;
-    min-height: calc(100vh - 60px);
+    min-height: calc(100vh - var(--seller-topbar-h, 70px));
     padding: 1.5rem 1rem;
+    position: -webkit-sticky;
+    position: sticky;
+    top: var(--seller-topbar-h, 70px);
+    align-self: flex-start;
+    max-height: calc(100vh - var(--seller-topbar-h, 70px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #d9d3ca transparent;
+    z-index: 1020;
+}
+
+.seller-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.seller-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.seller-sidebar::-webkit-scrollbar-thumb {
+    background-color: #d9d3ca;
+    border-radius: 6px;
 }
 
 .seller-nav {
@@ -530,9 +609,13 @@
         padding: 1.5rem 1rem;
     }
     .seller-sidebar {
+        position: static;
         min-height: auto;
+        max-height: none;
+        overflow-y: visible;
         border-right: none;
         border-bottom: 1px solid #e8e3dc;
         padding: 1rem;
+        z-index: auto;
     }
 }

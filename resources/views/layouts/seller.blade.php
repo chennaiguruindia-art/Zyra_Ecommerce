@@ -31,7 +31,7 @@
 <body class="seller-panel-body">
 
     <!-- Seller Top Bar -->
-    <header class="seller-topbar">
+    <header class="seller-topbar {{ request()->routeIs('seller.orders.new') ? 'seller-topbar-rose' : '' }}">
         <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-3">
                 <button class="btn btn-sm btn-outline-light d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#sellerSidebarCollapse" aria-expanded="false" aria-controls="sellerSidebarCollapse">
@@ -93,6 +93,28 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <!-- Keep sticky topbar/sidebar offsets in sync with the real header height -->
+    <script>
+        (function () {
+            var topbar = document.querySelector('.seller-topbar');
+            if (!topbar) return;
+
+            var syncTopbarHeight = function () {
+                var h = Math.round(topbar.getBoundingClientRect().height);
+                if (h > 0) {
+                    document.body.style.setProperty('--seller-topbar-h', h + 'px');
+                }
+            };
+
+            syncTopbarHeight();
+            window.addEventListener('resize', syncTopbarHeight);
+            window.addEventListener('load', syncTopbarHeight);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(syncTopbarHeight);
+            }
+        })();
+    </script>
 
     <!-- Application Modules -->
     <script src="{{ asset('js/cart.js') }}"></script>

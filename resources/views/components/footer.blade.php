@@ -27,6 +27,7 @@
                     <li><a href="{{ route('faq') }}#shipping">Shipping Information</a></li>
                     <li><a href="{{ route('faq') }}#returns">Returns & Exchange</a></li>
                     <li><a href="{{ route('contact') }}">Track Order</a></li>
+                    <li><a href="{{ url('/catelog') }}" class="fw-bold text-white"><i class="bi bi-journal-richtext me-1 text-danger"></i>Product Catalog (PDF)</a></li>
                 </ul>
             </div>
 
