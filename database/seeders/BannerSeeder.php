@@ -14,7 +14,7 @@ class BannerSeeder extends Seeder
                 'title' => 'Summer Kurti Collection 2026',
                 'subtitle' => 'Handcrafted block prints & graceful Anarkalis designed for the modern Indian woman.',
                 'badge' => 'New Collection',
-                'image' => '/images/banners/images.jpeg',
+                'image' => 'images/banners/summer-kurti-collection.png',
                 'link' => '/kurtis',
                 'button_text' => 'Explore Kurtis',
                 'position' => 'hero',

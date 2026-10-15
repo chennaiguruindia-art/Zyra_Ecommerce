@@ -73,97 +73,77 @@
     align-items: center;
 }
 
-/* ── Hero Banner: The Festive Bloom '25 ──────────────────────────── */
+/* ── Hero Banner: Summer Kurti Collection 2026 ───────────────────── */
 .festive-hero-wrap {
     margin-bottom: 1.75rem;
 }
 
-.festive-hero-card {
+.festive-hero-banner {
     position: relative;
     border-radius: 20px;
     overflow: hidden;
-    min-height: 440px;
-    display: flex;
-    align-items: flex-end;
-    padding: 32px 28px;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
-    background-size: cover;
-    background-position: center 30%;
-    background-repeat: no-repeat;
-    background-color: #2E161B;
+    background-color: #FAF6F2;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+}
+
+.festive-hero-banner:hover {
+    box-shadow: 0 14px 38px rgba(125, 29, 50, 0.12);
+}
+
+.festive-hero-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.festive-hotspot {
+    position: absolute;
+    border-radius: 999px;
+    display: block;
+    z-index: 5;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.festive-hotspot:hover {
+    transform: translateY(-2px);
+}
+
+.festive-hotspot-explore {
+    top: 69%;
+    left: 10.3%;
+    width: 14%;
+    height: 11%;
+}
+
+.festive-hotspot-explore:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 4px 14px rgba(125, 29, 50, 0.35);
+}
+
+.festive-hotspot-catalog {
+    top: 69%;
+    left: 24.8%;
+    width: 14%;
+    height: 11%;
+}
+
+.festive-hotspot-catalog:hover {
+    background-color: rgba(125, 29, 50, 0.08);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 @media (max-width: 767.98px) {
-    .festive-hero-card {
-        min-height: 380px;
-        padding: 24px 20px;
-        border-radius: 16px;
+    .festive-hero-wrap {
+        margin-bottom: 1.25rem;
     }
-}
-
-.festive-hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(20, 10, 12, 0.08) 0%, rgba(30, 12, 16, 0.45) 50%, rgba(25, 8, 12, 0.85) 100%);
-    pointer-events: none;
-}
-
-.festive-hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 520px;
-}
-
-.festive-hero-badge {
-    display: inline-block;
-    background-color: var(--festive-burgundy);
-    color: #ffffff;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 1.1px;
-    text-transform: uppercase;
-    padding: 5px 14px;
-    border-radius: 999px;
-    margin-bottom: 12px;
-}
-
-.festive-hero-title {
-    font-family: var(--zyra-font-heading);
-    font-size: clamp(2rem, 5vw, 3.4rem);
-    font-weight: 700;
-    line-height: 1.12;
-    color: #ffffff;
-    margin-bottom: 10px;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-}
-
-.festive-hero-desc {
-    color: rgba(255, 255, 255, 0.92);
-    font-size: 0.92rem;
-    line-height: 1.5;
-    margin-bottom: 18px;
-    max-width: 440px;
-}
-
-.btn-festive-explore {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #ffffff;
-    color: var(--festive-burgundy);
-    font-size: 0.86rem;
-    font-weight: 600;
-    padding: 9px 22px;
-    border-radius: 999px;
-    text-decoration: none;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-}
-
-.btn-festive-explore:hover {
-    background-color: #FAF6F2;
-    color: var(--festive-burgundy-dark);
-    transform: translateY(-2px);
+    .festive-hero-banner,
+    .festive-hero-img {
+        border-radius: 14px;
+    }
 }
 
 /* ── Section Header ──────────────────────────────────────────────── */
@@ -464,31 +444,32 @@
             </form>
         </div>
 
-        <!-- 2. Hero Card: The Festive Bloom '25 -->
+        <!-- 2. Hero Banner: Summer Kurti Collection 2026 -->
         @php
-            $heroImg = asset('images/showcase/hero-festive.jpg');
-            $heroTitle = $heroBanner?->title ?? "The Festive Bloom\n'25";
-            $heroSubtitle = $heroBanner?->subtitle ?? 'Handcrafted kurtis & fluid maxi silhouettes.';
-            $heroBadge = $heroBanner?->badge ?? 'NEW CURATION';
-            $heroLink = $heroBanner?->link ?? route('shop');
-            $heroBtnText = $heroBanner?->button_text ?? 'Explore Collection';
+            $heroImg = $heroBanner?->image_url ?? asset('images/banners/summer-kurti-collection.png');
+            $heroTitle = $heroBanner?->title ?? 'Summer Kurti Collection 2026';
+            $heroSubtitle = $heroBanner?->subtitle ?? 'Handcrafted block prints & graceful Anarkalis designed for the modern Indian woman.';
+            $heroLink = $heroBanner?->link ?? route('pages.kurtis');
+            $heroBtnText = $heroBanner?->button_text ?? 'Explore Kurtis';
         @endphp
         <div class="festive-hero-wrap">
-            <div class="festive-hero-card" style="background-image: url('{{ $heroImg }}');">
-                <div class="festive-hero-overlay"></div>
-                <div class="festive-hero-content">
-                    <span class="festive-hero-badge">{{ $heroBadge }}</span>
-                    <h1 class="festive-hero-title">{!! nl2br(e($heroTitle)) !!}</h1>
-                    <p class="festive-hero-desc">{{ $heroSubtitle }}</p>
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        <a href="{{ $heroLink }}" class="btn-festive-explore">
-                            {{ $heroBtnText }} <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
-                        <a href="{{ url('/catelog') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-2 ms-2 fw-semibold d-inline-flex align-items-center gap-1" style="backdrop-filter: blur(8px); background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.6);">
-                            <i class="bi bi-journal-richtext"></i> View Catalog
-                        </a>
-                    </div>
-                </div>
+            <div class="festive-hero-banner position-relative">
+                <a href="{{ $heroLink }}" class="d-block text-decoration-none" title="{{ $heroTitle }}">
+                    <img src="{{ $heroImg }}"
+                         alt="{{ $heroTitle }} - {{ $heroSubtitle }}"
+                         class="festive-hero-img w-100"
+                         loading="eager"
+                         fetchpriority="high">
+                </a>
+                <!-- Interactive hotspots over the banner buttons -->
+                <a href="{{ $heroLink }}" 
+                   class="festive-hotspot festive-hotspot-explore" 
+                   title="{{ $heroBtnText }}" 
+                   aria-label="{{ $heroBtnText }}"></a>
+                <a href="{{ url('/catelog') }}" 
+                   class="festive-hotspot festive-hotspot-catalog" 
+                   title="View Catalog" 
+                   aria-label="View Catalog"></a>
             </div>
         </div>
 
@@ -584,16 +565,33 @@
                         READ ARTISAN STORY <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
-                <img src="{{ asset('images/craft/block-print.jpg') }}" alt="Hand block print artisan craft" class="festive-craft-thumb" loading="lazy">
+                <img src="{{ asset('images/banners/Handcrafted.png') }}" alt="Hand block print artisan craft" class="festive-craft-thumb" loading="lazy">
             </div>
         </div>
 
-        <!-- 5. Trending / Best Seller Products (REAL DATABASE PRODUCTS ONLY - NO DUMMY ITEMS) -->
-        @php
-            // Prioritize trending or best sellers, fallback to all active products in DB
-            $realProducts = !empty($trending) ? $trending : (!empty($bestSellers) ? $bestSellers : $allProducts);
-        @endphp
+        <!-- 5a. Best Sellers Section (shown only when products have is_best_seller enabled in Global Settings) -->
+        @if(!empty($bestSellers) && count($bestSellers) > 0)
+        <section class="festive-trending mb-4">
+            <div class="festive-section-header">
+                <div>
+                    <h2 class="festive-section-title">Best Sellers</h2>
+                    <span class="festive-section-sub">Most loved by our customers</span>
+                </div>
+                <a href="{{ route('shop') }}?sort=popular" class="festive-section-link">View All ({{ count($bestSellers) }})</a>
+            </div>
 
+            <div class="row g-3 g-md-4">
+                @foreach($bestSellers as $item)
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <x-product-card :product="$item" />
+                    </div>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
+        <!-- 5b. Trending Now Section (shown only when products have is_trending enabled in Global Settings) -->
+        @if(!empty($trending) && count($trending) > 0)
         <section class="festive-trending mb-4">
             <div class="festive-section-header">
                 <div>
@@ -603,9 +601,29 @@
                 <a href="{{ route('shop') }}" class="festive-section-link">View All ({{ count($allProducts) }})</a>
             </div>
 
-            @if(!empty($realProducts) && count($realProducts) > 0)
+            <div class="row g-3 g-md-4">
+                @foreach($trending as $item)
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <x-product-card :product="$item" />
+                    </div>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
+        <!-- Fallback: show latest products if neither best sellers nor trending are enabled -->
+        @if(empty($bestSellers) && empty($trending))
+        <section class="festive-trending mb-4">
+            <div class="festive-section-header">
+                <div>
+                    <h2 class="festive-section-title">New Arrivals</h2>
+                    <span class="festive-section-sub">Fresh additions to our collection</span>
+                </div>
+                <a href="{{ route('shop') }}" class="festive-section-link">View All ({{ count($allProducts) }})</a>
+            </div>
+            @if(!empty($allProducts))
                 <div class="row g-3 g-md-4">
-                    @foreach($realProducts as $item)
+                    @foreach(array_slice($allProducts, 0, 8) as $item)
                         <div class="col-6 col-md-4 col-lg-3">
                             <x-product-card :product="$item" />
                         </div>
@@ -620,29 +638,8 @@
                 </div>
             @endif
         </section>
+        @endif
 
-        <!-- 6. Customer Review / Testimonial Card -->
-        <div class="festive-review-wrap">
-            <div class="festive-review-card">
-                <div class="festive-review-top">
-                    <div class="festive-review-stars">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                    </div>
-                    <span class="festive-review-badge">VERIFIED PURCHASE</span>
-                </div>
-                <blockquote class="festive-review-quote">
-                    “The fall of the Chanderi kurti is breathtaking. Authentic craftsmanship that feels effortlessly modern for festive dinner parties.”
-                </blockquote>
-                <div class="festive-review-author">
-                    <div class="festive-review-avatar">P</div>
-                    <span class="festive-review-name">Pooja K., Bangalore</span>
-                </div>
-            </div>
-        </div>
 
         <!-- 7. Interactive Catalog Promo Banner -->
         <div class="my-4 p-4 rounded-4 text-white" style="background: linear-gradient(135deg, #7D1D32 0%, #4E0E1D 100%); box-shadow: 0 10px 30px rgba(125, 29, 50, 0.2);">
@@ -671,7 +668,7 @@
             <div class="text-center mb-3">
                 <span class="text-uppercase small fw-bold text-muted letter-spacing-1">Tag Us @zyralifestyle46</span>
                 <h3 class="festive-section-title mt-1">Fashion Gallery</h3>
-                <p class="text-muted small">Share your festive style moments using #ZyraWoman</p>
+                <p class="text-muted small">Share your festive style moments using #Zyralifestyle</p>
             </div>
             <x-instagram-gallery :items="$instagramItems" />
         </section>
