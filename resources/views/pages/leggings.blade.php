@@ -20,27 +20,7 @@
     ['label' => 'Leggings', 'url' => '']
 ]" />
 
-<div class="py-4" style="background-color: var(--zyra-bg-beige);">
-    <div class="container">
-        <div class="row align-items-center py-2">
-            <div class="col-md-8">
-                <span class="badge bg-dark text-white px-2 py-1 mb-2">Comfort Essentials</span>
-                <h1 class="display-6 fw-bold mb-1">Women's Leggings</h1>
-                <p class="text-muted mb-0">Crafted with bio-washed 4-way combed cotton, non-see-through guarantee, and non-bunching ankle cuffs.</p>
-                <div class="d-flex flex-wrap gap-2 mt-3">
-                    <span class="badge bg-white text-dark border">Cotton Leggings</span>
-                    <span class="badge bg-white text-dark border">Ankle Length</span>
-                    <span class="badge bg-white text-dark border">Churidars</span>
-                    <span class="badge bg-white text-dark border">Tummy Shapers</span>
-                    <span class="badge bg-white text-dark border">Festive Gold Foil</span>
-                </div>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <span class="text-muted small">Showing {{ count($products) }} comfort fits</span>
-            </div>
-        </div>
-    </div>
-</div>
+<h1 class="visually-hidden">Women's Leggings</h1>
 
 <div class="container py-5">
     <div class="row g-4">

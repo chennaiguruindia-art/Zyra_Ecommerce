@@ -20,33 +20,8 @@
     ['label' => $currentCategory['name'], 'url' => '']
 ]" />
 
-<!-- Category Hero Banner -->
-<div class="py-4" style="background-color: var(--zyra-bg-beige);">
-    <div class="container">
-        <div class="row align-items-center py-3">
-            <div class="col-md-8">
-                <span class="text-uppercase small fw-bold text-muted">Category</span>
-                <h1 class="display-6 fw-bold mt-1 mb-2">{{ $currentCategory['name'] }}</h1>
-                <p class="text-muted mb-0">{{ $currentCategory['description'] }}</p>
-                
-                @if(!empty($currentCategory['subcategories']))
-                    <div class="d-flex flex-wrap gap-2 mt-3">
-                        @foreach($currentCategory['subcategories'] as $sub)
-                            <span class="badge bg-white text-dark border px-3 py-2 fw-medium" style="font-size: 0.8rem;">
-                                {{ $sub }}
-                            </span>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <span class="badge bg-dark text-white p-2 px-3 fs-6">
-                    {{ count($products) }} Styles
-                </span>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Category Heading (visually hidden - keeps H1 for SEO) -->
+<h1 class="visually-hidden">{{ $currentCategory['name'] ?? 'Category' }}</h1>
 
 <div class="container py-5">
     <div class="row g-4">
