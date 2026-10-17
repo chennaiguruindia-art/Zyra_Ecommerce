@@ -180,21 +180,35 @@ class SellerController extends Controller
         return response()->json(['success' => true, 'product' => $product->fresh()->toCatalogArray()]);
     }
 
-    public function updateOrderStatus(Request $request, int $id)
+    public function updateOrderStatus(Request $request, $id)
     {
-        $order = Order::query()->findOrFail($id);
+        $order = Order::query()->with('items')
+            ->where('id', $id)
+            ->orWhere('order_number', $id)
+            ->firstOrFail();
+
         $status = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'status' => 'required|in:Pending,Processing,Shipped,Delivered,Cancelled',
         ])->validate()['status'];
 
+        $oldStatus = $order->order_status;
         $order->update(['order_status' => $status]);
+
+        // Send fulfillment email notification to the customer
+        if ($oldStatus !== $status && !empty($order->customer_email)) {
+            $this->sendFulfillmentEmail($order, 'status_updated', $status, $order->awb_code, $order->courier_name);
+        }
 
         return response()->json(['success' => true]);
     }
 
-    public function updateOrderTracking(Request $request, int $id)
+    public function updateOrderTracking(Request $request, $id)
     {
-        $order = Order::query()->findOrFail($id);
+        $order = Order::query()->with('items')
+            ->where('id', $id)
+            ->orWhere('order_number', $id)
+            ->firstOrFail();
+
         $data = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'awb_code' => 'nullable|string|max:60',
             'courier_name' => 'nullable|string|max:120',
@@ -219,6 +233,12 @@ class SellerController extends Controller
         }
 
         $order->update($updates);
+        $order->refresh();
+
+        // Send fulfillment email with AWB tracking number to the customer
+        if (!empty($order->customer_email)) {
+            $this->sendFulfillmentEmail($order, 'tracking_updated', $order->order_status, $order->awb_code, $order->courier_name);
+        }
 
         return response()->json([
             'success' => true,
@@ -226,6 +246,30 @@ class SellerController extends Controller
             'courier_name' => $order->courier_name,
             'order_status' => $order->order_status,
         ]);
+    }
+
+    protected function sendFulfillmentEmail(Order $order, string $event, ?string $status, ?string $awb, ?string $courier): void
+    {
+        try {
+            if (empty($order->customer_email)) {
+                return;
+            }
+
+            \Illuminate\Support\Facades\Mail::to($order->customer_email)
+                ->send(new \App\Mail\OrderFulfillmentMail(
+                    order: $order,
+                    event: $event,
+                    status: $status,
+                    awbCode: $awb,
+                    courierName: $courier
+                ));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Fulfillment email could not be sent', [
+                'order_number' => $order->order_number,
+                'email' => $order->customer_email,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     protected function sellerStats(): array

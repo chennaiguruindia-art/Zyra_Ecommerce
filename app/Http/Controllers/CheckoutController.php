@@ -510,8 +510,18 @@ class CheckoutController extends Controller
     protected function sendOrderConfirmation(Order $order): void
     {
         try {
-            \Illuminate\Support\Facades\Mail::to($order->customer_email)
-                ->send(new \App\Mail\OrderConfirmationMail($order));
+            if (empty($order->customer_email)) {
+                return;
+            }
+
+            $mail = \Illuminate\Support\Facades\Mail::to($order->customer_email);
+
+            $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
+            if (!empty($adminEmail) && strtolower($adminEmail) !== strtolower($order->customer_email)) {
+                $mail->bcc($adminEmail);
+            }
+
+            $mail->send(new \App\Mail\OrderConfirmationMail($order));
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Order confirmation email failed', [
                 'order' => $order->order_number,
