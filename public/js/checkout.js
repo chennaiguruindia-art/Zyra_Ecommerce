@@ -118,25 +118,35 @@ const ZyraCheckout = {
                 this.changeCheckoutQty(e.currentTarget);
             });
         });
+
+        // Bind remove (×) buttons on redesigned page
+        document.querySelectorAll('#checkoutItemsList .checkout-remove-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const row = e.currentTarget.closest('.checkout-item-row');
+                if (row) this.removeCheckoutRow(row);
+            });
+        });
     },
 
-    async changeCheckoutQty(btn) {
-        const row = btn.closest('.checkout-item-row');
-        if (!row) return;
-
-        const id = row.dataset.id;
-        const size = row.dataset.size || 'M';
-        const color = row.dataset.color || '';
+    async removeCheckoutRow(row) {
+        const id     = row.dataset.id;
+        const size   = row.dataset.size  || 'M';
+        const color  = row.dataset.color || '';
         const dupatta = row.dataset.dupatta === '0' ? false : (row.dataset.dupatta === '1' ? true : null);
-        const dir = parseInt(btn.dataset.dir, 10) || 0;
-        const input = row.querySelector('.checkout-qty');
-        const currentQty = parseInt(input.value, 10) || 1;
-        const newQty = currentQty + dir;
 
-        if (newQty < 1) return;
+        // Animate out
+        row.style.transition = 'opacity .25s, max-height .3s';
+        row.style.overflow   = 'hidden';
+        row.style.opacity    = '0';
+        row.style.maxHeight  = row.offsetHeight + 'px';
+        await new Promise(r => setTimeout(r, 20));
+        row.style.maxHeight  = '0';
+        await new Promise(r => setTimeout(r, 300));
+        row.remove();
 
+        // Sync server & browser cart
         const serverCart = Array.isArray(window.ZYRA_SERVER_CART) ? window.ZYRA_SERVER_CART : [];
-        const matches = (item) =>
+        const matches    = (item) =>
             String(item.id) === String(id) &&
             String(item.size || 'M') === String(size) &&
             String(item.color || '') === String(color) &&
@@ -144,14 +154,79 @@ const ZyraCheckout = {
         const index = serverCart.findIndex(matches);
 
         try {
-            const res = await fetch('/cart/update', {
+            await fetch('/cart/remove', {
+                method: 'POST',
+                headers: this.csrfHeaders(),
+                body: JSON.stringify({ index, product_id: id, size, color })
+            });
+        } catch (_) {}
+
+        // Sync browser cart
+        const browserCart = this.readBrowserCart();
+        const bIdx = browserCart.findIndex(item =>
+            String(item.id) === String(id) &&
+            String(item.size || 'M') === String(size) &&
+            String(item.color || '') === String(color) &&
+            (dupatta === null || !!item.dupatta === dupatta)
+        );
+        if (bIdx >= 0) {
+            browserCart.splice(bIdx, 1);
+            localStorage.setItem('zyra_cart', JSON.stringify(browserCart));
+        }
+
+        this.refreshCheckoutSummary();
+
+        // Show empty state if no items remain
+        const remaining = document.querySelectorAll('#checkoutItemsList .checkout-item-row');
+        if (remaining.length === 0) {
+            const list = document.getElementById('checkoutItemsList');
+            if (list) {
+                list.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-bag-x fs-2 d-block mb-2"></i>
+                        <p class="small mb-2">Your shopping bag is empty.</p>
+                        <a href="/shop" class="btn btn-sm btn-dark rounded-pill px-4">Explore Collection</a>
+                    </div>`;
+            }
+        }
+    },
+
+    async changeCheckoutQty(btn) {
+        const row = btn.closest('.checkout-item-row');
+        if (!row) return;
+
+        const id      = row.dataset.id;
+        const size    = row.dataset.size  || 'M';
+        const color   = row.dataset.color || '';
+        const dupatta = row.dataset.dupatta === '0' ? false : (row.dataset.dupatta === '1' ? true : null);
+        const dir     = parseInt(btn.dataset.dir, 10) || 0;
+        const input   = row.querySelector('.checkout-qty');
+        const currentQty = parseInt(input.value, 10) || 1;
+        const newQty  = currentQty + dir;
+
+        // Decrement to 0 → remove item
+        if (newQty < 1) {
+            await this.removeCheckoutRow(row);
+            return;
+        }
+
+        const serverCart = Array.isArray(window.ZYRA_SERVER_CART) ? window.ZYRA_SERVER_CART : [];
+        const matches    = (item) =>
+            String(item.id) === String(id) &&
+            String(item.size || 'M') === String(size) &&
+            String(item.color || '') === String(color) &&
+            (dupatta === null || !!item.dupatta === dupatta);
+        const index = serverCart.findIndex(matches);
+
+        try {
+            const res  = await fetch('/cart/update', {
                 method: 'POST',
                 headers: this.csrfHeaders(),
                 body: JSON.stringify({ index, quantity: newQty })
             });
             const data = await res.json();
 
-            // Also sync the browser cart so place-order carries correct quantities.
+            // Sync browser cart
             const browserCart = this.readBrowserCart();
             const bIdx = browserCart.findIndex(item =>
                 String(item.id) === String(id) &&
@@ -171,9 +246,6 @@ const ZyraCheckout = {
 
             this.refreshCheckoutSummary();
 
-            if (window.ZyraApp && this.lastCartCount !== newQty) {
-                this.lastCartCount = newQty;
-            }
             if (window.ZyraApp && window.ZyraApp.updateCartUI) {
                 window.ZyraApp.updateCartUI(data.cart);
             }
