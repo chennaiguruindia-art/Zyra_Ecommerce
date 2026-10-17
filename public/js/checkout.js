@@ -304,18 +304,42 @@ const ZyraCheckout = {
     },
 
     bindPaymentSelectors() {
-        const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
-        const paymentBoxes = document.querySelectorAll('.payment-method-box');
+        const tabs   = document.querySelectorAll('.zyra-pay-tab');
+        const panels = document.querySelectorAll('.zyra-pay-panel');
 
-        paymentRadios.forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                paymentBoxes.forEach(box => box.classList.remove('border-primary', 'bg-light'));
-                const parent = e.target.closest('.payment-method-box');
-                if (parent) {
-                    parent.classList.add('border-primary', 'bg-light');
+        if (!tabs.length) return;
+
+        const switchTo = (method) => {
+            // Update tab active state
+            tabs.forEach(t => t.classList.toggle('active', t.dataset.method === method));
+
+            // Show / hide panels with animation reset trick
+            panels.forEach(p => {
+                if (p.id === 'panel_' + method) {
+                    p.classList.remove('d-none');
+                    // Re-trigger animation
+                    const inner = p.querySelector('.zyra-pay-panel-inner');
+                    if (inner) {
+                        inner.style.animation = 'none';
+                        inner.offsetHeight; // reflow
+                        inner.style.animation = '';
+                    }
+                } else {
+                    p.classList.add('d-none');
                 }
             });
+
+            // Sync hidden radio input
+            const radio = document.getElementById('pm_' + method);
+            if (radio) radio.checked = true;
+        };
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => switchTo(tab.dataset.method));
         });
+
+        // Activate default (upi)
+        switchTo('upi');
     },
 
     startRazorpay(config) {

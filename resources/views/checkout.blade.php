@@ -3,8 +3,189 @@
 @section('title', 'Secure Checkout | ZYRA Lifestyle')
 @section('robots', 'noindex, nofollow')
 @section('meta_description', 'Complete your order securely with UPI, Cards, or Net Banking via Razorpay.')
+@push('styles')
+<style>
+/* ── Payment Method Tabs ─────────────────────────────────────────── */
+.zyra-pay-tabs {
+    flex-wrap: nowrap;
+}
+
+.zyra-pay-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 12px 8px;
+    border: 2px solid #E8E0D8;
+    border-radius: 14px;
+    background: #FAFAF9;
+    color: #6E6762;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    letter-spacing: 0.3px;
+}
+
+.zyra-pay-tab i {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.zyra-pay-tab:hover {
+    border-color: #7D1D32;
+    color: #7D1D32;
+    background: #FDF5F7;
+}
+
+.zyra-pay-tab.active {
+    border-color: #7D1D32;
+    background: #7D1D32;
+    color: #ffffff;
+    box-shadow: 0 4px 16px rgba(125, 29, 50, 0.22);
+}
+
+/* ── Payment Panels ──────────────────────────────────────────────── */
+.zyra-pay-panel-inner {
+    border: 1.5px solid #EDE4DE;
+    border-radius: 14px;
+    background: #FDFBF9;
+    padding: 20px 20px 16px;
+    animation: payPanelIn 0.22s ease;
+}
+
+@keyframes payPanelIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.pay-panel-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1E1A18;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+}
+
+/* UPI Apps */
+.upi-app-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.upi-app-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    border: 1.5px solid #EDE4DE;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #444;
+    min-width: 68px;
+    cursor: default;
+    transition: border-color 0.15s ease;
+}
+
+.upi-app-chip img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.upi-app-chip:hover {
+    border-color: #7D1D32;
+}
+
+/* Card Brands */
+.card-brand-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.card-brand-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    border: 1.5px solid #EDE4DE;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Bank Grid */
+.bank-chip-grid {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.bank-chip {
+    display: inline-block;
+    background: #fff;
+    border: 1.5px solid #EDE4DE;
+    border-radius: 7px;
+    padding: 5px 12px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #555;
+    cursor: default;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.bank-chip:hover {
+    border-color: #7D1D32;
+    color: #7D1D32;
+}
+
+/* Note / Caption */
+.pay-panel-note {
+    font-size: 0.76rem;
+    color: #7A736D;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Secure Bar */
+.pay-secure-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 12px;
+}
+
+.pay-secure-bar i {
+    color: #28a745;
+}
+
+@media (max-width: 480px) {
+    .zyra-pay-tab span { font-size: 0.7rem; }
+    .upi-app-chip { min-width: 58px; padding: 7px 10px; }
+}
+</style>
+@endpush
 
 @section('content')
+
 
 <x-breadcrumb :items="[
     ['label' => 'Cart', 'url' => route('cart')],
@@ -103,46 +284,82 @@
                 <div class="mb-4 pt-3 border-top">
                     <h5 class="fw-bold mb-3 d-flex align-items-center">
                         <span class="badge bg-dark rounded-circle me-2 p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">4</span>
-                        Payment Options
+                        Payment Method
                     </h5>
-                    <p class="small text-muted">Select your preferred payment method. Online payments are securely processed via Razorpay (UPI, Cards & Net Banking).</p>
 
-                    <div class="d-flex flex-column gap-2 mb-3">
-                        <!-- UPI -->
-                        <div class="payment-method-box border rounded p-3 border-primary bg-light">
-                            <label class="d-flex align-items-center justify-content-between w-100 cursor-pointer m-0">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="radio" name="paymentMethod" value="upi" checked class="form-check-input mt-0">
-                                    <strong>UPI (Google Pay, PhonePe, Paytm)</strong>
-                                </div>
-                                <i class="bi bi-qr-code-scan fs-5 text-primary"></i>
-                            </label>
-                            <div class="small text-muted ps-4 pt-1"><i class="bi bi-lock-fill me-1"></i>Securely pay at the Razorpay checkout.</div>
-                        </div>
+                    <!-- Hidden radio inputs (used by JS for form submit) -->
+                    <input type="radio" name="paymentMethod" id="pm_upi"        value="upi"        checked hidden>
+                    <input type="radio" name="paymentMethod" id="pm_card"       value="card"       hidden>
+                    <input type="radio" name="paymentMethod" id="pm_netbanking" value="netbanking" hidden>
 
-                        <!-- Credit/Debit Card -->
-                        <div class="payment-method-box border rounded p-3">
-                            <label class="d-flex align-items-center justify-content-between w-100 cursor-pointer m-0">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="radio" name="paymentMethod" value="card" class="form-check-input mt-0">
-                                    <strong>Credit / Debit Card (Visa, Mastercard, RuPay)</strong>
-                                </div>
-                                <i class="bi bi-credit-card fs-5 text-dark"></i>
-                            </label>
-                            <div class="small text-muted ps-4 pt-1"><i class="bi bi-lock-fill me-1"></i>Securely pay at the Razorpay checkout.</div>
-                        </div>
+                    <!-- Method Selector Pills -->
+                    <div class="zyra-pay-tabs d-flex gap-2 mb-3" role="tablist">
+                        <button type="button" class="zyra-pay-tab active" data-method="upi" aria-label="Pay via UPI">
+                            <i class="bi bi-qr-code-scan"></i>
+                            <span>UPI</span>
+                        </button>
+                        <button type="button" class="zyra-pay-tab" data-method="card" aria-label="Pay via Card">
+                            <i class="bi bi-credit-card-2-front"></i>
+                            <span>Card</span>
+                        </button>
+                        <button type="button" class="zyra-pay-tab" data-method="netbanking" aria-label="Pay via Net Banking">
+                            <i class="bi bi-bank2"></i>
+                            <span>Net Banking</span>
+                        </button>
+                    </div>
 
-                        <!-- Net Banking -->
-                        <div class="payment-method-box border rounded p-3">
-                            <label class="d-flex align-items-center justify-content-between w-100 cursor-pointer m-0">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="radio" name="paymentMethod" value="netbanking" class="form-check-input mt-0">
-                                    <strong>Net Banking (All Major Indian Banks)</strong>
-                                </div>
-                                <i class="bi bi-bank fs-5 text-secondary"></i>
-                            </label>
-                            <div class="small text-muted ps-4 pt-1"><i class="bi bi-lock-fill me-1"></i>Securely pay at the Razorpay checkout.</div>
+                    <!-- UPI Panel -->
+                    <div class="zyra-pay-panel" id="panel_upi">
+                        <div class="zyra-pay-panel-inner">
+                            <p class="pay-panel-title"><i class="bi bi-qr-code-scan me-2 text-primary"></i>Pay via UPI</p>
+                            <div class="upi-app-grid">
+                                <div class="upi-app-chip"><img src="{{ asset('images/upi/gpay.png') }}" onerror="this.style.display='none'" alt=""><span>Google Pay</span></div>
+                                <div class="upi-app-chip"><img src="{{ asset('images/upi/phonepe.png') }}" onerror="this.style.display='none'" alt=""><span>PhonePe</span></div>
+                                <div class="upi-app-chip"><img src="{{ asset('images/upi/paytm.png') }}" onerror="this.style.display='none'" alt=""><span>Paytm</span></div>
+                                <div class="upi-app-chip"><img src="{{ asset('images/upi/bhim.png') }}" onerror="this.style.display='none'" alt=""><span>BHIM</span></div>
+                            </div>
+                            <p class="pay-panel-note"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Instant payment — scan QR or enter UPI ID at Razorpay checkout.</p>
                         </div>
+                    </div>
+
+                    <!-- Card Panel -->
+                    <div class="zyra-pay-panel d-none" id="panel_card">
+                        <div class="zyra-pay-panel-inner">
+                            <p class="pay-panel-title"><i class="bi bi-credit-card-2-front me-2 text-dark"></i>Credit / Debit Card</p>
+                            <div class="card-brand-row">
+                                <span class="card-brand-chip"><i class="bi bi-credit-card-fill text-primary"></i> Visa</span>
+                                <span class="card-brand-chip"><i class="bi bi-credit-card-fill text-danger"></i> Mastercard</span>
+                                <span class="card-brand-chip"><i class="bi bi-credit-card-fill text-warning"></i> RuPay</span>
+                                <span class="card-brand-chip"><i class="bi bi-credit-card-fill text-info"></i> Amex</span>
+                            </div>
+                            <p class="pay-panel-note"><i class="bi bi-shield-lock-fill text-success me-1"></i>Your card details are entered securely on the Razorpay 256-bit SSL page — never stored by us.</p>
+                        </div>
+                    </div>
+
+                    <!-- Net Banking Panel -->
+                    <div class="zyra-pay-panel d-none" id="panel_netbanking">
+                        <div class="zyra-pay-panel-inner">
+                            <p class="pay-panel-title"><i class="bi bi-bank2 me-2 text-secondary"></i>Net Banking</p>
+                            <div class="bank-chip-grid">
+                                <span class="bank-chip">SBI</span>
+                                <span class="bank-chip">HDFC</span>
+                                <span class="bank-chip">ICICI</span>
+                                <span class="bank-chip">Axis</span>
+                                <span class="bank-chip">Kotak</span>
+                                <span class="bank-chip">PNB</span>
+                                <span class="bank-chip">BOB</span>
+                                <span class="bank-chip">Canara</span>
+                                <span class="bank-chip">Union</span>
+                                <span class="bank-chip">Yes Bank</span>
+                                <span class="bank-chip">IndusInd</span>
+                                <span class="bank-chip">+ More</span>
+                            </div>
+                            <p class="pay-panel-note"><i class="bi bi-shield-lock-fill text-success me-1"></i>Select your bank at the Razorpay checkout page. All major Indian banks supported.</p>
+                        </div>
+                    </div>
+
+                    <div class="pay-secure-bar">
+                        <i class="bi bi-lock-fill"></i> Payments processed securely via <strong>Razorpay</strong>
                     </div>
                 </div>
 
