@@ -631,14 +631,14 @@ html {
     transform: translateX(4px);
 }
 
-/* Reusable Product Card */
+/* Reusable Product Card - Curved Designer Aesthetic */
 .zyra-product-card {
     background-color: var(--zyra-white);
-    border-radius: var(--zyra-radius-md);
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: var(--zyra-shadow-sm);
-    transition: var(--zyra-transition);
-    border: 1px solid var(--zyra-border-subtle);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+    border: 1px solid #ECE7E1;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -646,16 +646,18 @@ html {
 }
 
 .zyra-product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--zyra-shadow-md);
-    border-color: var(--zyra-border);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(125, 29, 50, 0.09);
+    border-color: #DFD7CE;
 }
 
+/* Image Container with Elegant Curved Design */
 .zyra-product-thumb {
     position: relative;
     overflow: hidden;
     padding-top: 130%; /* 3:4 portrait fashion ratio */
     background-color: var(--zyra-bg-beige);
+    border-radius: 18px 18px 14px 14px;
 }
 
 .zyra-product-thumb img {
@@ -665,69 +667,85 @@ html {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: inherit;
     transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .zyra-product-card:hover .zyra-product-thumb img {
-    transform: scale(1.07);
+    transform: scale(1.06);
 }
 
+/* Compact, Space-Efficient Badges */
 .zyra-badge-stack {
     position: absolute;
-    top: 12px;
-    left: 12px;
+    top: 8px;
+    left: 8px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    align-items: flex-start;
+    gap: 3px;
     z-index: 2;
+    pointer-events: none;
+}
+
+.zyra-badge-stack > * {
+    font-size: 0.58rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    padding: 2.5px 6.5px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+    white-space: nowrap;
+    display: inline-block;
+    width: fit-content;
 }
 
 .badge-zyra-new {
-    background-color: var(--zyra-primary);
-    color: var(--zyra-white);
-    font-size: 0.68rem;
-    font-weight: 700;
+    background-color: #1C1917;
+    color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
 }
 
 .badge-zyra-discount {
-    background-color: var(--zyra-danger);
-    color: var(--zyra-white);
-    font-size: 0.68rem;
-    font-weight: 700;
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
+    background-color: #DC2626;
+    color: #ffffff;
+    font-weight: 800;
 }
 
 .badge-zyra-bestseller {
-    background-color: var(--zyra-accent-gold);
-    color: var(--zyra-white);
-    font-size: 0.68rem;
-    font-weight: 700;
+    background-color: #D97706;
+    color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
+}
+
+.badge-zyra-trending {
+    background-color: #7D1D32;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.badge-zyra-sale {
+    background-color: #E11D48;
+    color: #ffffff;
+    text-transform: uppercase;
 }
 
 .zyra-product-thumb .zyra-wishlist-btn {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    background: rgba(255, 255, 255, 0.9);
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(4px);
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     color: var(--zyra-primary);
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: var(--zyra-transition);
     z-index: 3;
@@ -753,14 +771,14 @@ html {
 
 .zyra-card-actions {
     position: absolute;
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
+    bottom: 9px;
+    left: 9px;
+    right: 9px;
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 7px;
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(12px);
     transition: var(--zyra-transition);
     z-index: 3;
 }
