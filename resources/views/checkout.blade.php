@@ -415,7 +415,7 @@ select.ck-input { appearance: none; background-image: url("data:image/svg+xml,%3
                         @php $currentState = old('state', $customer['state'] ?? ''); @endphp
                         <select id="state" class="ck-input" required>
                             <option value="" {{ empty($currentState) ? 'selected' : '' }} disabled>Select State</option>
-                            @foreach(['Andhra Pradesh','Karnataka','Kerala','Tamil Nadu','Telangana','Maharashtra','Gujarat','Rajasthan','Delhi NCR','West Bengal','Uttar Pradesh','Punjab','Madhya Pradesh','Bihar','Odisha','Assam','Jharkhand','Haryana','Uttarakhand','Chhattisgarh','Himachal Pradesh','Goa'] as $st)
+                            @foreach(['Tamil Nadu','Andhra Pradesh','Karnataka','Kerala','Telangana','Maharashtra','Gujarat','Rajasthan','Delhi NCR','West Bengal','Uttar Pradesh','Punjab','Madhya Pradesh','Bihar','Odisha','Assam','Jharkhand','Haryana','Uttarakhand','Chhattisgarh','Himachal Pradesh','Goa'] as $st)
                                 <option value="{{ $st }}" {{ $currentState === $st ? 'selected' : '' }}>{{ $st }}</option>
                             @endforeach
                         </select>

@@ -69,7 +69,29 @@ class SellerController extends Controller
 
     public function analytics()
     {
-        return view('seller.analytics');
+        $recentOrders = Order::query()
+            ->with('items')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $grossRevenue = (float) Order::where('order_status', '!=', 'Cancelled')->sum('total');
+        $totalOrdersCount = Order::count();
+        $unitsDispatched = (int) Order::whereIn('order_status', ['Shipped', 'Delivered'])
+            ->with('items')
+            ->get()
+            ->sum(function ($order) {
+                return $order->items->sum('quantity') ?: 1;
+            });
+        $aov = $totalOrdersCount > 0 ? round($grossRevenue / $totalOrdersCount) : 0;
+
+        return view('seller.analytics', compact(
+            'recentOrders',
+            'grossRevenue',
+            'unitsDispatched',
+            'aov',
+            'totalOrdersCount'
+        ));
     }
 
     public function settings()

@@ -1629,15 +1629,79 @@ window.ZyraSeller = {
 
     renderAnalyticsPage() {
         const orders = this.getOrders();
-        const totalRev = orders.reduce((acc, o) => acc + o.total, 0);
+        const totalRev = orders.reduce((acc, o) => acc + (o.total || 0), 0);
 
         const elRev = document.getElementById('analyticsRevenue');
         const elUnits = document.getElementById('analyticsUnitsSold');
         const elAov = document.getElementById('analyticsAov');
 
         if (elRev) elRev.textContent = `₹${totalRev.toLocaleString('en-IN')}`;
-        if (elUnits) elUnits.textContent = '0 units';
-        if (elAov) elAov.textContent = `₹${Math.round(totalRev / (orders.length || 1))}`;
+
+        // Calculate dispatched / delivered units
+        const dispatchedOrders = orders.filter(o => o.status === 'Shipped' || o.status === 'Delivered');
+        const units = dispatchedOrders.reduce((acc, o) => {
+            if (o.items_detail && Array.isArray(o.items_detail) && o.items_detail.length) {
+                return acc + o.items_detail.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            }
+            return acc + 1;
+        }, 0);
+
+        if (elUnits) elUnits.textContent = `${units} units`;
+        if (elAov) elAov.textContent = `₹${Math.round(totalRev / (orders.length || 1)).toLocaleString('en-IN')}`;
+
+        // Populate Recent 5 Transactions table
+        const tbody = document.getElementById('analyticsRecentTransactionsBody');
+        if (tbody && orders.length > 0) {
+            const last5 = orders.slice(0, 5);
+            tbody.innerHTML = last5.map(o => {
+                let badgeClass = 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+                let label = o.status || 'Pending';
+
+                if (o.status === 'Pending') {
+                    badgeClass = 'bg-danger-subtle text-danger border border-danger-subtle';
+                } else if (o.status === 'Processing') {
+                    badgeClass = 'bg-warning-subtle text-dark border border-warning-subtle';
+                    label = 'In Packing';
+                } else if (o.status === 'Shipped') {
+                    badgeClass = 'bg-info-subtle text-info-emphasis border border-info-subtle';
+                    label = 'Dispatched';
+                } else if (o.status === 'Delivered') {
+                    badgeClass = 'bg-success-subtle text-success border border-success-subtle';
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <a href="/seller/sales?search=${encodeURIComponent(o.id)}" class="text-decoration-none">
+                                <span class="badge bg-white text-dark border font-monospace fw-bold px-2 py-1 shadow-sm">
+                                    #${o.id}
+                                </span>
+                            </a>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark small">${o.customer || 'Customer'}</div>
+                            <div class="text-muted smaller">${o.date || ''}</div>
+                        </td>
+                        <td>
+                            <span class="fw-bold text-dark">₹${(o.total || 0).toLocaleString('en-IN')}</span>
+                        </td>
+                        <td>
+                            <span class="small text-muted text-uppercase">${o.payment || 'COD'}</span>
+                        </td>
+                        <td>
+                            <span class="badge ${badgeClass} rounded-pill px-2 py-1 small">
+                                ${label}
+                            </span>
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="/seller/sales?search=${encodeURIComponent(o.id)}" class="btn btn-sm btn-outline-dark py-1 px-2" title="View details in Orders & Sales">
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
     },
 
     collectSizeStock() {
