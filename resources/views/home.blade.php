@@ -73,22 +73,28 @@
     align-items: center;
 }
 
-/* ── Hero Banner: Summer Kurti Collection 2026 ───────────────────── */
+/* ── Hero Banner Carousel: Foxtale-Inspired Interactive Slider ────── */
 .festive-hero-wrap {
-    margin-bottom: 1.75rem;
+    margin-bottom: 2rem;
 }
 
-.festive-hero-banner {
+.festive-hero-carousel {
     position: relative;
     border-radius: 20px;
     overflow: hidden;
     background-color: #FAF6F2;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.08);
     transition: box-shadow 0.3s ease;
 }
 
-.festive-hero-banner:hover {
-    box-shadow: 0 14px 38px rgba(125, 29, 50, 0.12);
+.festive-hero-carousel:hover {
+    box-shadow: 0 14px 40px rgba(125, 29, 50, 0.12);
+}
+
+.festive-carousel-slide {
+    position: relative;
+    overflow: hidden;
+    background: #FAF6F2;
 }
 
 .festive-hero-img {
@@ -96,53 +102,110 @@
     width: 100%;
     height: auto;
     object-fit: cover;
+    object-position: center;
     border-radius: 20px;
+    transition: transform 0.4s ease;
 }
 
-.festive-hotspot {
+/* Glassmorphic Navigation Arrows (Foxtale Style) */
+.festive-carousel-arrow {
     position: absolute;
-    border-radius: 999px;
-    display: block;
-    z-index: 5;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    z-index: 10;
     cursor: pointer;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    transition: all 0.22s ease;
+    text-decoration: none;
+    opacity: 0.92;
 }
 
-.festive-hotspot:hover {
-    transform: translateY(-2px);
+.festive-carousel-arrow:hover {
+    background: #ffffff;
+    color: #000000;
+    transform: translateY(-50%) scale(1.08);
+    opacity: 1;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
 }
 
-.festive-hotspot-explore {
-    top: 69%;
-    left: 10.3%;
-    width: 14%;
-    height: 11%;
+.festive-carousel-prev {
+    left: 18px;
 }
 
-.festive-hotspot-explore:hover {
-    background-color: rgba(255, 255, 255, 0.16);
-    box-shadow: 0 4px 14px rgba(125, 29, 50, 0.35);
+.festive-carousel-next {
+    right: 18px;
 }
 
-.festive-hotspot-catalog {
-    top: 69%;
-    left: 24.8%;
-    width: 14%;
-    height: 11%;
+/* Foxtale-Style Capsule Indicators */
+.festive-carousel-indicators {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+    margin: 0;
+    padding: 6px 14px;
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 50px;
 }
 
-.festive-hotspot-catalog:hover {
-    background-color: rgba(125, 29, 50, 0.08);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+.festive-carousel-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.55);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.festive-carousel-indicator.active {
+    width: 28px;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 767.98px) {
     .festive-hero-wrap {
         margin-bottom: 1.25rem;
     }
-    .festive-hero-banner,
+    .festive-hero-carousel,
     .festive-hero-img {
         border-radius: 14px;
+    }
+    .festive-carousel-arrow {
+        width: 32px;
+        height: 32px;
+        font-size: 0.95rem;
+    }
+    .festive-carousel-prev { left: 8px; }
+    .festive-carousel-next { right: 8px; }
+    .festive-carousel-indicators {
+        bottom: 10px;
+        padding: 4px 10px;
+        gap: 6px;
+    }
+    .festive-carousel-indicator.active {
+        width: 20px;
     }
 }
 
@@ -444,32 +507,103 @@
             </form>
         </div>
 
-        <!-- 2. Hero Banner: Summer Kurti Collection 2026 -->
+        <!-- 2. Hero Banner Carousel: Foxtale-Style Auto-Scrolling Showcase -->
         @php
-            $heroImg = $heroBanner?->image_url ?? asset('images/banners/summer-kurti-collection.png');
-            $heroTitle = $heroBanner?->title ?? 'Summer Kurti Collection 2026';
-            $heroSubtitle = $heroBanner?->subtitle ?? 'Handcrafted block prints & graceful Anarkalis designed for the modern Indian woman.';
-            $heroLink = $heroBanner?->link ?? route('pages.kurtis');
-            $heroBtnText = $heroBanner?->button_text ?? 'Explore Kurtis';
+            $bannerFiles = [];
+            
+            // Priority 1: New high-res banners added today
+            if (file_exists(public_path('images/banners/Banner 1.png'))) {
+                $bannerFiles[] = [
+                    'image' => asset('images/banners/Banner 1.png'),
+                    'title' => 'Festive Kurti Collection 2026',
+                    'subtitle' => 'Handcrafted pure cotton & designer silhouettes',
+                    'link' => route('pages.kurtis'),
+                ];
+            }
+            if (file_exists(public_path('images/banners/Banner 2.png'))) {
+                $bannerFiles[] = [
+                    'image' => asset('images/banners/Banner 2.png'),
+                    'title' => 'Celebration Festive Wear - Exclusive Offers',
+                    'subtitle' => 'Explore luxury ethnic wear crafted for celebrations',
+                    'link' => route('shop'),
+                ];
+            }
+            if (file_exists(public_path('images/banners/Banner 3.png'))) {
+                $bannerFiles[] = [
+                    'image' => asset('images/banners/Banner 3.png'),
+                    'title' => 'Luxury Festive Maxis & Modern Kurtis',
+                    'subtitle' => 'Elegance in every fold - shop trending styles',
+                    'link' => route('pages.festive-maxis'),
+                ];
+            }
+            // Priority 2: Handcrafted / Summer collections
+            if (file_exists(public_path('images/banners/Handcrafted.png'))) {
+                $bannerFiles[] = [
+                    'image' => asset('images/banners/Handcrafted.png'),
+                    'title' => 'Heritage Craft - Block Prints & Silks',
+                    'subtitle' => 'Authentic artisanal craftsmanship from Rajasthan',
+                    'link' => route('shop'),
+                ];
+            }
+            if (file_exists(public_path('images/banners/summer-kurti-collection.png'))) {
+                $bannerFiles[] = [
+                    'image' => asset('images/banners/summer-kurti-collection.png'),
+                    'title' => 'Summer Kurti Collection 2026',
+                    'subtitle' => 'Light, breathable & graceful for every day',
+                    'link' => route('pages.kurtis'),
+                ];
+            }
+            // Fallback if none found
+            if (empty($bannerFiles)) {
+                $bannerFiles[] = [
+                    'image' => asset('images/banners/summer-kurti-collection.png'),
+                    'title' => 'Summer Kurti Collection 2026',
+                    'subtitle' => 'Handcrafted block prints & graceful Anarkalis',
+                    'link' => route('pages.kurtis'),
+                ];
+            }
         @endphp
         <div class="festive-hero-wrap">
-            <div class="festive-hero-banner position-relative">
-                <a href="{{ $heroLink }}" class="d-block text-decoration-none" title="{{ $heroTitle }}">
-                    <img src="{{ $heroImg }}"
-                         alt="{{ $heroTitle }} - {{ $heroSubtitle }}"
-                         class="festive-hero-img w-100"
-                         loading="eager"
-                         fetchpriority="high">
-                </a>
-                <!-- Interactive hotspots over the banner buttons -->
-                <a href="{{ $heroLink }}" 
-                   class="festive-hotspot festive-hotspot-explore" 
-                   title="{{ $heroBtnText }}" 
-                   aria-label="{{ $heroBtnText }}"></a>
-                <a href="{{ url('/catelog') }}" 
-                   class="festive-hotspot festive-hotspot-catalog" 
-                   title="View Catalog" 
-                   aria-label="View Catalog"></a>
+            <div id="zyraHeroCarousel" class="carousel slide carousel-fade festive-hero-carousel" data-bs-ride="carousel" data-bs-interval="4500" data-bs-pause="hover">
+                
+                <!-- Indicators (Foxtale Style) -->
+                @if(count($bannerFiles) > 1)
+                    <div class="festive-carousel-indicators">
+                        @foreach($bannerFiles as $idx => $b)
+                            <button type="button" 
+                                    data-bs-target="#zyraHeroCarousel" 
+                                    data-bs-slide-to="{{ $idx }}" 
+                                    class="festive-carousel-indicator {{ $idx === 0 ? 'active' : '' }}" 
+                                    aria-current="{{ $idx === 0 ? 'true' : 'false' }}" 
+                                    aria-label="Slide {{ $idx + 1 }}"></button>
+                        @endforeach
+                    </div>
+                @endif
+
+                <!-- Carousel Slides -->
+                <div class="carousel-inner">
+                    @foreach($bannerFiles as $idx => $b)
+                        <div class="carousel-item {{ $idx === 0 ? 'active' : '' }} festive-carousel-slide">
+                            <a href="{{ $b['link'] }}" class="d-block text-decoration-none" title="{{ $b['title'] }}">
+                                <img src="{{ $b['image'] }}" 
+                                     alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
+                                     class="festive-hero-img w-100" 
+                                     loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
+                                     @if($idx === 0) fetchpriority="high" @endif>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Glassmorphic Navigation Arrows (Foxtale Style) -->
+                @if(count($bannerFiles) > 1)
+                    <button class="festive-carousel-arrow festive-carousel-prev" type="button" data-bs-target="#zyraHeroCarousel" data-bs-slide="prev" aria-label="Previous Slide">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="festive-carousel-arrow festive-carousel-next" type="button" data-bs-target="#zyraHeroCarousel" data-bs-slide="next" aria-label="Next Slide">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -699,4 +833,40 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+// Mobile touch swipe & auto-pause support for Foxtale-style banner carousel
+document.addEventListener('DOMContentLoaded', function () {
+    const carouselEl = document.getElementById('zyraHeroCarousel');
+    if (!carouselEl) return;
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    carouselEl.addEventListener('touchstart', function (e) {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    carouselEl.addEventListener('touchend', function (e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe() {
+        const threshold = 40;
+        if (touchEndX < touchStartX - threshold) {
+            // swipe left -> next slide
+            const carousel = bootstrap.Carousel.getInstance(carouselEl) || new bootstrap.Carousel(carouselEl);
+            carousel.next();
+        } else if (touchEndX > touchStartX + threshold) {
+            // swipe right -> prev slide
+            const carousel = bootstrap.Carousel.getInstance(carouselEl) || new bootstrap.Carousel(carouselEl);
+            carousel.prev();
+        }
+    }
+});
+</script>
+@endpush
+
 @endsection

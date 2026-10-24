@@ -1,10 +1,10 @@
-<!-- Gold Promo Bar (rotating messages) -->
+<!-- Foxtale-Style Festive Promo Announcement Bar -->
 <div class="zyra-top-promo">
     <div class="zyra-promo-track" id="zyraPromoTrack">
-        <span class="zyra-promo-msg active">NEW SEASON IS HERE! Discover Elegant Kurtis, Dresses &amp; More</span>
-        <span class="zyra-promo-msg">PAN-WORLD SHIPPING &mdash; Delivery In 3&ndash;5 Days</span>
-        <span class="zyra-promo-msg">FREE SHIPPING ON ALL ORDERS </span>
-        <span class="zyra-promo-msg">FAST DELIVERY AVAILABLE</span>
+        <span class="zyra-promo-msg active">✨ <strong>FESTIVE SPECIAL:</strong> Buy 2 Get 1 Free <span class="zyra-promo-badge">[Code: B2G1]</span> &bull; Free Shipping Pan-India</span>
+        <span class="zyra-promo-msg">🎉 <strong>FLAT 15% OFF</strong> on Your First Order <span class="zyra-promo-badge">[Code: ZYRA15]</span> &bull; 100% Pure Cotton</span>
+        <span class="zyra-promo-msg">🚚 <strong>FAST DISPATCH:</strong> Orders Shipped Within 24-48 Hours &bull; Easy 7-Day Exchange</span>
+        <span class="zyra-promo-msg">✨ <strong>NEW ARRIVALS:</strong> Handcrafted Festive Kurtis &amp; Maxis Just Dropped</span>
     </div>
 </div>
 <script>
@@ -16,12 +16,13 @@
         msgs[i].classList.remove('active');
         i = (i + 1) % msgs.length;
         msgs[i].classList.add('active');
-    }, 4000);
+    }, 4500);
 })();
 </script>
 
 <style>
-.zyra-top-promo { background: #5d2c11; color: #FFFF; font-size: .8rem; font-weight: 600; letter-spacing: .4px; padding: 7px 12px; }
+.zyra-top-promo { background: #FAF0D7; color: #4A3308; font-size: .82rem; font-weight: 600; letter-spacing: .3px; padding: 8px 14px; border-bottom: 1px solid #EADBBA; }
+.zyra-promo-badge { background: #1A1A1A; color: #FFFFFF; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.5px; margin: 0 4px; display: inline-block; }
 .zyra-promo-track { display: grid; text-align: center; }
 .zyra-promo-msg { grid-area: 1 / 1; opacity: 0; transform: translateY(10px); transition: opacity .6s ease, transform .6s ease; }
 .zyra-promo-msg.active { opacity: 1; transform: none; }
