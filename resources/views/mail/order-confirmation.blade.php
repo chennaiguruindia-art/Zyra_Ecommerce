@@ -21,10 +21,17 @@
                     <!-- Body -->
                     <tr>
                         <td style="padding:36px 32px;">
-                            <h1 style="margin:0 0 12px; font-size:22px; color:#18181b;">Thank you, {{ $customerName }}! 🎉</h1>
-                            <p style="margin:0 0 6px; font-size:15px; color:#52525b; line-height:1.6;">
-                                Your order <strong style="color:#18181b;">{{ $orderNumber }}</strong> has been placed successfully.
-                            </p>
+                            @if(!empty($isSellerNotification))
+                                <h1 style="margin:0 0 12px; font-size:22px; color:#18181b;">🛍️ New Order Received!</h1>
+                                <p style="margin:0 0 6px; font-size:15px; color:#52525b; line-height:1.6;">
+                                    A new customer order <strong style="color:#18181b;">{{ $orderNumber }}</strong> has been placed by <strong style="color:#18181b;">{{ $customerName }}</strong>.
+                                </p>
+                            @else
+                                <h1 style="margin:0 0 12px; font-size:22px; color:#18181b;">Thank you, {{ $customerName }}! 🎉</h1>
+                                <p style="margin:0 0 6px; font-size:15px; color:#52525b; line-height:1.6;">
+                                    Your order <strong style="color:#18181b;">{{ $orderNumber }}</strong> has been placed successfully.
+                                </p>
+                            @endif
                             <p style="margin:0 0 24px; font-size:15px; color:#52525b; line-height:1.6;">
                                 Payment: <strong style="color:#18181b;">{{ $paymentMethod }}</strong>
                             </p>
@@ -86,7 +93,11 @@
                                 <tr>
                                     <td align="center" style="padding:24px 0 0;">
                                         <a href="{{ $trackUrl }}" style="display:inline-block; background:#18181b; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700; padding:14px 40px; border-radius:8px;">
-                                            Track Your Order
+                                            @if(!empty($isSellerNotification))
+                                                Open &amp; Pack Order in Seller Hub &rarr;
+                                            @else
+                                                Track Your Order
+                                            @endif
                                         </a>
                                     </td>
                                 </tr>

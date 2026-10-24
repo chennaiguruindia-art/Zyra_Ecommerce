@@ -261,6 +261,7 @@ select.ck-input { appearance: none; background-image: url("data:image/svg+xml,%3
     border: none; border-left: 1px solid var(--ck-border); border-right: 1px solid var(--ck-border);
     background: #fff; outline: none;
     pointer-events: none; height: 28px; line-height: 28px;
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 

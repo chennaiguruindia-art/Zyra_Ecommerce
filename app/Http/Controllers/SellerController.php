@@ -296,25 +296,39 @@ class SellerController extends Controller
 
     protected function sendFulfillmentEmail(Order $order, string $event, ?string $status, ?string $awb, ?string $courier): void
     {
-        try {
-            if (empty($order->customer_email)) {
-                return;
-            }
+        if (empty($order->customer_email)) {
+            return;
+        }
 
-            \Illuminate\Support\Facades\Mail::to($order->customer_email)
-                ->send(new \App\Mail\OrderFulfillmentMail(
-                    order: $order,
-                    event: $event,
-                    status: $status,
-                    awbCode: $awb,
-                    courierName: $courier
-                ));
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Fulfillment email could not be sent', [
+        $mailable = new \App\Mail\OrderFulfillmentMail(
+            order: $order,
+            event: $event,
+            status: $status,
+            awbCode: $awb,
+            courierName: $courier
+        );
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($order->customer_email)->send($mailable);
+            \Illuminate\Support\Facades\Log::info('Fulfillment email sent successfully', [
                 'order_number' => $order->order_number,
                 'email' => $order->customer_email,
-                'error' => $e->getMessage(),
             ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Fulfillment email failed on default SMTP: ' . $e->getMessage(), [
+                'order_number' => $order->order_number,
+            ]);
+            // Fallback to smtp_ssl (port 465)
+            try {
+                \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')->to($order->customer_email)->send($mailable);
+                \Illuminate\Support\Facades\Log::info('Fulfillment email sent via smtp_ssl fallback', [
+                    'order_number' => $order->order_number,
+                ]);
+            } catch (\Throwable $e2) {
+                \Illuminate\Support\Facades\Log::error('Fulfillment email failed on smtp_ssl fallback as well: ' . $e2->getMessage(), [
+                    'order_number' => $order->order_number,
+                ]);
+            }
         }
     }
 

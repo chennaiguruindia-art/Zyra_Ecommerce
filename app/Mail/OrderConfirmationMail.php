@@ -14,14 +14,20 @@ class OrderConfirmationMail extends Mailable
     use Queueable;
     use SerializesModels;
 
-    public function __construct(public Order $order)
-    {
+    public function __construct(
+        public Order $order,
+        public bool $isSellerNotification = false
+    ) {
     }
 
     public function envelope(): Envelope
     {
+        $subject = $this->isSellerNotification
+            ? '🛍️ New Order Received! #' . $this->order->order_number . ' – ₹' . number_format((float) $this->order->total, 2)
+            : 'Order Confirmed – #' . $this->order->order_number . ' ✨';
+
         return new Envelope(
-            subject: 'Order Confirmed – ' . $this->order->order_number . ' ✨',
+            subject: $subject,
         );
     }
 
@@ -40,7 +46,8 @@ class OrderConfirmationMail extends Mailable
                 'tax' => (float) $this->order->tax,
                 'total' => (float) $this->order->total,
                 'shippingAddress' => $this->order->shipping_address . ', ' . $this->order->city . ', ' . $this->order->state . ' – ' . $this->order->pincode,
-                'trackUrl' => url('/my-orders'),
+                'trackUrl' => $this->isSellerNotification ? url('/seller/neworder?stage=pending') : url('/my-orders'),
+                'isSellerNotification' => $this->isSellerNotification,
             ],
         );
     }

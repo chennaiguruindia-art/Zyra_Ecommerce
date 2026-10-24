@@ -509,24 +509,34 @@ class CheckoutController extends Controller
      */
     protected function sendOrderConfirmation(Order $order): void
     {
-        try {
-            if (empty($order->customer_email)) {
-                return;
+        $order->loadMissing('items');
+        $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
+
+        // Helper to send email using primary mailer (smtp) with automatic fallback to smtp_ssl (port 465)
+        $sendWithFallback = function (string $recipient, \Illuminate\Mail\Mailable $mailable, string $label) use ($order) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($recipient)->send($mailable);
+                \Illuminate\Support\Facades\Log::info("{$label} sent successfully", ['order' => $order->order_number, 'to' => $recipient]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("{$label} failed on default SMTP: " . $e->getMessage(), ['order' => $order->order_number]);
+                // Try fallback to smtp_ssl (Port 465 SSL - needed for cloud hosting like GoDaddy/Plesk)
+                try {
+                    \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')->to($recipient)->send($mailable);
+                    \Illuminate\Support\Facades\Log::info("{$label} sent successfully via smtp_ssl fallback", ['order' => $order->order_number, 'to' => $recipient]);
+                } catch (\Throwable $e2) {
+                    \Illuminate\Support\Facades\Log::error("{$label} failed on smtp_ssl fallback as well: " . $e2->getMessage(), ['order' => $order->order_number]);
+                }
             }
+        };
 
-            $mail = \Illuminate\Support\Facades\Mail::to($order->customer_email);
+        // 1. Send dedicated notification directly to Admin/Seller Inbox
+        if (!empty($adminEmail)) {
+            $sendWithFallback($adminEmail, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: true), 'Seller New Order Email');
+        }
 
-            $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
-            if (!empty($adminEmail) && strtolower($adminEmail) !== strtolower($order->customer_email)) {
-                $mail->bcc($adminEmail);
-            }
-
-            $mail->send(new \App\Mail\OrderConfirmationMail($order));
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Order confirmation email failed', [
-                'order' => $order->order_number,
-                'error' => $e->getMessage(),
-            ]);
+        // 2. Send order confirmation directly to Buyer
+        if (!empty($order->customer_email)) {
+            $sendWithFallback($order->customer_email, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: false), 'Buyer Order Confirmation');
         }
     }
 
