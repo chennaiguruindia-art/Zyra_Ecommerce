@@ -55,7 +55,11 @@ class SellerController extends Controller
 
     public function newOrders()
     {
-        return view('seller.new-orders');
+        $pendingCount = Order::where('order_status', 'Pending')->count();
+        $processingCount = Order::where('order_status', 'Processing')->count();
+        $shippedCount = Order::where('order_status', 'Shipped')->count();
+
+        return view('seller.new-orders', compact('pendingCount', 'processingCount', 'shippedCount'));
     }
 
     public function inventory()
@@ -100,14 +104,34 @@ class SellerController extends Controller
                 'netbanking' => 'Net Banking',
             ];
 
+            $fullAddress = trim(implode(', ', array_filter([
+                $order->shipping_address,
+                $order->city,
+                $order->state ? ($order->state . ($order->pincode ? ' - ' . $order->pincode : '')) : $order->pincode,
+            ])));
+
             return [
                 'id' => $order->order_number,
                 'db_id' => $order->id,
                 'date' => $order->created_at?->format('d M Y'),
                 'customer' => $order->customer_name,
+                'email' => $order->customer_email,
                 'phone' => $order->customer_phone,
+                'shipping_address' => $order->shipping_address,
                 'city' => $order->city,
+                'state' => $order->state,
+                'pincode' => $order->pincode,
+                'full_address' => $fullAddress,
                 'items' => $order->items->map(fn ($item) => $item->product_name . ' (' . $item->size . ($item->dupatta ? ', ' . $item->dupatta : '') . ') x ' . $item->quantity)->implode(', '),
+                'items_detail' => $order->items->map(fn ($item) => [
+                    'name' => $item->product_name,
+                    'size' => $item->size,
+                    'color' => $item->color,
+                    'dupatta' => $item->dupatta,
+                    'quantity' => $item->quantity,
+                    'price' => (float) $item->price,
+                    'image' => $item->image_url ?? null,
+                ])->all(),
                 'total' => (float) $order->total,
                 'payment' => $paymentLabels[$order->payment_method] ?? $order->payment_method,
                 'status' => $order->order_status,

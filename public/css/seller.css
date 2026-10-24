@@ -1,313 +1,406 @@
 /* ==========================================================================
-   ZYRA - Seller Panel Stylesheet
-   Modern, elegant, dashboard styling matching the ZYRA brand palette
+   ZYRA – Seller Panel Stylesheet v2.5
+   Modern, Clean, Elegant SaaS Architecture
+   Designed for clarity, zero layout overlap, and luxury aesthetic
    ========================================================================== */
 
-.seller-panel-body {
-    background-color: #f6f5f2;
-    min-height: 100vh;
-    font-family: var(--zyra-font-sans, 'Plus Jakarta Sans', sans-serif);
-    color: #222;
-    /* Live-measured topbar height (updated by JS) - used for sticky offsets */
-    --seller-topbar-h: 70px;
+/* ------------------------------------------------------------------
+   0. Global Reset & Theme Variables
+   ------------------------------------------------------------------ */
+:root {
+    --seller-topbar-h: 68px;
+    --seller-sidebar-w: 245px;
+
+    /* Palette */
+    --zyra-ink:        #18181b;
+    --zyra-cream-bg:   #f7f6f3;
+    --zyra-surface:    #ffffff;
+    --zyra-border:     #e7e3dc;
+    --zyra-border-sub: #f0ebe4;
+    --zyra-muted:      #6e6a67;
+    --zyra-rose:       #d9828b;
+    --zyra-rose-soft:  #fbf2f3;
+    --zyra-gold:       #b88a38;
+    --zyra-gold-soft:  #fcf7eb;
 }
 
-/* Seller Topbar - stays pinned to the top while the panel content scrolls */
+body.seller-panel-body {
+    background-color: var(--zyra-cream-bg);
+    min-height: 100vh;
+    font-family: var(--zyra-font-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
+    color: var(--zyra-ink);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* ------------------------------------------------------------------
+   1. Clean Luxury Topbar (White Background)
+   ------------------------------------------------------------------ */
 .seller-topbar {
-    background-color: #1a1a1a;
-    color: #fff;
-    padding: 0.85rem 0;
-    position: -webkit-sticky;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--zyra-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     position: sticky;
     top: 0;
-    z-index: 1030;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    will-change: transform;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1040;
 }
 
-.seller-brand {
-    font-family: var(--zyra-font-heading, 'Playfair Display', serif);
-    font-size: 1.45rem;
-    font-weight: 700;
-    color: #fff;
-    text-decoration: none;
-    letter-spacing: 0.08em;
+.seller-topbar-inner {
+    height: var(--seller-topbar-h);
     display: flex;
     align-items: center;
-    flex: 0 0 auto;
+    justify-content: space-between;
+}
+
+/* Brand */
+.seller-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
 }
 
 .seller-logo-image {
-    display: block;
-    width: 112px;
-    height: 42px;
+    width: 110px;
+    height: 40px;
     object-fit: cover;
     object-position: center 30%;
-    flex: 0 0 auto;
+    display: block;
 }
 
-.seller-brand span {
-    font-family: var(--zyra-font-sans, sans-serif);
-    font-size: 0.72rem;
-    background: var(--zyra-secondary, #e8b4b8);
-    color: #1a1a1a;
-    font-weight: 700;
-    text-transform: uppercase;
+.seller-hub-pill {
+    font-size: 0.65rem;
+    font-weight: 800;
     letter-spacing: 0.08em;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-left: 8px;
+    background: #18181b;
+    color: #ffffff;
+    padding: 3px 8px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    display: inline-block;
 }
 
 .seller-brand:hover {
-    color: #fff;
-    opacity: 0.95;
+    opacity: 0.92;
 }
 
+/* Header Links */
 .seller-topbar-link {
-    color: #d1ccc4;
+    color: #52525b;
     text-decoration: none;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-weight: 500;
-    padding: 0.35rem 0.75rem;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+    transition: all 0.18s ease;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
 }
 
 .seller-topbar-link:hover {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.1);
+    color: #18181b;
+    background-color: #f1ede7;
 }
 
-/* Rose-tinted topbar variant (New Orders page) */
-.seller-topbar-rose {
-    background-color: var(--zyra-secondary, #e8b4b8);
-    color: #1a1a1a;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+/* Add Product Action Button */
+.btn-zyra-primary {
+    background: #18181b;
+    border: 1px solid #18181b;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.83rem;
+    padding: 0.42rem 0.95rem;
+    border-radius: 8px;
+    transition: all 0.18s ease;
+    box-shadow: 0 2px 6px rgba(24, 24, 27, 0.15);
 }
 
-.seller-topbar-rose .seller-brand,
-.seller-topbar-rose .seller-brand:hover {
-    color: #1a1a1a;
+.btn-zyra-primary:hover, .btn-zyra-primary:focus {
+    background: #27272a;
+    border-color: #27272a;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(24, 24, 27, 0.22);
 }
 
-.seller-topbar-rose .seller-brand span {
-    background-color: #1a1a1a;
-    color: var(--zyra-secondary, #e8b4b8);
-}
-
-.seller-topbar-rose .seller-topbar-link {
-    color: #3d2b2e;
-}
-
-.seller-topbar-rose .seller-topbar-link:hover,
-.seller-topbar-rose .seller-topbar-link:focus {
-    color: #1a1a1a;
-    background-color: rgba(255, 255, 255, 0.45);
-}
-
-.seller-topbar-rose .seller-user-btn {
-    background: rgba(255, 255, 255, 0.5);
-    border-color: rgba(26, 26, 26, 0.25);
-    color: #1a1a1a;
-}
-
-.seller-topbar-rose .seller-user-btn:hover,
-.seller-topbar-rose .seller-user-btn:focus {
-    background: rgba(255, 255, 255, 0.8);
-    color: #1a1a1a;
-}
-
-.seller-topbar-rose .btn-zyra-primary {
-    background-color: #1a1a1a;
-    border-color: #1a1a1a;
-    color: #fff;
-}
-
-.seller-topbar-rose .btn-zyra-primary:hover,
-.seller-topbar-rose .btn-zyra-primary:focus {
-    background-color: #333;
-    border-color: #333;
-    color: #fff;
-}
-
+/* User Profile Pill */
 .seller-user-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #fff;
-    font-size: 0.85rem;
+    background: #faf8f5;
+    border: 1px solid var(--zyra-border);
+    color: #18181b;
+    font-size: 0.84rem;
     padding: 0.4rem 0.85rem;
     border-radius: 50px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
+    transition: all 0.18s ease;
 }
 
 .seller-user-btn:hover, .seller-user-btn:focus {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    background: #f1ece4;
+    color: #18181b;
+    border-color: #d8d0c5;
 }
 
-/* Seller Sidebar - sticky: stays visible while the main panel scrolls */
+/* ------------------------------------------------------------------
+   2. Main Layout (Strict Flexbox - Zero Overlap)
+   ------------------------------------------------------------------ */
+.seller-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    min-height: calc(100vh - var(--seller-topbar-h));
+    position: relative;
+}
+
+/* Sidebar */
 .seller-sidebar {
-    background-color: #fff;
-    border-right: 1px solid #e8e3dc;
-    min-height: calc(100vh - var(--seller-topbar-h, 70px));
-    padding: 1.5rem 1rem;
-    position: -webkit-sticky;
+    width: var(--seller-sidebar-w);
+    min-width: var(--seller-sidebar-w);
+    max-width: var(--seller-sidebar-w);
+    flex: 0 0 var(--seller-sidebar-w);
+    background-color: #ffffff;
+    border-right: 1px solid var(--zyra-border);
     position: sticky;
-    top: var(--seller-topbar-h, 70px);
-    align-self: flex-start;
-    max-height: calc(100vh - var(--seller-topbar-h, 70px));
+    top: var(--seller-topbar-h);
+    height: calc(100vh - var(--seller-topbar-h));
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: #d9d3ca transparent;
+    padding: 1.25rem 0.85rem 2.5rem;
     z-index: 1020;
+    scrollbar-width: thin;
+    scrollbar-color: #dcd6ce transparent;
 }
 
-.seller-sidebar::-webkit-scrollbar {
-    width: 6px;
+.seller-sidebar::-webkit-scrollbar { width: 5px; }
+.seller-sidebar::-webkit-scrollbar-track { background: transparent; }
+.seller-sidebar::-webkit-scrollbar-thumb { background: #dcd6ce; border-radius: 4px; }
+
+/* Main Content Area */
+.seller-main {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 2rem 2.5rem 3.5rem;
+    background-color: var(--zyra-cream-bg);
 }
 
-.seller-sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.seller-sidebar::-webkit-scrollbar-thumb {
-    background-color: #d9d3ca;
-    border-radius: 6px;
-}
-
+/* ------------------------------------------------------------------
+   3. Sidebar Navigation Styling
+   ------------------------------------------------------------------ */
 .seller-nav {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .seller-nav-item {
     width: 100%;
 }
 
+.seller-nav-section-label {
+    padding: 1.15rem 0.5rem 0.35rem;
+    font-size: 0.67rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #928a83;
+    user-select: none;
+}
+
+.seller-nav-section-label span {
+    display: block;
+    border-bottom: 1px solid var(--zyra-border-sub);
+    padding-bottom: 0.35rem;
+}
+
 .seller-nav-link {
     display: flex;
     align-items: center;
-    padding: 0.7rem 1rem;
-    color: #4a4a4a;
+    gap: 10px;
+    padding: 0.58rem 0.8rem;
+    color: #4b4845;
     text-decoration: none;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     font-weight: 500;
     border-radius: 8px;
-    transition: all 0.2s ease;
+    transition: all 0.16s ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.seller-nav-link i {
+    font-size: 1.02rem;
+    flex: 0 0 auto;
+    color: #857e77;
+    transition: color 0.16s ease;
+}
+
+.seller-nav-link span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .seller-nav-link:hover {
-    background-color: #f8f5f0;
-    color: #1a1a1a;
-    transform: translateX(3px);
+    background-color: #f4efe8;
+    color: #18181b;
+    transform: translateX(2px);
+}
+
+.seller-nav-link:hover i {
+    color: #18181b;
 }
 
 .seller-nav-link.active {
-    background-color: #1a1a1a;
-    color: #fff;
+    background-color: #18181b;
+    color: #ffffff !important;
     font-weight: 600;
+    box-shadow: 0 2px 6px rgba(24, 24, 27, 0.12);
 }
 
 .seller-nav-link.active i {
-    color: var(--zyra-secondary, #e8b4b8);
+    color: #e8b4b8;
 }
 
-/* Main Area */
-.seller-main {
-    padding: 2rem 2.5rem;
+/* Sub-items (Indented visual hierarchy) */
+.seller-nav-sub-item .seller-nav-sub-link {
+    padding-left: 1.55rem;
+    font-size: 0.825rem;
+    border-radius: 7px;
 }
 
+.seller-nav-sub-item .seller-nav-sub-link i {
+    font-size: 0.92rem;
+}
+
+/* Exit Buyer store link */
+.seller-nav-exit-link {
+    color: #807a74;
+    font-size: 0.83rem;
+}
+
+.seller-nav-exit-link:hover {
+    color: #18181b;
+    background: #f4efe8;
+}
+
+/* ------------------------------------------------------------------
+   4. Page Header & Typography
+   ------------------------------------------------------------------ */
 .seller-page-header {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.85rem;
     gap: 1rem;
 }
 
-/* Stat Cards */
+.seller-page-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #18181b;
+    letter-spacing: -0.01em;
+}
+
+.seller-page-header p {
+    font-size: 0.88rem;
+    color: #6a645e;
+}
+
+/* ------------------------------------------------------------------
+   5. Stat Metric Cards
+   ------------------------------------------------------------------ */
 .seller-stat-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 1.35rem 1.25rem;
-    border: 1px solid #ebe5dc;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 1.35rem 1.3rem;
+    border: 1px solid var(--zyra-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 15px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .seller-stat-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
 .seller-stat-icon {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.45rem;
+    flex-shrink: 0;
 }
 
-.bg-primary-soft { background-color: #eef2ff; }
-.bg-success-soft { background-color: #eaf7ed; }
-.bg-danger-soft  { background-color: #fdeeee; }
-.bg-gold-soft    { background-color: #fbf5e6; }
-.text-gold       { color: #d4af37; }
+.bg-primary-soft { background-color: #eef2ff; color: #4338ca; }
+.bg-success-soft { background-color: #ecfdf5; color: #047857; }
+.bg-danger-soft  { background-color: #fef2f2; color: #b91c1c; }
+.bg-gold-soft    { background-color: #fffbeb; color: #b45309; }
+.text-gold       { color: #b45309; }
 
 .seller-stat-value {
     font-size: 1.65rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #18181b;
     line-height: 1.15;
 }
 
 .seller-stat-label {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #7a7a7a;
+    letter-spacing: 0.06em;
+    color: #78716c;
     margin-top: 3px;
     font-weight: 600;
 }
 
-/* Card Container */
+/* ------------------------------------------------------------------
+   6. Container Cards & Tables
+   ------------------------------------------------------------------ */
 .seller-card {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #ebe5dc;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid var(--zyra-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     margin-bottom: 1.5rem;
     overflow: hidden;
 }
 
 .seller-card-header {
-    padding: 1.15rem 1.5rem;
-    border-bottom: 1px solid #f0ebe4;
-    background-color: #fff;
+    padding: 1.1rem 1.4rem;
+    border-bottom: 1px solid var(--zyra-border-sub);
+    background-color: #faf8f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .seller-card-body {
-    padding: 1.5rem;
+    padding: 1.4rem;
 }
 
-/* Seller Tables */
+/* Tables */
 .seller-table {
     margin-bottom: 0;
     vertical-align: middle;
@@ -315,71 +408,184 @@
 
 .seller-table thead th {
     background-color: #faf8f5;
-    color: #666;
-    font-size: 0.78rem;
+    color: #645e58;
+    font-size: 0.74rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    font-weight: 600;
-    border-bottom: 1px solid #ede8e1;
+    font-weight: 700;
+    border-bottom: 1px solid var(--zyra-border);
     padding: 0.85rem 1rem;
 }
 
 .seller-table tbody td {
     padding: 0.95rem 1rem;
-    border-bottom: 1px solid #f4efe8;
+    border-bottom: 1px solid var(--zyra-border-sub);
     font-size: 0.88rem;
 }
 
 .seller-table tbody tr:hover {
-    background-color: #fdfbf8;
+    background-color: #fdfcf9;
 }
 
 .seller-product-img {
-    width: 48px;
-    height: 62px;
+    width: 46px;
+    height: 58px;
     border-radius: 6px;
     object-fit: cover;
     background-color: #f2eee8;
 }
 
-/* Form Styles */
-.seller-form-label {
-    font-size: 0.82rem;
+/* ------------------------------------------------------------------
+   7. Stage Pills & Filters
+   ------------------------------------------------------------------ */
+.seller-stage-pills {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0;
+}
+
+.seller-stage-pills .nav-link {
+    border-radius: 50px;
+    padding: 0.45rem 1.05rem;
+    font-size: 0.83rem;
     font-weight: 600;
+    color: #4b4845;
+    background: #ffffff;
+    border: 1px solid var(--zyra-border);
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.seller-stage-pills .nav-link:hover {
+    background: #f4efe8;
+    color: #18181b;
+    border-color: #d6cec4;
+    transform: translateY(-1px);
+}
+
+.seller-stage-pills .nav-link.active {
+    background: #18181b;
+    color: #ffffff;
+    border-color: #18181b;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* ------------------------------------------------------------------
+   8. Modern Order Cards (Spacious / Luxury)
+   ------------------------------------------------------------------ */
+.seller-order-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid var(--zyra-border);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    overflow: hidden;
+}
+
+.seller-order-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+    border-color: #d0c8be;
+    transform: translateY(-2px);
+}
+
+.seller-order-card-header {
+    background: #faf8f5 !important;
+    border-bottom: 1px solid var(--zyra-border-sub) !important;
+    padding: 0.85rem 1.15rem !important;
+}
+
+.seller-order-card-body {
+    background: #ffffff;
+    padding: 1.15rem !important;
+}
+
+.order-id-badge {
+    background: #ffffff;
+    border: 1px solid #d9d2c7;
+    font-size: 0.88rem;
+    letter-spacing: 0.4px;
+    color: #18181b;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+@media (min-width: 992px) {
+    .border-end-lg {
+        border-right: 1px dashed var(--zyra-border);
+    }
+}
+
+.view-mode-btn {
+    border-radius: 7px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.81rem;
+    border: 1px solid #d9d2c7;
+    background: #ffffff;
+    color: #555;
+    transition: all 0.18s ease;
+    cursor: pointer;
+}
+
+.view-mode-btn.active {
+    background: #18181b;
+    color: #ffffff;
+    border-color: #18181b;
+}
+
+.tracking-box {
+    background: #fbf9f6;
+    border: 1px solid var(--zyra-border);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+}
+
+.cursor-pointer { cursor: pointer; }
+
+/* ------------------------------------------------------------------
+   9. Forms & Dropzone
+   ------------------------------------------------------------------ */
+.seller-form-label {
+    font-size: 0.78rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #444;
-    margin-bottom: 0.4rem;
+    letter-spacing: 0.05em;
+    color: #4b4845;
+    margin-bottom: 0.35rem;
 }
 
 .seller-form-control {
-    border: 1px solid #ddd5cb;
+    border: 1px solid #d8d0c5;
     border-radius: 8px;
-    padding: 0.65rem 0.9rem;
-    font-size: 0.9rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.89rem;
+    transition: border-color 0.18s, box-shadow 0.18s;
 }
 
 .seller-form-control:focus {
-    border-color: #1a1a1a;
-    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.08);
+    border-color: #18181b;
+    box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.08);
     outline: none;
 }
 
-/* Multi-Image Upload (Max 4 Images) */
 .seller-upload-dropzone {
     border: 2px dashed #d6cec4;
     border-radius: 12px;
-    background-color: #faf8f5;
+    background: #faf8f5;
     padding: 1.5rem 1rem;
     text-align: center;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.22s;
 }
 
 .seller-upload-dropzone:hover {
-    border-color: #1a1a1a;
-    background-color: #f5f0e8;
+    border-color: #18181b;
+    background: #f5f0e8;
 }
 
 .seller-images-grid {
@@ -394,12 +600,12 @@
     height: 150px;
     border-radius: 10px;
     overflow: hidden;
-    background-color: #f2ede6;
+    background: #f2ede6;
     border: 1.5px solid #e0d9cf;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all 0.18s;
 }
 
 .seller-image-slot.slot-empty {
@@ -412,9 +618,9 @@
 }
 
 .seller-image-slot.slot-empty:hover {
-    border-color: #1a1a1a;
-    color: #1a1a1a;
-    background-color: #eee8df;
+    border-color: #18181b;
+    color: #18181b;
+    background: #eee8df;
 }
 
 .seller-image-slot img {
@@ -427,9 +633,9 @@
     position: absolute;
     top: 6px;
     left: 6px;
-    background: #1a1a1a;
+    background: #18181b;
     color: #fff;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -454,38 +660,38 @@
     font-size: 0.8rem;
     cursor: pointer;
     z-index: 2;
-    transition: transform 0.2s ease, background 0.2s ease;
+    transition: transform 0.18s, background 0.18s;
 }
 
 .seller-image-slot .slot-remove-btn:hover {
     background: #c82333;
-    transform: scale(1.15);
+    transform: scale(1.12);
 }
 
-/* Color Chips with + Add Color button */
+/* Color Chips */
 .seller-color-chip {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     border: 1.5px solid #ddd5cb;
-    background-color: #fff;
-    padding: 0.45rem 0.85rem;
+    background: #fff;
+    padding: 0.42rem 0.8rem;
     border-radius: 50px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.83rem;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all 0.18s;
     user-select: none;
 }
 
 .seller-color-chip:hover {
-    border-color: #1a1a1a;
-    background-color: #faf8f5;
+    border-color: #18181b;
+    background: #faf8f5;
 }
 
 .seller-color-chip.active {
-    border-color: #1a1a1a;
-    background-color: #1a1a1a;
+    border-color: #18181b;
+    background: #18181b;
     color: #fff;
 }
 
@@ -493,7 +699,7 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0,0,0,0.2);
     display: inline-block;
 }
 
@@ -501,26 +707,26 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    border: 1.5px dashed #1a1a1a;
-    background-color: #fff;
-    color: #1a1a1a;
-    padding: 0.45rem 1rem;
+    border: 1.5px dashed #18181b;
+    background: #fff;
+    color: #18181b;
+    padding: 0.42rem 0.9rem;
     border-radius: 50px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.83rem;
     font-weight: 600;
-    transition: all 0.2s ease;
+    transition: all 0.18s;
 }
 
 .btn-add-color-trigger:hover {
-    background-color: #1a1a1a;
+    background: #18181b;
     color: #fff;
     transform: translateY(-1px);
 }
 
 .preset-color-pill {
     padding: 3px 10px;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     border-radius: 50px;
     border: 1px solid #ddd;
     background: #fff;
@@ -530,34 +736,13 @@
     gap: 5px;
 }
 
-.preset-color-pill:hover {
-    background: #f0ebe4;
-}
+.preset-color-pill:hover { background: #f0ebe4; }
 
-/* Badge Statuses */
-.badge-status-active {
-    background-color: #eaf7ed;
-    color: #2e7d32;
-    border: 1px solid #c8e6c9;
-}
-
-.badge-status-draft {
-    background-color: #f3f4f6;
-    color: #4b5563;
-    border: 1px solid #e5e7eb;
-}
-
-.badge-status-lowstock {
-    background-color: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fde68a;
-}
-
-.badge-status-outstock {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
-}
+/* Statuses */
+.badge-status-active   { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.badge-status-draft    { background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7; }
+.badge-status-lowstock { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.badge-status-outstock { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
 /* Quick Stock Stepper */
 .stock-stepper {
@@ -582,9 +767,7 @@
     cursor: pointer;
 }
 
-.stock-stepper button:hover {
-    background-color: #f2eee8;
-}
+.stock-stepper button:hover { background: #f2eee8; }
 
 .stock-stepper input {
     width: 44px;
@@ -596,26 +779,42 @@
     outline: none;
 }
 
-/* Footer */
+/* ------------------------------------------------------------------
+   10. Footer
+   ------------------------------------------------------------------ */
 .seller-footer {
-    background-color: #fff;
-    border-top: 1px solid #ebe5dc;
+    background: #ffffff;
+    border-top: 1px solid var(--zyra-border);
     font-size: 0.8rem;
+    color: #8c827a;
 }
 
-/* Responsive adjustments */
+/* ------------------------------------------------------------------
+   11. Responsive Design
+   ------------------------------------------------------------------ */
 @media (max-width: 991.98px) {
-    .seller-main {
-        padding: 1.5rem 1rem;
+    .seller-wrapper {
+        flex-direction: column;
     }
+
     .seller-sidebar {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        flex: 0 0 auto;
         position: static;
-        min-height: auto;
-        max-height: none;
-        overflow-y: visible;
+        height: auto;
         border-right: none;
-        border-bottom: 1px solid #e8e3dc;
-        padding: 1rem;
+        border-bottom: 1px solid var(--zyra-border);
+        padding: 1rem 1rem 1.5rem;
         z-index: auto;
+    }
+
+    .seller-main {
+        padding: 1.25rem 1rem 2.5rem;
+    }
+
+    .seller-nav-sub-item .seller-nav-sub-link {
+        padding-left: 1.1rem;
     }
 }

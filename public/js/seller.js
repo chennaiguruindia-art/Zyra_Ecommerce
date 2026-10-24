@@ -28,6 +28,7 @@ window.ZyraSeller = {
         { name: 'Gold', hex: '#d4af37' }
     ],
     selectedColors: ['Pink', 'White'],
+    currentOrderStage: 'pending',
 
     init() {
         this.seedInitialData();
@@ -56,6 +57,7 @@ window.ZyraSeller = {
             .then(ords => {
                 if (Array.isArray(ords)) {
                     localStorage.setItem(this.ORDERS_KEY, JSON.stringify(ords));
+                    this.syncSidebarBadges();
                     const path = window.location.pathname;
                     if (path.includes('/seller/sales') || path.includes('/seller/analytics') || path.endsWith('/seller') || path.includes('/seller/dashboard') || path.includes('/seller/neworder')) {
                         this.detectPage();
@@ -360,6 +362,108 @@ window.ZyraSeller = {
         }
     },
 
+    syncSidebarBadges() {
+        const orders = this.getOrders();
+        const pendingCount = orders.filter(o => (o.status || '').toLowerCase() === 'pending').length;
+        const packingCount = orders.filter(o => (o.status || '').toLowerCase() === 'processing').length;
+        const dispatchedCount = orders.filter(o => (o.status || '').toLowerCase() === 'shipped').length;
+
+        const bPend = document.getElementById('sideBadgePending');
+        const bPack = document.getElementById('sideBadgePacking');
+        const bDisp = document.getElementById('sideBadgeDispatched');
+
+        if (bPend) {
+            bPend.textContent = pendingCount;
+            bPend.classList.toggle('d-none', pendingCount === 0);
+        }
+        if (bPack) {
+            bPack.textContent = packingCount;
+            bPack.classList.toggle('d-none', packingCount === 0);
+        }
+        if (bDisp) {
+            bDisp.textContent = dispatchedCount;
+            bDisp.classList.toggle('d-none', dispatchedCount === 0);
+        }
+    },
+
+    setOrderStage(stage) {
+        this.currentOrderStage = (stage || 'pending').toLowerCase();
+
+        // Update stage pills active state
+        document.querySelectorAll('#sellerOrderStagePills .nav-link').forEach(btn => {
+            const btnStage = btn.getAttribute('data-stage');
+            btn.classList.toggle('active', btnStage === this.currentOrderStage);
+        });
+
+        // Update sidebar links active state if on new-orders page
+        const sideNew = document.getElementById('sideNavNewOrders');
+        const sidePack = document.getElementById('sideNavPacking');
+        const sideDisp = document.getElementById('sideNavDispatched');
+        if (sideNew) sideNew.classList.toggle('active', this.currentOrderStage === 'pending');
+        if (sidePack) sidePack.classList.toggle('active', this.currentOrderStage === 'processing');
+        if (sideDisp) sideDisp.classList.toggle('active', this.currentOrderStage === 'shipped');
+
+        // Update URL query string without reloading page
+        if (window.history && window.history.replaceState) {
+            const newUrl = `${window.location.pathname}?stage=${this.currentOrderStage}`;
+            window.history.replaceState(null, '', newUrl);
+        }
+
+        this.renderNewOrdersPage();
+    },
+
+    startPackingOrder(orderId) {
+        this.updateOrderStatus(orderId, 'Processing');
+        if (window.ZyraApp) {
+            window.ZyraApp.showToast(`Order ${orderId} moved to In Packing! Click "In Packing" to view.`, 'info');
+        }
+    },
+
+    quickDispatchPrompt(dbId, orderDisplayId, currentAwb = '', currentCourier = '') {
+        const awb = prompt(`Enter Courier Tracking / AWB number for order ${orderDisplayId} (Optional, press OK to continue):`, currentAwb);
+        if (awb === null) return; // User cancelled prompt
+
+        let courier = '';
+        if (awb.trim()) {
+            courier = prompt(`Enter Courier Partner Name (e.g. Delhivery, Blue Dart, Shiprocket):`, currentCourier || 'Delhivery') || 'Express Courier';
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        fetch(`/seller/orders/${dbId}/tracking`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ awb_code: awb.trim(), courier_name: (courier || '').trim() })
+        })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    let orders = this.getOrders();
+                    const order = orders.find(o => (o.db_id || o.id) == dbId || o.id === orderDisplayId);
+                    if (order) {
+                        order.status = result.order_status || 'Shipped';
+                        if (awb) order.awb_code = awb.trim();
+                        if (courier) order.courier_name = courier.trim();
+                        localStorage.setItem(this.ORDERS_KEY, JSON.stringify(orders));
+                    }
+                    if (window.ZyraApp) {
+                        window.ZyraApp.showToast(`Order ${orderDisplayId} marked as Dispatched! Customer notified via email.`, 'success');
+                    }
+                    this.syncSidebarBadges();
+                    this.renderNewOrdersPage();
+                    this.renderSalesPage();
+                } else {
+                    this.updateOrderStatus(orderDisplayId, 'Shipped');
+                }
+            })
+            .catch(() => {
+                this.updateOrderStatus(orderDisplayId, 'Shipped');
+            });
+    },
+
     updateOrderStatus(orderId, newStatus) {
         let orders = this.getOrders();
         const order = orders.find(o => o.id === orderId);
@@ -382,7 +486,8 @@ window.ZyraSeller = {
             if (window.ZyraApp) {
                 window.ZyraApp.showToast(`Order ${orderId} marked as ${newStatus}`, 'success');
             }
-            if (window.ZyraSeller.page === 'neworders') {
+            this.syncSidebarBadges();
+            if (window.ZyraSeller.page === 'neworders' || window.location.pathname.includes('/seller/neworder')) {
                 this.renderNewOrdersPage();
             }
             this.renderSalesPage();
@@ -412,14 +517,18 @@ window.ZyraSeller = {
             .then(result => {
                 if (result.success) {
                     let orders = this.getOrders();
-                    const order = orders.find(o => (o.db_id || o.id) === dbId);
+                    const order = orders.find(o => (o.db_id || o.id) == dbId || o.id === orderDisplayId);
                     if (order) {
                         if (awb) order.awb_code = awb;
                         if (courier) order.courier_name = courier;
                         if (result.order_status) order.status = result.order_status;
                         localStorage.setItem(this.ORDERS_KEY, JSON.stringify(orders));
                     }
-                    if (window.ZyraApp) window.ZyraApp.showToast('Tracking updated — customer can now track this order.', 'success');
+                    if (window.ZyraApp) window.ZyraApp.showToast('Tracking updated — customer notified via email.', 'success');
+                    this.syncSidebarBadges();
+                    if (window.ZyraSeller.page === 'neworders' || window.location.pathname.includes('/seller/neworder')) {
+                        this.renderNewOrdersPage();
+                    }
                     this.renderSalesPage();
                 } else {
                     if (window.ZyraApp) window.ZyraApp.showToast(result.message || 'Could not save tracking.', 'danger');
@@ -697,6 +806,10 @@ window.ZyraSeller = {
         } else if (path.includes('/seller/sales')) {
             this.renderSalesPage();
         } else if (path.includes('/seller/neworder')) {
+            const urlStage = new URLSearchParams(window.location.search).get('stage');
+            if (urlStage) {
+                this.currentOrderStage = urlStage.toLowerCase();
+            }
             this.renderNewOrdersPage();
         } else if (path.includes('/seller/analytics')) {
             this.renderAnalyticsPage();
@@ -923,167 +1036,595 @@ window.ZyraSeller = {
         tableBody.innerHTML = html;
     },
 
+    salesViewMode: 'cards',
+    newOrdersViewMode: 'cards',
+    salesStatusFilter: 'all',
+
+    switchSalesView(mode) {
+        this.salesViewMode = mode;
+        const btnCards = document.getElementById('btnViewCards');
+        const btnTable = document.getElementById('btnViewTable');
+        const cardsCont = document.getElementById('sellerOrdersCardsContainer');
+        const tableCont = document.getElementById('sellerOrdersTableContainer');
+
+        if (btnCards) btnCards.classList.toggle('active', mode === 'cards');
+        if (btnTable) btnTable.classList.toggle('active', mode === 'table');
+
+        if (cardsCont) cardsCont.classList.toggle('d-none', mode !== 'cards');
+        if (tableCont) tableCont.classList.toggle('d-none', mode !== 'table');
+
+        this.renderSalesPage();
+    },
+
+    switchNewOrdersView(mode) {
+        this.newOrdersViewMode = mode;
+        const btnCards = document.getElementById('btnNewViewCards');
+        const btnTable = document.getElementById('btnNewViewTable');
+        const cardsCont = document.getElementById('sellerNewOrdersCardsContainer');
+        const tableCont = document.getElementById('sellerNewOrdersTableContainer');
+
+        if (btnCards) btnCards.classList.toggle('active', mode === 'cards');
+        if (btnTable) btnTable.classList.toggle('active', mode === 'table');
+
+        if (cardsCont) cardsCont.classList.toggle('d-none', mode !== 'cards');
+        if (tableCont) tableCont.classList.toggle('d-none', mode !== 'table');
+
+        this.renderNewOrdersPage();
+    },
+
+    filterSalesStatus(status) {
+        this.salesStatusFilter = status;
+        document.querySelectorAll('#salesStatusPills .nav-link').forEach(btn => {
+            const s = btn.getAttribute('data-status');
+            btn.classList.toggle('active', s.toLowerCase() === status.toLowerCase());
+        });
+        this.renderSalesPage();
+    },
+
+    buildOrderCardHtml(o, isNewOrdersPage = false) {
+        const rawStatus = (o.status || 'Pending');
+        const statusLower = rawStatus.toLowerCase();
+
+        // Status Badge HTML
+        let statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1"><i class="bi bi-inbox me-1"></i>New Order</span>';
+        if (statusLower === 'processing') {
+            statusBadge = '<span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1"><i class="bi bi-box-seam me-1"></i>In Packing</span>';
+        } else if (statusLower === 'shipped') {
+            statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-truck me-1"></i>Dispatched</span>';
+        } else if (statusLower === 'delivered') {
+            statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1"><i class="bi bi-check-circle me-1"></i>Delivered</span>';
+        }
+
+        const streetAddr = o.shipping_address || '';
+        const locationPart = [o.city, o.state, o.pincode].filter(Boolean).join(', ');
+        const fullAddressText = [streetAddr, locationPart].filter(Boolean).join(', ') || o.full_address || `${o.city || ''}`;
+        const escapedAddressForCopy = fullAddressText.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+        const cleanPhoneDigits = (o.phone || '').replace(/[^0-9]/g, '');
+
+        let actionsBlock = '';
+        if (isNewOrdersPage) {
+            if (statusLower === 'pending') {
+                actionsBlock = `
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="btn btn-warning text-dark fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm py-2" onclick="ZyraSeller.startPackingOrder('${o.id}')">
+                            <i class="bi bi-box-seam fs-6"></i> Start Packing
+                        </button>
+                        <button type="button" class="btn btn-outline-success d-flex align-items-center justify-content-center gap-2 py-2" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}')">
+                            <i class="bi bi-truck fs-6"></i> Packed &amp; Dispatch
+                        </button>
+                    </div>
+                `;
+            } else if (statusLower === 'processing') {
+                actionsBlock = `
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="btn btn-success fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm py-2" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}')">
+                            <i class="bi bi-truck fs-6"></i> Packed &amp; Dispatch
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border text-muted d-flex align-items-center justify-content-center gap-1" onclick="ZyraSeller.updateOrderStatus('${o.id}', 'Pending')">
+                            <i class="bi bi-arrow-counterclockwise"></i> Move back to New Orders
+                        </button>
+                    </div>
+                `;
+            } else if (statusLower === 'shipped') {
+                actionsBlock = `
+                    <div class="d-flex flex-column gap-2">
+                        ${o.awb_code ? `
+                            <div class="p-2 rounded bg-light border text-center">
+                                <div class="small text-muted text-uppercase" style="font-size: 0.68rem;">Courier &amp; AWB</div>
+                                <div class="fw-bold font-monospace text-primary">${o.awb_code}</div>
+                                <div class="small text-muted">${o.courier_name || 'Express Courier'}</div>
+                            </div>
+                        ` : ''}
+                        <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center gap-1" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}', '${o.awb_code || ''}', '${o.courier_name || ''}')">
+                            <i class="bi bi-pencil-square"></i> ${o.awb_code ? 'Edit Tracking' : 'Add AWB Number'}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center gap-1" onclick="ZyraSeller.updateOrderStatus('${o.id}', 'Delivered')">
+                            <i class="bi bi-check2-circle"></i> Mark Delivered
+                        </button>
+                    </div>
+                `;
+            } else {
+                actionsBlock = `
+                    <div class="text-center py-2">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
+                            <i class="bi bi-check-all me-1"></i>Delivered Successfully
+                        </span>
+                    </div>
+                `;
+            }
+        } else {
+            // Sales Hub Actions
+            actionsBlock = `
+                <div class="mb-2">
+                    <label class="form-label small text-muted mb-1 fw-semibold">Status:</label>
+                    <select class="form-select form-select-sm fw-bold border-secondary-subtle" onchange="ZyraSeller.updateOrderStatus('${o.id}', this.value)">
+                        <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>⏳ Pending (New Order)</option>
+                        <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>📦 In Packing (Processing)</option>
+                        <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>🚚 Dispatched (Shipped)</option>
+                        <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>✅ Delivered</option>
+                    </select>
+                </div>
+                <div class="tracking-box p-2 bg-light rounded border border-light-subtle">
+                    <div class="row g-1 mb-2">
+                        <div class="col-7">
+                            <input type="text" class="form-control form-control-sm trk-awb-${o.db_id || o.id}" placeholder="AWB / Waybill #" value="${o.awb_code || ''}">
+                        </div>
+                        <div class="col-5">
+                            <input type="text" class="form-control form-control-sm trk-courier-${o.db_id || o.id}" placeholder="Courier" value="${o.courier_name || ''}">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-dark flex-grow-1" onclick="ZyraSeller.updateOrderTracking('${o.db_id || o.id}', '${o.id}')">
+                            <i class="bi bi-save me-1"></i> Save AWB
+                        </button>
+                        ${o.awb_code ? `
+                            <a href="https://shiprocket.co/tracking/${encodeURIComponent(o.awb_code)}" target="_blank" class="btn btn-sm btn-outline-primary" title="Track package online">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="seller-order-card mb-4" id="order-card-${o.id}">
+                <!-- Header -->
+                <div class="seller-order-card-header d-flex flex-wrap align-items-center justify-content-between p-3 border-bottom bg-light">
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <span class="order-id-badge fw-bold font-monospace px-2 py-1 rounded bg-white border text-dark">
+                            ${o.id}
+                        </span>
+                        <span class="badge bg-light text-muted border">ID #${o.db_id || o.id}</span>
+                        <span class="text-muted small ms-1"><i class="bi bi-calendar3 me-1"></i>${o.date || 'Today'}</span>
+                        <span class="badge bg-white text-dark border px-2 py-1">
+                            <i class="bi bi-credit-card me-1 text-primary"></i>${o.payment || 'Prepaid'}
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                        <div class="fw-bold fs-5 text-dark">₹${(o.total || 0).toLocaleString('en-IN')}</div>
+                        <div>${statusBadge}</div>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="seller-order-card-body p-3 p-md-4">
+                    <div class="row g-3 g-lg-4">
+                        <!-- Col 1: Delivery Address & Customer -->
+                        <div class="col-lg-4 col-md-6 border-end-lg">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="text-uppercase small fw-bold text-danger" style="letter-spacing: 0.5px; font-size: 0.72rem;">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>Delivery Address
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;" onclick="navigator.clipboard.writeText('${escapedAddressForCopy}').then(() => window.ZyraApp && window.ZyraApp.showToast('Delivery address copied!', 'info'))">
+                                    <i class="bi bi-clipboard me-1"></i>Copy
+                                </button>
+                            </div>
+                            <div class="fw-bold text-dark fs-6 mb-1 d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle text-secondary"></i>
+                                <span>${o.customer || 'Customer'}</span>
+                            </div>
+                            <div class="text-dark small lh-base mb-2 p-2 bg-light rounded border border-light-subtle">
+                                <div class="fw-medium text-dark">${streetAddr ? streetAddr : (o.full_address || '<span class="text-muted fst-italic">Street address not provided</span>')}</div>
+                                <div class="text-muted mt-1 small">${locationPart || 'Location details pending'}</div>
+                            </div>
+                            ${o.phone ? `
+                                <div class="small text-dark fw-semibold d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="text-muted"><i class="bi bi-telephone-fill text-success me-1"></i>Phone:</span>
+                                    <a href="tel:${o.phone}" class="text-decoration-none text-dark fw-bold">${o.phone}</a>
+                                    ${cleanPhoneDigits ? `
+                                        <a href="https://wa.me/91${cleanPhoneDigits}" target="_blank" class="badge bg-success-subtle text-success border border-success-subtle text-decoration-none py-1" title="Message on WhatsApp">
+                                            <i class="bi bi-whatsapp"></i> WhatsApp
+                                        </a>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Col 2: Products Ordered -->
+                        <div class="col-lg-4 col-md-6 border-end-lg">
+                            <span class="text-uppercase small fw-bold text-primary d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.72rem;">
+                                <i class="bi bi-bag-check-fill me-1"></i>Items Ordered
+                            </span>
+                            <div class="p-3 bg-light rounded border border-light-subtle h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="fw-semibold text-dark fs-6 mb-2 lh-base">${o.items}</div>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between text-muted small pt-2 border-top mt-2">
+                                    <span>Payment Method</span>
+                                    <span class="fw-bold text-dark">${o.payment || 'Prepaid'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 3: Logistics & Fulfillment Actions -->
+                        <div class="col-lg-4 col-md-12">
+                            <span class="text-uppercase small fw-bold text-success d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.72rem;">
+                                <i class="bi bi-truck me-1"></i>Fulfillment &amp; Logistics
+                            </span>
+                            ${actionsBlock}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
     renderSalesPage() {
+        const cardsContainer = document.getElementById('sellerOrdersCardsContainer');
         const tableBody = document.getElementById('sellerOrdersTableBody');
-        let orders = this.getOrders();
+        const allOrders = this.getOrders();
 
         const searchInput = document.getElementById('sellerOrderSearch');
-        const statusFilter = document.getElementById('sellerOrderStatusFilter');
-        const resultCount = document.getElementById('sellerOrdersResultCount');
-
         const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-        const status = statusFilter ? statusFilter.value : 'all';
+        const currentFilter = (this.salesStatusFilter || 'all').toLowerCase();
+
+        // Count per status
+        const countPending = allOrders.filter(o => (o.status || '').toLowerCase() === 'pending').length;
+        const countProcessing = allOrders.filter(o => (o.status || '').toLowerCase() === 'processing').length;
+        const countShipped = allOrders.filter(o => (o.status || '').toLowerCase() === 'shipped').length;
+        const countDelivered = allOrders.filter(o => (o.status || '').toLowerCase() === 'delivered').length;
+
+        const fAll = document.getElementById('filterCountAll');
+        const fPend = document.getElementById('filterCountPending');
+        const fProc = document.getElementById('filterCountProcessing');
+        const fShip = document.getElementById('filterCountShipped');
+        const fDel = document.getElementById('filterCountDelivered');
+
+        if (fAll) fAll.textContent = allOrders.length;
+        if (fPend) fPend.textContent = countPending;
+        if (fProc) fProc.textContent = countProcessing;
+        if (fShip) fShip.textContent = countShipped;
+        if (fDel) fDel.textContent = countDelivered;
+
+        let filteredOrders = allOrders;
+        if (currentFilter !== 'all') {
+            filteredOrders = filteredOrders.filter(o => (o.status || '').toLowerCase() === currentFilter);
+        }
 
         if (query) {
-            orders = orders.filter(o =>
+            filteredOrders = filteredOrders.filter(o =>
                 String(o.id || '').toLowerCase().includes(query) ||
                 String(o.customer || '').toLowerCase().includes(query) ||
                 String(o.phone || '').toLowerCase().includes(query) ||
+                String(o.city || '').toLowerCase().includes(query) ||
+                String(o.state || '').toLowerCase().includes(query) ||
+                String(o.pincode || '').toLowerCase().includes(query) ||
+                String(o.shipping_address || '').toLowerCase().includes(query) ||
+                String(o.full_address || '').toLowerCase().includes(query) ||
+                String(o.awb_code || '').toLowerCase().includes(query) ||
+                String(o.courier_name || '').toLowerCase().includes(query) ||
+                String(o.items || '').toLowerCase().includes(query) ||
                 String(o.db_id || '').includes(query)
             );
         }
 
-        if (status !== 'all') {
-            orders = orders.filter(o => (o.status || '').toLowerCase() === status.toLowerCase());
-        }
-
-        const totalSales = this.getOrders().reduce((acc, o) => acc + o.total, 0);
-        const deliveredOrders = this.getOrders().filter(o => o.status === 'Delivered').length;
-
+        const totalSales = allOrders.reduce((acc, o) => acc + (o.total || 0), 0);
         const elRev = document.getElementById('salesTotalRevenue');
         const elOrders = document.getElementById('salesTotalOrders');
         const elDelivered = document.getElementById('salesDeliveredOrders');
 
         if (elRev) elRev.textContent = `₹${totalSales.toLocaleString('en-IN')}`;
-        if (elOrders) elOrders.textContent = this.getOrders().length;
-        if (elDelivered) elDelivered.textContent = deliveredOrders;
+        if (elOrders) elOrders.textContent = allOrders.length;
+        if (elDelivered) elDelivered.textContent = countDelivered;
 
+        const resultCount = document.getElementById('sellerOrdersResultCount');
         if (resultCount) {
-            resultCount.textContent = `${orders.length} of ${this.getOrders().length} orders`;
+            resultCount.textContent = `Showing ${filteredOrders.length} of ${allOrders.length} customer orders`;
         }
 
-        if (!tableBody) return;
-
-        let html = '';
-        orders.forEach(o => {
-            html += `
-                <tr>
-                    <td class="fw-bold">${o.id}</td>
-                    <td>
-                        <div class="fw-semibold">${o.customer}</div>
-                        <small class="text-muted"><i class="bi bi-geo-alt"></i> ${o.city} &bull; ${o.phone}</small>
-                    </td>
-                    <td class="small" style="max-width: 250px;">${o.items}</td>
-                    <td class="fw-bold">₹${o.total}</td>
-                    <td><small class="text-muted">${o.payment}</small></td>
-                    <td><small class="text-muted">${o.date}</small></td>
-                    <td>
-                        <select class="form-select form-select-sm" onchange="ZyraSeller.updateOrderStatus('${o.id}', this.value)">
-                            <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                            <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
-                            <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                            <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                        </select>
-                    </td>
-                    <td style="min-width: 230px;">
-                        <div class="d-flex flex-column gap-1">
-                            <input type="text" class="form-control form-control-sm trk-awb-${o.db_id || o.id}" placeholder="AWB number" value="${o.awb_code || ''}">
-                            <input type="text" class="form-control form-control-sm trk-courier-${o.db_id || o.id}" placeholder="Courier name" value="${o.courier_name || ''}">
-                            <button type="button" class="btn btn-sm btn-outline-dark" onclick="ZyraSeller.updateOrderTracking('${o.db_id || o.id}', '${o.id}')">
-                                <i class="bi bi-truck me-1"></i> Save AWB
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-
-        if (orders.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No orders found matching your search.</td></tr>`;
-            return;
+        // Render Cards View
+        if (cardsContainer) {
+            if (filteredOrders.length === 0) {
+                cardsContainer.innerHTML = `
+                    <div class="card border-0 shadow-sm p-5 text-center text-muted" style="border-radius: 12px; background: #fff;">
+                        <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary opacity-75"></i>
+                        <h5 class="fw-bold text-dark">No orders found</h5>
+                        <p class="small text-muted mb-0">Try clearing your search query or selecting a different status filter.</p>
+                    </div>
+                `;
+            } else {
+                let cardsHtml = '';
+                filteredOrders.forEach(o => {
+                    cardsHtml += this.buildOrderCardHtml(o, false);
+                });
+                cardsContainer.innerHTML = cardsHtml;
+            }
         }
 
-        tableBody.innerHTML = html;
+        // Render Table View (for toggle)
+        if (tableBody) {
+            if (filteredOrders.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No orders found matching your search.</td></tr>`;
+            } else {
+                let tableHtml = '';
+                filteredOrders.forEach(o => {
+                    const streetAddr = o.shipping_address || '';
+                    const locationPart = [o.city, o.state, o.pincode].filter(Boolean).join(', ');
+                    const fullAddressText = [streetAddr, locationPart].filter(Boolean).join(', ') || o.full_address || `${o.city || ''}`;
+                    const escapedAddressForCopy = fullAddressText.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+
+                    tableHtml += `
+                        <tr>
+                            <td class="fw-bold">
+                                <span class="text-primary font-monospace">${o.id}</span>
+                                <div class="small text-muted">ID #${o.db_id || o.id}</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark mb-1 d-flex align-items-center gap-1">
+                                    <i class="bi bi-person-fill text-secondary"></i>
+                                    <span>${o.customer || 'Customer'}</span>
+                                </div>
+                                <div class="p-2 rounded border bg-light shadow-sm" style="font-size: 0.8rem; line-height: 1.35; max-width: 260px;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1 pb-1 border-bottom">
+                                        <span class="text-uppercase fw-bold text-danger" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                                            <i class="bi bi-geo-alt-fill me-1"></i>Delivery Address
+                                        </span>
+                                        <button type="button" class="btn btn-link p-0 text-muted" style="font-size: 0.72rem; text-decoration: none;" onclick="navigator.clipboard.writeText('${escapedAddressForCopy}').then(() => window.ZyraApp && window.ZyraApp.showToast('Address copied!', 'info'))" title="Copy Delivery Address">
+                                            <i class="bi bi-clipboard"></i> Copy
+                                        </button>
+                                    </div>
+                                    <div class="text-dark fw-medium mb-1">
+                                        ${streetAddr ? streetAddr : (o.full_address || '<span class="text-muted fst-italic">Street address not specified</span>')}
+                                    </div>
+                                    <div class="text-muted small">
+                                        ${locationPart || 'Location details pending'}
+                                    </div>
+                                    ${o.phone ? `<div class="mt-1 pt-1 border-top text-dark fw-bold small"><i class="bi bi-telephone-fill me-1 text-success"></i>${o.phone}</div>` : ''}
+                                </div>
+                            </td>
+                            <td class="small" style="max-width: 200px;">${o.items}</td>
+                            <td class="fw-bold">₹${(o.total || 0).toLocaleString('en-IN')}</td>
+                            <td><small class="text-muted">${o.payment}</small></td>
+                            <td><small class="text-muted">${o.date}</small></td>
+                            <td>
+                                <select class="form-select form-select-sm" onchange="ZyraSeller.updateOrderStatus('${o.id}', this.value)">
+                                    <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                    <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                    <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                </select>
+                            </td>
+                            <td style="min-width: 220px;">
+                                <div class="d-flex flex-column gap-1">
+                                    <input type="text" class="form-control form-control-sm trk-awb-${o.db_id || o.id}" placeholder="AWB number" value="${o.awb_code || ''}">
+                                    <input type="text" class="form-control form-control-sm trk-courier-${o.db_id || o.id}" placeholder="Courier name" value="${o.courier_name || ''}">
+                                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="ZyraSeller.updateOrderTracking('${o.db_id || o.id}', '${o.id}')">
+                                        <i class="bi bi-truck me-1"></i> Save AWB
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tableBody.innerHTML = tableHtml;
+            }
+        }
     },
 
     renderNewOrdersPage() {
+        const cardsContainer = document.getElementById('sellerNewOrdersCardsContainer');
         const tableBody = document.getElementById('sellerNewOrdersTableBody');
-        let orders = this.getOrders().filter(o => (o.status || '').toLowerCase() === 'pending');
 
+        // Check URL if stage is not set yet
+        const urlParams = new URLSearchParams(window.location.search);
+        const stageParam = urlParams.get('stage');
+        if (stageParam && ['pending', 'processing', 'shipped', 'all'].includes(stageParam.toLowerCase())) {
+            this.currentOrderStage = stageParam.toLowerCase();
+        } else if (!this.currentOrderStage) {
+            this.currentOrderStage = 'pending';
+        }
+
+        // Sync stage pills active class
+        document.querySelectorAll('#sellerOrderStagePills .nav-link').forEach(btn => {
+            const btnStage = btn.getAttribute('data-stage');
+            btn.classList.toggle('active', btnStage === this.currentOrderStage);
+        });
+
+        // Sync sidebar active class
+        const sideNew = document.getElementById('sideNavNewOrders');
+        const sidePack = document.getElementById('sideNavPacking');
+        const sideDisp = document.getElementById('sideNavDispatched');
+        if (sideNew) sideNew.classList.toggle('active', this.currentOrderStage === 'pending');
+        if (sidePack) sidePack.classList.toggle('active', this.currentOrderStage === 'processing');
+        if (sideDisp) sideDisp.classList.toggle('active', this.currentOrderStage === 'shipped');
+
+        const allOrders = this.getOrders();
+
+        const pendingOrders = allOrders.filter(o => (o.status || '').toLowerCase() === 'pending');
+        const processingOrders = allOrders.filter(o => (o.status || '').toLowerCase() === 'processing');
+        const shippedOrders = allOrders.filter(o => (o.status || '').toLowerCase() === 'shipped');
+
+        // Update Stat Cards and Pill Badges
+        const elPendingCount = document.getElementById('newOrdersCount');
+        const elPackingCount = document.getElementById('packingOrdersCount');
+        const elDispatchedCount = document.getElementById('dispatchedOrdersCount');
+
+        const badgePending = document.getElementById('stageBadgePending');
+        const badgeProcessing = document.getElementById('stageBadgeProcessing');
+        const badgeShipped = document.getElementById('stageBadgeShipped');
+        const badgeAll = document.getElementById('stageBadgeAll');
+
+        if (elPendingCount) elPendingCount.textContent = pendingOrders.length;
+        if (elPackingCount) elPackingCount.textContent = processingOrders.length;
+        if (elDispatchedCount) elDispatchedCount.textContent = shippedOrders.length;
+
+        if (badgePending) badgePending.textContent = pendingOrders.length;
+        if (badgeProcessing) badgeProcessing.textContent = processingOrders.length;
+        if (badgeShipped) badgeShipped.textContent = shippedOrders.length;
+        if (badgeAll) badgeAll.textContent = allOrders.length;
+
+        this.syncSidebarBadges();
+
+        // Filter orders based on active stage
+        let filteredOrders = allOrders;
+        if (this.currentOrderStage === 'pending') {
+            filteredOrders = pendingOrders;
+        } else if (this.currentOrderStage === 'processing') {
+            filteredOrders = processingOrders;
+        } else if (this.currentOrderStage === 'shipped') {
+            filteredOrders = shippedOrders;
+        }
+
+        // Update card headings according to stage
+        const cardHeading = document.getElementById('orderQueueCardHeading');
+        const cardSub = document.getElementById('orderQueueCardSub');
+        if (cardHeading && cardSub) {
+            if (this.currentOrderStage === 'pending') {
+                cardHeading.innerHTML = '<i class="bi bi-inbox me-1 text-danger"></i>New Orders';
+                cardSub.textContent = 'Verify customer delivery address, then click "Start Packing" to initiate preparation.';
+            } else if (this.currentOrderStage === 'processing') {
+                cardHeading.innerHTML = '<i class="bi bi-box-seam me-1 text-warning"></i>In Packing';
+                cardSub.textContent = 'Orders currently being prepared. Click "Packed & Dispatch" when ready for courier.';
+            } else if (this.currentOrderStage === 'shipped') {
+                cardHeading.innerHTML = '<i class="bi bi-truck me-1 text-success"></i>Dispatched';
+                cardSub.textContent = 'Shipments dispatched with couriers. Track AWB or mark delivered.';
+            } else {
+                cardHeading.innerHTML = '<i class="bi bi-layers me-1 text-primary"></i>All Orders';
+                cardSub.textContent = 'Complete view of all active customer orders across every fulfillment stage.';
+            }
+        }
+
+        // Apply Search Filter
         const searchInput = document.getElementById('newOrderSearch');
-        const resultCount = document.getElementById('newOrdersResultCount');
-
         const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
         if (query) {
-            orders = orders.filter(o =>
+            filteredOrders = filteredOrders.filter(o =>
                 String(o.id || '').toLowerCase().includes(query) ||
                 String(o.customer || '').toLowerCase().includes(query) ||
                 String(o.phone || '').toLowerCase().includes(query) ||
+                String(o.city || '').toLowerCase().includes(query) ||
+                String(o.state || '').toLowerCase().includes(query) ||
+                String(o.pincode || '').toLowerCase().includes(query) ||
+                String(o.shipping_address || '').toLowerCase().includes(query) ||
+                String(o.full_address || '').toLowerCase().includes(query) ||
+                String(o.items || '').toLowerCase().includes(query) ||
                 String(o.db_id || '').includes(query)
             );
         }
 
-        const newOrders = this.getOrders().filter(o => (o.status || '').toLowerCase() === 'pending');
-        const pendingValue = newOrders.reduce((acc, o) => acc + (o.total || 0), 0);
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const now = new Date();
-        const todayStr = `${String(now.getDate()).padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`;
-        const dispatchedToday = this.getOrders().filter(o =>
-            o.status === 'Shipped' && o.date === todayStr
-        ).length;
-
-        const elCount = document.getElementById('newOrdersCount');
-        const elValue = document.getElementById('newOrdersValue');
-        const elDispatched = document.getElementById('newOrdersDispatched');
-
-        if (elCount) elCount.textContent = newOrders.length;
-        if (elValue) elValue.textContent = `₹${pendingValue.toLocaleString('en-IN')}`;
-        if (elDispatched) elDispatched.textContent = dispatchedToday;
-
+        const resultCount = document.getElementById('newOrdersResultCount');
         if (resultCount) {
-            resultCount.textContent = `${orders.length} of ${newOrders.length} new orders`;
+            resultCount.textContent = `Showing ${filteredOrders.length} order${filteredOrders.length === 1 ? '' : 's'}`;
         }
 
-        if (!tableBody) return;
+        // Render Cards View
+        if (cardsContainer) {
+            if (filteredOrders.length === 0) {
+                let emptyMsg = 'No new orders right now. New orders will appear here as soon as customers place them.';
+                let emptyIcon = 'bi-inbox';
+                if (this.currentOrderStage === 'processing') {
+                    emptyMsg = 'No orders currently in packing. Click "Start Packing" on any new order to move it here.';
+                    emptyIcon = 'bi-box-seam';
+                } else if (this.currentOrderStage === 'shipped') {
+                    emptyMsg = 'No dispatched orders at the moment. Packed orders will appear here once dispatched.';
+                    emptyIcon = 'bi-truck';
+                }
 
-        if (orders.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">
-                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                No new orders right now. New orders will appear here as soon as customers place them.
-            </td></tr>`;
-            return;
+                cardsContainer.innerHTML = `
+                    <div class="card border-0 shadow-sm p-5 text-center text-muted" style="border-radius: 12px; background: #fff;">
+                        <i class="bi ${emptyIcon} fs-1 d-block mb-3 text-secondary opacity-75"></i>
+                        <h5 class="fw-bold text-dark">${emptyMsg}</h5>
+                        ${this.currentOrderStage !== 'pending' ? `<button type="button" class="btn btn-sm btn-outline-danger mt-3 mx-auto" style="width: fit-content;" onclick="ZyraSeller.setOrderStage('pending')"><i class="bi bi-arrow-left me-1"></i> Check New Orders</button>` : ''}
+                    </div>
+                `;
+            } else {
+                let cardsHtml = '';
+                filteredOrders.forEach(o => {
+                    cardsHtml += this.buildOrderCardHtml(o, true);
+                });
+                cardsContainer.innerHTML = cardsHtml;
+            }
         }
 
-        let html = '';
-        orders.forEach(o => {
-            html += `
-                <tr>
-                    <td class="fw-bold">${o.id}</td>
-                    <td>
-                        <div class="fw-semibold">${o.customer}</div>
-                        <small class="text-muted"><i class="bi bi-geo-alt"></i> ${o.city} &bull; ${o.phone}</small>
-                    </td>
-                    <td class="small" style="max-width: 250px;">${o.items}</td>
-                    <td class="fw-bold">₹${o.total}</td>
-                    <td><small class="text-muted">${o.payment}</small></td>
-                    <td><small class="text-muted">${o.date}</small></td>
-                    <td style="min-width: 260px;">
-                        <div class="d-flex flex-column flex-md-row gap-2">
-                            <button type="button" class="btn btn-sm btn-warning text-dark" onclick="ZyraSeller.updateOrderStatus('${o.id}', 'Processing')">
-                                <i class="bi bi-box me-1"></i> Start Packing
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success" onclick="ZyraSeller.updateOrderStatus('${o.id}', 'Shipped')">
-                                <i class="bi bi-truck me-1"></i> Packed & Dispatch
-                            </button>
-                        </div>
-                        <small class="text-muted d-inline-block mt-1">Once processed, the order moves to <a href="/seller/sales">Sales</a>.</small>
-                    </td>
-                </tr>
-            `;
-        });
+        // Render Table View (for toggle)
+        if (tableBody) {
+            if (filteredOrders.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No orders found matching your search.</td></tr>`;
+            } else {
+                let tableHtml = '';
+                filteredOrders.forEach(o => {
+                    const rawStatus = (o.status || 'Pending');
+                    const statusLower = rawStatus.toLowerCase();
 
-        tableBody.innerHTML = html;
+                    let statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1"><i class="bi bi-inbox me-1"></i>New Order</span>';
+                    if (statusLower === 'processing') {
+                        statusBadge = '<span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1"><i class="bi bi-box-seam me-1"></i>In Packing</span>';
+                    } else if (statusLower === 'shipped') {
+                        statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-truck me-1"></i>Dispatched</span>';
+                    } else if (statusLower === 'delivered') {
+                        statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1"><i class="bi bi-check-circle me-1"></i>Delivered</span>';
+                    }
+
+                    const streetAddr = o.shipping_address || '';
+                    const locationPart = [o.city, o.state, o.pincode].filter(Boolean).join(', ');
+                    const fullAddressText = [streetAddr, locationPart].filter(Boolean).join(', ') || o.full_address || `${o.city || ''}`;
+                    const escapedAddressForCopy = fullAddressText.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+
+                    let actionsHtml = '';
+                    if (statusLower === 'pending') {
+                        actionsHtml = `
+                            <button type="button" class="btn btn-sm btn-warning text-dark fw-bold me-1" onclick="ZyraSeller.startPackingOrder('${o.id}')">
+                                <i class="bi bi-box-seam"></i> Start Packing
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}')">
+                                <i class="bi bi-truck"></i> Dispatch
+                            </button>
+                        `;
+                    } else if (statusLower === 'processing') {
+                        actionsHtml = `
+                            <button type="button" class="btn btn-sm btn-success fw-bold me-1" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}')">
+                                <i class="bi bi-truck"></i> Packed &amp; Dispatch
+                            </button>
+                        `;
+                    } else {
+                        actionsHtml = `
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="ZyraSeller.updateOrderStatus('${o.id}', 'Delivered')">
+                                <i class="bi bi-check2-circle"></i> Mark Delivered
+                            </button>
+                        `;
+                    }
+
+                    tableHtml += `
+                        <tr>
+                            <td class="fw-bold font-monospace text-primary">${o.id}</td>
+                            <td>
+                                <div class="fw-bold text-dark">${o.customer || 'Customer'}</div>
+                                <small class="text-muted">${fullAddressText}</small>
+                                ${o.phone ? `<div><small class="fw-bold text-success">${o.phone}</small></div>` : ''}
+                            </td>
+                            <td class="small">${o.items}</td>
+                            <td class="fw-bold">₹${(o.total || 0).toLocaleString('en-IN')}</td>
+                            <td><span class="badge bg-light text-dark border">${o.payment || 'Prepaid'}</span></td>
+                            <td>${statusBadge}</td>
+                            <td><small class="text-muted">${o.date || ''}</small></td>
+                            <td>${actionsHtml}</td>
+                        </tr>
+                    `;
+                });
+                tableBody.innerHTML = tableHtml;
+            }
+        }
     },
 
     renderAnalyticsPage() {
