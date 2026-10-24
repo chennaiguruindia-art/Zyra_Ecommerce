@@ -32,69 +32,38 @@
 .festive-index-wrapper {
     background-color: var(--festive-bg);
     min-height: 100vh;
-    padding-top: 1rem;
+    padding-top: 0;
     padding-bottom: 3rem;
 }
 
-/* ── Mobile In-Page Search Bar (Mobile Only) ─────────────────────── */
-.festive-search-container {
-    max-width: 600px;
-    margin: 0 auto 1.25rem;
-}
-
-.festive-search-pill {
-    display: flex;
-    align-items: center;
-    background: #ffffff;
-    border: 1px solid #E4DBD2;
-    border-radius: 999px;
-    padding: 8px 16px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-}
-
-.festive-search-pill input {
-    flex: 1;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 0.88rem;
-    color: var(--festive-text);
-    padding: 0 8px;
-}
-
-.festive-search-btn {
-    background: none;
-    border: none;
-    color: #726A65;
-    padding: 2px 4px;
-    font-size: 1.05rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}
-
-/* ── Hero Banner Carousel: Foxtale-Inspired Interactive Slider ────── */
-.festive-hero-wrap {
-    margin-bottom: 2rem;
+/* ── Hero Banner Carousel: Foxtale-Style Full-Width Edge-to-Edge Slider ── */
+.festive-hero-fullwidth {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    background-color: #FAF6F2;
+    line-height: 0;
 }
 
 .festive-hero-carousel {
     position: relative;
-    border-radius: 20px;
+    width: 100%;
+    border-radius: 0;
     overflow: hidden;
     background-color: #FAF6F2;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.3s ease;
-}
-
-.festive-hero-carousel:hover {
-    box-shadow: 0 14px 40px rgba(125, 29, 50, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .festive-carousel-slide {
     position: relative;
+    width: 100%;
     overflow: hidden;
-    background: #FAF6F2;
+}
+
+#zyraHeroCarousel .carousel-item {
+    transition: transform 0.65s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .festive-hero-img {
@@ -103,7 +72,7 @@
     height: auto;
     object-fit: cover;
     object-position: center;
-    border-radius: 20px;
+    border-radius: 0;
     transition: transform 0.4s ease;
 }
 
@@ -112,24 +81,25 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.16);
     color: #1a1a1a;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     z-index: 10;
     cursor: pointer;
     transition: all 0.22s ease;
     text-decoration: none;
     opacity: 0.92;
+    line-height: 1;
 }
 
 .festive-carousel-arrow:hover {
@@ -137,21 +107,21 @@
     color: #000000;
     transform: translateY(-50%) scale(1.08);
     opacity: 1;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.24);
 }
 
 .festive-carousel-prev {
-    left: 18px;
+    left: 24px;
 }
 
 .festive-carousel-next {
-    right: 18px;
+    right: 24px;
 }
 
 /* Foxtale-Style Capsule Indicators */
 .festive-carousel-indicators {
     position: absolute;
-    bottom: 16px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -160,17 +130,18 @@
     z-index: 10;
     margin: 0;
     padding: 6px 14px;
-    background: rgba(0, 0, 0, 0.28);
+    background: rgba(0, 0, 0, 0.32);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border-radius: 50px;
+    line-height: 1;
 }
 
 .festive-carousel-indicator {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.6);
     border: none;
     padding: 0;
     cursor: pointer;
@@ -178,24 +149,17 @@
 }
 
 .festive-carousel-indicator.active {
-    width: 28px;
-    border-radius: 12px;
+    width: 32px;
+    border-radius: 14px;
     background: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 @media (max-width: 767.98px) {
-    .festive-hero-wrap {
-        margin-bottom: 1.25rem;
-    }
-    .festive-hero-carousel,
-    .festive-hero-img {
-        border-radius: 14px;
-    }
     .festive-carousel-arrow {
         width: 32px;
         height: 32px;
-        font-size: 0.95rem;
+        font-size: 1rem;
     }
     .festive-carousel-prev { left: 8px; }
     .festive-carousel-next { right: 8px; }
@@ -490,9 +454,79 @@
 
 @section('content')
 <div class="festive-index-wrapper">
-    <div class="container px-3 px-md-4">
 
-        <!-- 1. Mobile In-Page Search Bar (Mobile devices only) -->
+    <!-- 1. Full-Width Edge-to-Edge Hero Banner Carousel (Banner 1, 2, 3 only) -->
+    @php
+        $bannerFiles = [
+            [
+                'image' => asset('images/banners/Banner 1.png'),
+                'title' => 'Festive Kurti Collection 2026',
+                'subtitle' => 'Handcrafted pure cotton & designer silhouettes',
+                'link' => route('pages.kurtis'),
+            ],
+            [
+                'image' => asset('images/banners/Banner 2.png'),
+                'title' => 'Celebration Festive Wear - Exclusive Offers',
+                'subtitle' => 'Explore luxury ethnic wear crafted for celebrations',
+                'link' => route('shop'),
+            ],
+            [
+                'image' => asset('images/banners/Banner 3.png'),
+                'title' => 'Luxury Festive Maxis & Modern Kurtis',
+                'subtitle' => 'Elegance in every fold - shop trending styles',
+                'link' => route('pages.maxi'),
+            ],
+        ];
+    @endphp
+
+    <div class="festive-hero-fullwidth">
+        <div id="zyraHeroCarousel" class="carousel slide festive-hero-carousel">
+            
+            <!-- Indicators (Foxtale Style) -->
+            @if(count($bannerFiles) > 1)
+                <div class="festive-carousel-indicators">
+                    @foreach($bannerFiles as $idx => $b)
+                        <button type="button" 
+                                data-bs-target="#zyraHeroCarousel" 
+                                data-bs-slide-to="{{ $idx }}" 
+                                class="festive-carousel-indicator {{ $idx === 0 ? 'active' : '' }}" 
+                                aria-current="{{ $idx === 0 ? 'true' : 'false' }}" 
+                                aria-label="Slide {{ $idx + 1 }}"></button>
+                    @endforeach
+                </div>
+            @endif
+
+            <!-- Carousel Slides -->
+            <div class="carousel-inner">
+                @foreach($bannerFiles as $idx => $b)
+                    <div class="carousel-item {{ $idx === 0 ? 'active' : '' }} festive-carousel-slide">
+                        <a href="{{ $b['link'] }}" class="d-block text-decoration-none" title="{{ $b['title'] }}">
+                            <img src="{{ $b['image'] }}" 
+                                 alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
+                                 class="festive-hero-img w-100" 
+                                 loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
+                                 @if($idx === 0) fetchpriority="high" @endif>
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Glassmorphic Navigation Arrows (Foxtale Style) -->
+            @if(count($bannerFiles) > 1)
+                <button class="festive-carousel-arrow festive-carousel-prev" type="button" data-bs-target="#zyraHeroCarousel" data-bs-slide="prev" aria-label="Previous Slide">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="festive-carousel-arrow festive-carousel-next" type="button" data-bs-target="#zyraHeroCarousel" data-bs-slide="next" aria-label="Next Slide">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            @endif
+        </div>
+    </div>
+
+    <!-- Main Content Container (Categories, Collections, Highlights) -->
+    <div class="container px-3 px-md-4 pt-3 pt-md-4">
+
+        <!-- Mobile In-Page Search Bar (Mobile devices only) -->
         <div class="festive-search-container d-md-none">
             <form action="{{ route('shop') }}" method="GET" class="festive-search-pill" id="homeSearchForm">
                 <i class="bi bi-search text-muted"></i>
@@ -505,106 +539,6 @@
                     <i class="bi bi-sliders"></i>
                 </a>
             </form>
-        </div>
-
-        <!-- 2. Hero Banner Carousel: Foxtale-Style Auto-Scrolling Showcase -->
-        @php
-            $bannerFiles = [];
-            
-            // Priority 1: New high-res banners added today
-            if (file_exists(public_path('images/banners/Banner 1.png'))) {
-                $bannerFiles[] = [
-                    'image' => asset('images/banners/Banner 1.png'),
-                    'title' => 'Festive Kurti Collection 2026',
-                    'subtitle' => 'Handcrafted pure cotton & designer silhouettes',
-                    'link' => route('pages.kurtis'),
-                ];
-            }
-            if (file_exists(public_path('images/banners/Banner 2.png'))) {
-                $bannerFiles[] = [
-                    'image' => asset('images/banners/Banner 2.png'),
-                    'title' => 'Celebration Festive Wear - Exclusive Offers',
-                    'subtitle' => 'Explore luxury ethnic wear crafted for celebrations',
-                    'link' => route('shop'),
-                ];
-            }
-            if (file_exists(public_path('images/banners/Banner 3.png'))) {
-                $bannerFiles[] = [
-                    'image' => asset('images/banners/Banner 3.png'),
-                    'title' => 'Luxury Festive Maxis & Modern Kurtis',
-                    'subtitle' => 'Elegance in every fold - shop trending styles',
-                    'link' => route('pages.festive-maxis'),
-                ];
-            }
-            // Priority 2: Handcrafted / Summer collections
-            if (file_exists(public_path('images/banners/Handcrafted.png'))) {
-                $bannerFiles[] = [
-                    'image' => asset('images/banners/Handcrafted.png'),
-                    'title' => 'Heritage Craft - Block Prints & Silks',
-                    'subtitle' => 'Authentic artisanal craftsmanship from Rajasthan',
-                    'link' => route('shop'),
-                ];
-            }
-            if (file_exists(public_path('images/banners/summer-kurti-collection.png'))) {
-                $bannerFiles[] = [
-                    'image' => asset('images/banners/summer-kurti-collection.png'),
-                    'title' => 'Summer Kurti Collection 2026',
-                    'subtitle' => 'Light, breathable & graceful for every day',
-                    'link' => route('pages.kurtis'),
-                ];
-            }
-            // Fallback if none found
-            if (empty($bannerFiles)) {
-                $bannerFiles[] = [
-                    'image' => asset('images/banners/summer-kurti-collection.png'),
-                    'title' => 'Summer Kurti Collection 2026',
-                    'subtitle' => 'Handcrafted block prints & graceful Anarkalis',
-                    'link' => route('pages.kurtis'),
-                ];
-            }
-        @endphp
-        <div class="festive-hero-wrap">
-            <div id="zyraHeroCarousel" class="carousel slide carousel-fade festive-hero-carousel" data-bs-ride="carousel" data-bs-interval="4500" data-bs-pause="hover">
-                
-                <!-- Indicators (Foxtale Style) -->
-                @if(count($bannerFiles) > 1)
-                    <div class="festive-carousel-indicators">
-                        @foreach($bannerFiles as $idx => $b)
-                            <button type="button" 
-                                    data-bs-target="#zyraHeroCarousel" 
-                                    data-bs-slide-to="{{ $idx }}" 
-                                    class="festive-carousel-indicator {{ $idx === 0 ? 'active' : '' }}" 
-                                    aria-current="{{ $idx === 0 ? 'true' : 'false' }}" 
-                                    aria-label="Slide {{ $idx + 1 }}"></button>
-                        @endforeach
-                    </div>
-                @endif
-
-                <!-- Carousel Slides -->
-                <div class="carousel-inner">
-                    @foreach($bannerFiles as $idx => $b)
-                        <div class="carousel-item {{ $idx === 0 ? 'active' : '' }} festive-carousel-slide">
-                            <a href="{{ $b['link'] }}" class="d-block text-decoration-none" title="{{ $b['title'] }}">
-                                <img src="{{ $b['image'] }}" 
-                                     alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
-                                     class="festive-hero-img w-100" 
-                                     loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
-                                     @if($idx === 0) fetchpriority="high" @endif>
-                            </a>
-                        </div>
-                    @endforeach
-                </div>
-
-                <!-- Glassmorphic Navigation Arrows (Foxtale Style) -->
-                @if(count($bannerFiles) > 1)
-                    <button class="festive-carousel-arrow festive-carousel-prev" type="button" data-bs-target="#zyraHeroCarousel" data-bs-slide="prev" aria-label="Previous Slide">
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    <button class="festive-carousel-arrow festive-carousel-next" type="button" data-bs-target="#zyraHeroCarousel" data-bs-slide="next" aria-label="Next Slide">
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                @endif
-            </div>
         </div>
 
         <!-- 3. Curated Categories Horizontal Strip -->
@@ -836,33 +770,68 @@
 
 @push('scripts')
 <script>
-// Mobile touch swipe & auto-pause support for Foxtale-style banner carousel
+// Continuous Left-to-Right auto-sliding & mobile touch swipe support
 document.addEventListener('DOMContentLoaded', function () {
     const carouselEl = document.getElementById('zyraHeroCarousel');
     if (!carouselEl) return;
 
+    // Initialize Bootstrap carousel instance
+    const carousel = bootstrap.Carousel.getOrCreateInstance(carouselEl, {
+        interval: false,
+        wrap: true,
+        keyboard: true
+    });
+
+    // Continuous auto-sliding timer (moves in the opposite direction)
+    let autoSlideTimer = null;
+    const slideIntervalMs = 3500;
+
+    function startAutoSlide() {
+        stopAutoSlide();
+        autoSlideTimer = setInterval(function () {
+            if (!document.hidden) {
+                carousel.next(); // Slides to next (opposite direction)
+            }
+        }, slideIntervalMs);
+    }
+
+    function stopAutoSlide() {
+        if (autoSlideTimer) {
+            clearInterval(autoSlideTimer);
+            autoSlideTimer = null;
+        }
+    }
+
+    // Start auto slide immediately
+    startAutoSlide();
+
+    // Pause on mouse hover, resume on mouse leave
+    carouselEl.addEventListener('mouseenter', stopAutoSlide);
+    carouselEl.addEventListener('mouseleave', startAutoSlide);
+
+    // Mobile touch swipe gestures
     let touchStartX = 0;
     let touchEndX = 0;
 
     carouselEl.addEventListener('touchstart', function (e) {
         touchStartX = e.changedTouches[0].screenX;
+        stopAutoSlide();
     }, { passive: true });
 
     carouselEl.addEventListener('touchend', function (e) {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
+        startAutoSlide();
     }, { passive: true });
 
     function handleSwipe() {
-        const threshold = 40;
-        if (touchEndX < touchStartX - threshold) {
-            // swipe left -> next slide
-            const carousel = bootstrap.Carousel.getInstance(carouselEl) || new bootstrap.Carousel(carouselEl);
-            carousel.next();
-        } else if (touchEndX > touchStartX + threshold) {
-            // swipe right -> prev slide
-            const carousel = bootstrap.Carousel.getInstance(carouselEl) || new bootstrap.Carousel(carouselEl);
+        const threshold = 35;
+        if (touchEndX > touchStartX + threshold) {
+            // Swiped left-to-right
             carousel.prev();
+        } else if (touchEndX < touchStartX - threshold) {
+            // Swiped right-to-left
+            carousel.next();
         }
     }
 });

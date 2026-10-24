@@ -98,6 +98,7 @@ Route::get('/tops', [ShopController::class, 'shortcut'])->defaults('slug', 'tops
 Route::get('/leggings', [ShopController::class, 'shortcut'])->defaults('slug', 'leggings')->name('pages.leggings');
 Route::get('/kurtis', [ShopController::class, 'shortcut'])->defaults('slug', 'kurtis')->name('pages.kurtis');
 Route::get('/maxi', [ShopController::class, 'shortcut'])->defaults('slug', 'maxi')->name('pages.maxi');
+Route::get('/festive-maxis', [ShopController::class, 'shortcut'])->defaults('slug', 'maxi')->name('pages.festive-maxis');
 Route::get('/nightwear', [ShopController::class, 'shortcut'])->defaults('slug', 'nightwear')->name('pages.nightwear');
 Route::get('/duppata', [ShopController::class, 'duppata'])->name('pages.duppata');
 
