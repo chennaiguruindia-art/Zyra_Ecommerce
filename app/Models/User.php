@@ -29,8 +29,19 @@ class User extends Authenticatable
         'district',
         'role',
         'password',
+        'original_password',
         'avatar',
     ];
+
+    public function getOrginalPasswordAttribute(): ?string
+    {
+        return $this->original_password;
+    }
+
+    public function setOrginalPasswordAttribute(?string $value): void
+    {
+        $this->attributes['original_password'] = $value;
+    }
 
     public function isSeller(): bool
     {
