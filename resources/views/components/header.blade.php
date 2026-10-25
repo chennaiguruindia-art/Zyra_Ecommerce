@@ -247,6 +247,7 @@
         flex: 1;
         max-width: 560px;
         margin: 0 auto;
+        min-width: 0;
     }
 
     .zyra-search-pill .zyra-search-wrap {

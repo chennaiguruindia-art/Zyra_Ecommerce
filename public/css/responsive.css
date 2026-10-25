@@ -35,24 +35,56 @@
         flex: 0 0 40px;
     }
 
-    /* Center the brand on every non-desktop layout so the header stays
-       balanced no matter how wide the toggle / icons cluster is. */
-    .zyra-header .container > .d-flex {
-        position: relative;
+    .zyra-header-icons {
+        margin-left: auto;
+        margin-right: 0;
+    }
+}
+
+/* Tablet & Medium Screen / Split-Screen (768px to 1199.98px)
+   Keeps logo, search bar, and icons cleanly in one row without overlapping */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .zyra-header .zyra-header-row {
+        gap: 12px;
+        padding: 8px 0;
     }
 
     .zyra-header .zyra-brand-logo {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        margin: 0;
-        z-index: 2;
+        position: static !important;
+        transform: none !important;
+        left: auto !important;
+        top: auto !important;
+        margin: 0 !important;
+        height: 76px;
+        flex: 0 0 auto;
+    }
+
+    .zyra-header .zyra-logo-image {
+        width: 160px;
+        height: 160px;
+        transform: translateY(-48px);
+    }
+
+    .zyra-search-pill {
+        flex: 1;
+        min-width: 0;
+        margin: 0 10px;
+        max-width: 480px;
+    }
+
+    .zyra-search-pill input {
+        padding: 9px 16px 9px 38px;
+        font-size: 0.86rem;
+    }
+
+    .zyra-search-pill .zyra-search-icon {
+        left: 14px;
+        font-size: 0.85rem;
     }
 
     .zyra-header-icons {
         margin-left: auto;
-        margin-right: 0;
+        gap: 8px !important;
     }
 }
 
@@ -196,6 +228,21 @@
     .zyra-header .container {
         padding-left: 1rem;
         padding-right: 1rem;
+    }
+
+    /* On phone screens where the search pill is hidden, center the brand logo
+       cleanly between the mobile toggle on the left and action icons on the right. */
+    .zyra-header .zyra-header-row {
+        position: relative;
+    }
+
+    .zyra-header .zyra-brand-logo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+        z-index: 2;
     }
 
     .zyra-logo-image {
