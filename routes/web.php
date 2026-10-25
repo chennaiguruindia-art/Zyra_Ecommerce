@@ -178,3 +178,123 @@ Route::get('/run-seed', function () {
     ]);
     return '<pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
 });
+
+// ──────────────────────────────────────────────────────────────────────────
+// LIVE MAIL DIAGNOSTIC — visit https://zyralifestyle.in/zyra-mail-test to
+// check if the server can actually send email. REMOVE after confirming.
+// ──────────────────────────────────────────────────────────────────────────
+Route::get('/zyra-mail-test', function () {
+    $log = [];
+    $to  = 'order@shopwithzyra.in';
+
+    $log[] = '⚙️  MAIL CONFIG:';
+    $log[] = '  MAILER='  . config('mail.default');
+    $log[] = '  HOST='    . config('mail.mailers.smtp.host');
+    $log[] = '  PORT='    . config('mail.mailers.smtp.port');
+    $log[] = '  SCHEME='  . (config('mail.mailers.smtp.scheme') ?: '(none)');
+    $log[] = '  USER='    . config('mail.mailers.smtp.username');
+    $log[] = '  FROM='    . config('mail.from.address');
+    $log[] = '';
+
+    // ── Test 1: smtp_ssl (port 465) ───────────────────────────────────────
+    $log[] = '🔌 Test 1 — smtp_ssl (port 465 SSL)';
+    try {
+        \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')
+            ->to($to)
+            ->send(new \Illuminate\Mail\Message\MailMessage());
+    } catch (\Throwable $e) {
+        // MailMessage is abstract – just attempt connection via raw SMTP
+    }
+    try {
+        $start = microtime(true);
+        \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')
+            ->to($to)
+            ->html('<p>ZYRA Live Server smtp_ssl (port 465) test — ' . now() . '</p>')
+            ->subject('✅ ZYRA Live smtp_ssl Test ' . now())
+            ->send(new class extends \Illuminate\Mail\Mailable {
+                public function build(): static
+                {
+                    return $this->html('<p>ZYRA Live Server smtp_ssl (port 465) test — ' . now() . '</p>')
+                                ->subject('✅ ZYRA Live smtp_ssl Test ' . now());
+                }
+            });
+        $log[] = '  ✅ SUCCESS in ' . round(microtime(true) - $start, 2) . 's';
+    } catch (\Throwable $e) {
+        $log[] = '  ❌ FAILED: ' . $e->getMessage();
+    }
+
+    $log[] = '';
+
+    // ── Test 2: default smtp (port 587 TLS) ───────────────────────────────
+    $log[] = '🔌 Test 2 — smtp default (port 587 STARTTLS)';
+    try {
+        $start = microtime(true);
+        \Illuminate\Support\Facades\Mail::to($to)
+            ->send(new class extends \Illuminate\Mail\Mailable {
+                public function build(): static
+                {
+                    return $this->html('<p>ZYRA Live Server smtp default (port 587) test — ' . now() . '</p>')
+                                ->subject('✅ ZYRA Live smtp-587 Test ' . now());
+                }
+            });
+        $log[] = '  ✅ SUCCESS in ' . round(microtime(true) - $start, 2) . 's';
+    } catch (\Throwable $e) {
+        $log[] = '  ❌ FAILED: ' . $e->getMessage();
+    }
+
+    $log[] = '';
+    $log[] = '📬 Check your inbox at: ' . $to;
+
+    return '<pre style="font-family:monospace;font-size:14px;padding:20px">'
+         . implode("\n", $log)
+         . '</pre>';
+});
+
+// ──────────────────────────────────────────────────────────────────────────
+// RESEND MISSED ORDER EMAILS — visits /zyra-resend-emails?secret=ZYRA2026
+// Sends confirmation email for every existing order that never got one.
+// ──────────────────────────────────────────────────────────────────────────
+Route::get('/zyra-resend-emails', function (\Illuminate\Http\Request $request) {
+    if ($request->query('secret') !== 'ZYRA2026') {
+        abort(403);
+    }
+
+    $orders = \App\Models\Order::with('items')->latest()->get();
+    $log    = [];
+    $log[]  = '📧 Resending order confirmation emails for ' . $orders->count() . ' orders...';
+    $log[]  = '';
+
+    foreach ($orders as $order) {
+        $log[] = "Order #{$order->order_number} → {$order->customer_email}";
+
+        $send = function (string $to, \Illuminate\Mail\Mailable $mailable, string $label) use (&$log) {
+            try {
+                $start = microtime(true);
+                \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')->to($to)->send($mailable);
+                $log[] = "  ✅ {$label} sent via smtp_ssl in " . round(microtime(true) - $start, 2) . 's';
+            } catch (\Throwable $e) {
+                $log[] = "  ⚠️  {$label} smtp_ssl failed: " . $e->getMessage();
+                try {
+                    $start = microtime(true);
+                    \Illuminate\Support\Facades\Mail::to($to)->send($mailable);
+                    $log[] = "  ✅ {$label} sent via smtp-587 in " . round(microtime(true) - $start, 2) . 's';
+                } catch (\Throwable $e2) {
+                    $log[] = "  ❌ {$label} BOTH mailers failed: " . $e2->getMessage();
+                }
+            }
+        };
+
+        $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
+        $send($adminEmail, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: true),  'Seller email');
+
+        if (!empty($order->customer_email) && $order->customer_email !== $adminEmail) {
+            $send($order->customer_email, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: false), 'Buyer email');
+        }
+
+        $log[] = '';
+    }
+
+    return '<pre style="font-family:monospace;font-size:13px;padding:20px">'
+         . implode("\n", $log)
+         . '</pre>';
+});
