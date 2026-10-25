@@ -199,17 +199,21 @@ class CheckoutController extends Controller
                 'payment_status' => 'paid',
             ]);
 
-            RazorpayTransaction::where('razorpay_order_id', $data['razorpay_order_id'])
-                ->update([
-                    'order_id' => $order->id,
-                    'razorpay_payment_id' => $data['razorpay_payment_id'],
-                    'razorpay_signature' => $data['razorpay_signature'],
-                    'status' => $payment['status'] ?? 'captured',
-                    'method' => $payment['method'] ?? null,
-                    'fee' => $payment['fee'] ?? null,
-                    'tax' => $payment['tax'] ?? null,
-                    'raw_response' => $payment,
-                ]);
+            try {
+                RazorpayTransaction::where('razorpay_order_id', $data['razorpay_order_id'])
+                    ->update([
+                        'order_id' => $order->id,
+                        'razorpay_payment_id' => $data['razorpay_payment_id'],
+                        'razorpay_signature' => $data['razorpay_signature'],
+                        'status' => $payment['status'] ?? 'captured',
+                        'method' => $payment['method'] ?? null,
+                        'fee' => $payment['fee'] ?? null,
+                        'tax' => $payment['tax'] ?? null,
+                        'raw_response' => $payment,
+                    ]);
+            } catch (\Throwable $e) {
+                Log::warning('RazorpayTransaction update warning: ' . $e->getMessage());
+            }
 
             session()->forget('zyra_pending_order');
 
@@ -219,6 +223,17 @@ class CheckoutController extends Controller
                 'redirect' => route('order.success', $order->order_number),
             ]);
         } catch (\Throwable $e) {
+            // Guard: Check if the order was actually created in the DB despite any background exception.
+            $existingOrder = Order::where('razorpay_order_id', $data['razorpay_order_id'])->first();
+            if ($existingOrder) {
+                session()->forget(['cart', 'coupon', 'zyra_pending_order']);
+                return response()->json([
+                    'success' => true,
+                    'order_number' => $existingOrder->order_number,
+                    'redirect' => route('order.success', $existingOrder->order_number),
+                ]);
+            }
+
             // The money was captured but the order could not be created. Never leave the
             // paid-for item sitting on the cart page, and flag the payment for a refund/review.
             Log::error('Order creation failed after payment capture', [
@@ -226,13 +241,15 @@ class CheckoutController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            RazorpayTransaction::where('razorpay_order_id', $data['razorpay_order_id'])
-                ->update([
-                    'razorpay_payment_id' => $data['razorpay_payment_id'],
-                    'razorpay_signature' => $data['razorpay_signature'],
-                    'status' => 'needs_review',
-                    'raw_response' => $payment,
-                ]);
+            try {
+                RazorpayTransaction::where('razorpay_order_id', $data['razorpay_order_id'])
+                    ->update([
+                        'razorpay_payment_id' => $data['razorpay_payment_id'],
+                        'razorpay_signature' => $data['razorpay_signature'],
+                        'status' => 'needs_review',
+                        'raw_response' => $payment,
+                    ]);
+            } catch (\Throwable $ignored) {}
 
             $this->sendPaymentFailedMail($pending);
 
@@ -494,14 +511,24 @@ class CheckoutController extends Controller
                     'converted_at' => now(),
                 ]);
 
-            $this->pushToShiprocket($order);
-
-            DB::afterCommit(function () use ($order) {
-                $this->sendOrderConfirmation($order);
-            });
-
             return $order;
         });
+
+        // External integrations (Shiprocket & Email) run outside DB transaction
+        // and are fully isolated so failures never disrupt order placement.
+        try {
+            $this->pushToShiprocket($order);
+        } catch (\Throwable $e) {
+            Log::warning('Shiprocket auto-push non-fatal error: ' . $e->getMessage());
+        }
+
+        try {
+            $this->sendOrderConfirmation($order);
+        } catch (\Throwable $e) {
+            Log::warning('Order confirmation email non-fatal error: ' . $e->getMessage());
+        }
+
+        return $order;
     }
 
     /**
@@ -509,34 +536,38 @@ class CheckoutController extends Controller
      */
     protected function sendOrderConfirmation(Order $order): void
     {
-        $order->loadMissing('items');
-        $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
+        try {
+            $order->loadMissing('items');
+            $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
 
-        // Helper to send email using primary mailer (smtp) with automatic fallback to smtp_ssl (port 465)
-        $sendWithFallback = function (string $recipient, \Illuminate\Mail\Mailable $mailable, string $label) use ($order) {
-            try {
-                \Illuminate\Support\Facades\Mail::to($recipient)->send($mailable);
-                \Illuminate\Support\Facades\Log::info("{$label} sent successfully", ['order' => $order->order_number, 'to' => $recipient]);
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning("{$label} failed on default SMTP: " . $e->getMessage(), ['order' => $order->order_number]);
-                // Try fallback to smtp_ssl (Port 465 SSL - needed for cloud hosting like GoDaddy/Plesk)
+            // Helper to send email: Use smtp_ssl (Port 465 SSL) FIRST as it is proven on cloud hosting (GoDaddy/Plesk),
+            // falling back to default SMTP if smtp_ssl is unavailable.
+            $sendWithFallback = function (string $recipient, \Illuminate\Mail\Mailable $mailable, string $label) use ($order) {
                 try {
                     \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')->to($recipient)->send($mailable);
-                    \Illuminate\Support\Facades\Log::info("{$label} sent successfully via smtp_ssl fallback", ['order' => $order->order_number, 'to' => $recipient]);
-                } catch (\Throwable $e2) {
-                    \Illuminate\Support\Facades\Log::error("{$label} failed on smtp_ssl fallback as well: " . $e2->getMessage(), ['order' => $order->order_number]);
+                    \Illuminate\Support\Facades\Log::info("{$label} sent successfully via smtp_ssl", ['order' => $order->order_number, 'to' => $recipient]);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("{$label} failed on smtp_ssl: " . $e->getMessage(), ['order' => $order->order_number]);
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($recipient)->send($mailable);
+                        \Illuminate\Support\Facades\Log::info("{$label} sent successfully via default SMTP fallback", ['order' => $order->order_number, 'to' => $recipient]);
+                    } catch (\Throwable $e2) {
+                        \Illuminate\Support\Facades\Log::error("{$label} failed on default SMTP fallback as well: " . $e2->getMessage(), ['order' => $order->order_number]);
+                    }
                 }
+            };
+
+            // 1. Send dedicated notification directly to Admin/Seller Inbox
+            if (!empty($adminEmail)) {
+                $sendWithFallback($adminEmail, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: true), 'Seller New Order Email');
             }
-        };
 
-        // 1. Send dedicated notification directly to Admin/Seller Inbox
-        if (!empty($adminEmail)) {
-            $sendWithFallback($adminEmail, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: true), 'Seller New Order Email');
-        }
-
-        // 2. Send order confirmation directly to Buyer
-        if (!empty($order->customer_email)) {
-            $sendWithFallback($order->customer_email, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: false), 'Buyer Order Confirmation');
+            // 2. Send order confirmation directly to Buyer
+            if (!empty($order->customer_email)) {
+                $sendWithFallback($order->customer_email, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: false), 'Buyer Order Confirmation');
+            }
+        } catch (\Throwable $e) {
+            Log::warning('sendOrderConfirmation outer exception: ' . $e->getMessage());
         }
     }
 
