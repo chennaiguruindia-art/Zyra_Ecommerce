@@ -180,72 +180,42 @@ Route::get('/run-seed', function () {
 });
 
 // ──────────────────────────────────────────────────────────────────────────
-// LIVE MAIL DIAGNOSTIC — visit https://zyralifestyle.in/zyra-mail-test to
-// check if the server can actually send email. REMOVE after confirming.
+// LIVE MAIL DIAGNOSTIC — visit https://zyralifestyle.in/zyra-mail-test
+// Tests Gmail port 465, Gmail port 587, and SMTP2GO port 2525.
 // ──────────────────────────────────────────────────────────────────────────
 Route::get('/zyra-mail-test', function () {
-    $log = [];
-    $to  = 'order@shopwithzyra.in';
+    $log  = [];
+    $to   = 'order@shopwithzyra.in';
+    $user = config('mail.mailers.smtp.username', 'order@shopwithzyra.in');
+    $pass = config('mail.mailers.smtp.password', '');
 
-    $log[] = '⚙️  MAIL CONFIG:';
-    $log[] = '  MAILER='  . config('mail.default');
-    $log[] = '  HOST='    . config('mail.mailers.smtp.host');
-    $log[] = '  PORT='    . config('mail.mailers.smtp.port');
-    $log[] = '  SCHEME='  . (config('mail.mailers.smtp.scheme') ?: '(none)');
-    $log[] = '  USER='    . config('mail.mailers.smtp.username');
-    $log[] = '  FROM='    . config('mail.from.address');
+    $log[] = '⚙️  LIVE MAIL CONFIG:';
+    $log[] = '  MAILER=' . config('mail.default');
+    $log[] = '  HOST='   . config('mail.mailers.smtp.host');
+    $log[] = '  PORT='   . config('mail.mailers.smtp.port');
+    $log[] = '  SCHEME=' . (config('mail.mailers.smtp.scheme') ?: '(none)');
+    $log[] = '  USER='   . $user;
+    $log[] = '  FROM='   . config('mail.from.address');
     $log[] = '';
 
-    // ── Test 1: smtp_ssl (port 465) ───────────────────────────────────────
-    $log[] = '🔌 Test 1 — smtp_ssl (port 465 SSL)';
-    try {
-        \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')
-            ->to($to)
-            ->send(new \Illuminate\Mail\Message\MailMessage());
-    } catch (\Throwable $e) {
-        // MailMessage is abstract – just attempt connection via raw SMTP
-    }
-    try {
-        $start = microtime(true);
-        \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')
-            ->to($to)
-            ->html('<p>ZYRA Live Server smtp_ssl (port 465) test — ' . now() . '</p>')
-            ->subject('✅ ZYRA Live smtp_ssl Test ' . now())
-            ->send(new class extends \Illuminate\Mail\Mailable {
-                public function build(): static
-                {
-                    return $this->html('<p>ZYRA Live Server smtp_ssl (port 465) test — ' . now() . '</p>')
-                                ->subject('✅ ZYRA Live smtp_ssl Test ' . now());
-                }
-            });
-        $log[] = '  ✅ SUCCESS in ' . round(microtime(true) - $start, 2) . 's';
-    } catch (\Throwable $e) {
-        $log[] = '  ❌ FAILED: ' . $e->getMessage();
-    }
+    // Raw TCP port-reachability check (no SMTP handshake)
+    $canConnect = function (string $host, int $port, int $timeout = 5): bool {
+        $fp = @fsockopen($host, $port, $errno, $errstr, $timeout);
+        if ($fp) { fclose($fp); return true; }
+        return false;
+    };
 
+    $log[] = '🌐 TCP CONNECTIVITY (can the server reach these ports?):';
+    $log[] = '  smtp.gmail.com:465  → ' . ($canConnect('smtp.gmail.com', 465)       ? '✅ OPEN' : '❌ BLOCKED by GoDaddy');
+    $log[] = '  smtp.gmail.com:587  → ' . ($canConnect('smtp.gmail.com', 587)       ? '✅ OPEN' : '❌ BLOCKED by GoDaddy');
+    $log[] = '  mail.smtp2go.com:2525 → ' . ($canConnect('mail.smtp2go.com', 2525)  ? '✅ OPEN' : '❌ BLOCKED');
+    $log[] = '  mail.smtp2go.com:465  → ' . ($canConnect('mail.smtp2go.com', 465)   ? '✅ OPEN' : '❌ BLOCKED');
+    $log[] = '  mail.smtp2go.com:587  → ' . ($canConnect('mail.smtp2go.com', 587)   ? '✅ OPEN' : '❌ BLOCKED');
     $log[] = '';
+    $log[] = '📬 Check inbox at: ' . $to;
+    $log[] = '📌 Any port marked ✅ OPEN can be used for sending email.';
 
-    // ── Test 2: default smtp (port 587 TLS) ───────────────────────────────
-    $log[] = '🔌 Test 2 — smtp default (port 587 STARTTLS)';
-    try {
-        $start = microtime(true);
-        \Illuminate\Support\Facades\Mail::to($to)
-            ->send(new class extends \Illuminate\Mail\Mailable {
-                public function build(): static
-                {
-                    return $this->html('<p>ZYRA Live Server smtp default (port 587) test — ' . now() . '</p>')
-                                ->subject('✅ ZYRA Live smtp-587 Test ' . now());
-                }
-            });
-        $log[] = '  ✅ SUCCESS in ' . round(microtime(true) - $start, 2) . 's';
-    } catch (\Throwable $e) {
-        $log[] = '  ❌ FAILED: ' . $e->getMessage();
-    }
-
-    $log[] = '';
-    $log[] = '📬 Check your inbox at: ' . $to;
-
-    return '<pre style="font-family:monospace;font-size:14px;padding:20px">'
+    return '<pre style="font-family:monospace;font-size:14px;padding:24px;background:#0d1117;color:#c9d1d9;line-height:1.8">'
          . implode("\n", $log)
          . '</pre>';
 });
