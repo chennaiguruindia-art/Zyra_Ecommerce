@@ -540,19 +540,17 @@ class CheckoutController extends Controller
             $order->loadMissing('items');
             $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
 
-            // Helper to send email: Use smtp_ssl (Port 465 SSL) FIRST as it is proven on cloud hosting (GoDaddy/Plesk),
-            // falling back to default SMTP if smtp_ssl is unavailable.
             $sendWithFallback = function (string $recipient, \Illuminate\Mail\Mailable $mailable, string $label) use ($order) {
                 try {
-                    \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')->to($recipient)->send($mailable);
-                    \Illuminate\Support\Facades\Log::info("{$label} sent successfully via smtp_ssl", ['order' => $order->order_number, 'to' => $recipient]);
+                    \Illuminate\Support\Facades\Mail::to($recipient)->send($mailable);
+                    \Illuminate\Support\Facades\Log::info("{$label} sent successfully", ['order' => $order->order_number, 'to' => $recipient]);
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning("{$label} failed on smtp_ssl: " . $e->getMessage(), ['order' => $order->order_number]);
+                    \Illuminate\Support\Facades\Log::warning("{$label} failed on default mailer: " . $e->getMessage(), ['order' => $order->order_number]);
                     try {
-                        \Illuminate\Support\Facades\Mail::to($recipient)->send($mailable);
-                        \Illuminate\Support\Facades\Log::info("{$label} sent successfully via default SMTP fallback", ['order' => $order->order_number, 'to' => $recipient]);
+                        \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')->to($recipient)->send($mailable);
+                        \Illuminate\Support\Facades\Log::info("{$label} sent successfully via smtp_ssl fallback", ['order' => $order->order_number, 'to' => $recipient]);
                     } catch (\Throwable $e2) {
-                        \Illuminate\Support\Facades\Log::error("{$label} failed on default SMTP fallback as well: " . $e2->getMessage(), ['order' => $order->order_number]);
+                        \Illuminate\Support\Facades\Log::error("{$label} failed on fallback as well: " . $e2->getMessage(), ['order' => $order->order_number]);
                     }
                 }
             };

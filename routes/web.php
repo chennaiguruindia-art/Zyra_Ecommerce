@@ -206,14 +206,27 @@ Route::get('/zyra-mail-test', function () {
     };
 
     $log[] = '🌐 TCP CONNECTIVITY (can the server reach these ports?):';
-    $log[] = '  smtp.gmail.com:465  → ' . ($canConnect('smtp.gmail.com', 465)       ? '✅ OPEN' : '❌ BLOCKED by GoDaddy');
-    $log[] = '  smtp.gmail.com:587  → ' . ($canConnect('smtp.gmail.com', 587)       ? '✅ OPEN' : '❌ BLOCKED by GoDaddy');
-    $log[] = '  mail.smtp2go.com:2525 → ' . ($canConnect('mail.smtp2go.com', 2525)  ? '✅ OPEN' : '❌ BLOCKED');
-    $log[] = '  mail.smtp2go.com:465  → ' . ($canConnect('mail.smtp2go.com', 465)   ? '✅ OPEN' : '❌ BLOCKED');
-    $log[] = '  mail.smtp2go.com:587  → ' . ($canConnect('mail.smtp2go.com', 587)   ? '✅ OPEN' : '❌ BLOCKED');
+    $log[] = '  mail.smtp2go.com:443  → ' . ($canConnect('mail.smtp2go.com', 443)   ? '✅ OPEN (Recommended)' : '❌ BLOCKED');
+    $log[] = '  mail.smtp2go.com:80   → ' . ($canConnect('mail.smtp2go.com', 80)    ? '✅ OPEN' : '❌ BLOCKED');
+    $log[] = '  mail.smtp2go.com:8025 → ' . ($canConnect('mail.smtp2go.com', 8025)  ? '✅ OPEN' : '❌ BLOCKED');
+    $log[] = '  mail.smtp2go.com:2525 → ' . ($canConnect('mail.smtp2go.com', 2525)  ? '✅ OPEN' : '❌ BLOCKED by GoDaddy');
+    $log[] = '  smtp.gmail.com:465    → ' . ($canConnect('smtp.gmail.com', 465)     ? '✅ OPEN' : '❌ BLOCKED by GoDaddy');
+    $log[] = '  smtp.gmail.com:587    → ' . ($canConnect('smtp.gmail.com', 587)     ? '✅ OPEN' : '❌ BLOCKED by GoDaddy');
     $log[] = '';
-    $log[] = '📬 Check inbox at: ' . $to;
-    $log[] = '📌 Any port marked ✅ OPEN can be used for sending email.';
+
+    // Actual live send test
+    $log[] = '✉️ ATTEMPTING LIVE SEND TEST:';
+    try {
+        $start = microtime(true);
+        \Illuminate\Support\Facades\Mail::raw('ZYRA Live Email delivery test via SMTP2GO at ' . now(), function ($msg) use ($to) {
+            $msg->to($to)
+                ->subject('✅ ZYRA Order Email Test – Delivery Confirmed ' . now()->format('d M H:i:s'));
+        });
+        $log[] = '  ✅ SUCCESS! Email delivered in ' . round(microtime(true) - $start, 2) . 's';
+        $log[] = '  📬 Check inbox at: ' . $to;
+    } catch (\Throwable $e) {
+        $log[] = '  ❌ FAILED: ' . $e->getMessage();
+    }
 
     return '<pre style="font-family:monospace;font-size:14px;padding:24px;background:#0d1117;color:#c9d1d9;line-height:1.8">'
          . implode("\n", $log)
