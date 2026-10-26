@@ -12,6 +12,7 @@ use App\Models\Subcategory;
 use App\Support\ProductImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 
 class SellerController extends Controller
 {
@@ -224,6 +225,69 @@ class SellerController extends Controller
         $product->save();
 
         return response()->json(['success' => true, 'product' => $product->fresh()->toCatalogArray()]);
+    }
+
+    /**
+     * Per-size restock: add incoming units to individual sizes.
+     * Payload: { quantities: { "S": 10, "M": 5, ... } }
+     * Sizes with 0 or missing qty are skipped.
+     */
+    public function restockSizes(Request $request, int $id)
+    {
+        $product = Product::query()->with('sizes')->findOrFail($id);
+
+        $data = Validator::make($request->all(), [
+            'quantities' => 'required|array|min:1',
+            'quantities.*' => 'nullable|integer|min:0|max:10000',
+        ])->validate();
+
+        $updated = [];
+        $totalAdded = 0;
+
+        foreach ($data['quantities'] as $sizeName => $qty) {
+            $qty = (int) $qty;
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $size = $product->sizes->first(fn ($s) => $s->name === $sizeName);
+            if (!$size) {
+                continue;
+            }
+
+            // Legacy sizes inherit the product-level stock bucket.
+            $current = $size->pivot->stock !== null ? (int) $size->pivot->stock : (int) $product->stock_units;
+            $newStock = $current + $qty;
+
+            $affected = $product->sizes()->updateExistingPivot($size->id, ['stock' => $newStock]);
+            if ($affected === 0) {
+                $product->sizes()->attach($size->id, ['stock' => $newStock]);
+            }
+
+            $updated[$sizeName] = $newStock;
+            $totalAdded += $qty;
+        }
+
+        if ($totalAdded === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Enter a restock quantity for at least one size.',
+            ], 422);
+        }
+
+        $product->stock_units = (int) $product->stock_units + $totalAdded;
+        $product->in_stock = true;
+        $product->save();
+
+        return response()->json([
+            'success' => true,
+            'added' => $totalAdded,
+            'updated' => $updated,
+            'message' => "Restocked {$totalAdded} unit(s): " . collect($updated)
+                ->map(fn ($stock, $size) => "{$size} → {$stock}")
+                ->implode(', '),
+            'product' => $product->fresh()->load(['category', 'subcategory', 'sizes', 'colors', 'images'])->toCatalogArray(),
+        ]);
     }
 
     public function updateOrderStatus(Request $request, $id)

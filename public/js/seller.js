@@ -1025,8 +1025,8 @@ window.ZyraSeller = {
                         ${isOut ? '<span class="badge bg-danger">Out of Stock</span>' : (isLow ? '<span class="badge bg-warning text-dark">Low Stock (' + p.stock_units + ')</span>' : '<span class="badge bg-success">Healthy Stock</span>')}
                     </td>
                     <td>
-                        <button type="button" class="btn btn-sm btn-outline-dark" onclick="ZyraSeller.updateStockQty(${p.id}, ${(p.stock_units || 0) + 20}); ZyraApp.showToast('Restocked +20 units for ${p.name}', 'success')">
-                            + Restock 20
+                        <button type="button" class="btn btn-sm btn-dark" onclick="ZyraSeller.openRestockModal(${p.id})">
+                            <i class="bi bi-box-arrow-in-down me-1"></i> Restock
                         </button>
                     </td>
                 </tr>
@@ -1034,6 +1034,214 @@ window.ZyraSeller = {
         });
 
         tableBody.innerHTML = html;
+    },
+
+    // =========================================================================
+    // PER-SIZE RESTOCK MODAL
+    // =========================================================================
+    restockProductId: null,
+
+    openRestockModal(id) {
+        const product = this.getProducts().find(p => p.id === parseInt(id));
+        if (!product) return;
+
+        this.restockProductId = product.id;
+
+        const title = document.getElementById('restockModalTitle');
+        const subtitle = document.getElementById('restockModalSubtitle');
+        const body = document.getElementById('restockModalBody');
+        const noSizes = document.getElementById('restockModalNoSizes');
+
+        if (title) title.textContent = product.name || 'Restock Product';
+        if (subtitle) subtitle.textContent = `SKU: ${product.sku || '-'} · ${product.category || ''}`;
+
+        const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+        const sizeStock = product.size_stock || {};
+
+        if (!sizes.length) {
+            if (body) body.innerHTML = '';
+            if (noSizes) noSizes.classList.remove('d-none');
+            const totalInput = document.getElementById('restockTotalUnits');
+            if (totalInput) {
+                totalInput.value = product.stock_units || 0;
+                totalInput.onchange = () => this.updateRestockTotals();
+                totalInput.oninput = () => this.updateRestockTotals();
+            }
+        } else {
+            if (noSizes) noSizes.classList.add('d-none');
+            let html = `
+                <div class="row fw-semibold text-muted text-uppercase border-bottom pb-2 mb-2 d-none d-sm-flex" style="font-size: .7rem; letter-spacing: .04em;">
+                    <div class="col-3">Size</div>
+                    <div class="col-3 text-center">In Stock</div>
+                    <div class="col-3 text-center">Add Qty</div>
+                    <div class="col-3 text-center">New Stock</div>
+                </div>
+            `;
+
+            sizes.forEach(size => {
+                // Size with explicit per-size stock shows it; otherwise it inherits the product total.
+                const current = sizeStock.hasOwnProperty(size) ? sizeStock[size] : (product.stock_units || 0);
+                html += `
+                    <div class="row g-2 align-items-center border-bottom py-2 restock-size-row" data-size="${size}" data-current="${current}">
+                        <div class="col-3">
+                            <span class="fw-bold badge bg-dark-subtle text-dark border px-2 py-1" style="font-size: .8rem;">${size}</span>
+                        </div>
+                        <div class="col-3 text-center small fw-semibold">${current}</div>
+                        <div class="col-3">
+                            <div class="stock-stepper mx-auto" style="max-width: 130px;">
+                                <button type="button" onclick="ZyraSeller.stepRestockQty(this, -1)">-</button>
+                                <input type="number" min="0" step="1" value="0" oninput="ZyraSeller.updateRestockTotals()">
+                                <button type="button" onclick="ZyraSeller.stepRestockQty(this, 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <span class="fw-bold new-stock text-success">${current}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Quick "+20 all sizes" shortcut
+            html += `
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="ZyraSeller.applyRestockAll(5)">+5 all sizes</button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="ZyraSeller.applyRestockAll(10)">+10 all sizes</button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="ZyraSeller.applyRestockAll(20)">+20 all sizes</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="ZyraSeller.applyRestockAll(0)">Clear</button>
+                </div>
+            `;
+
+            if (body) body.innerHTML = html;
+        }
+
+        this.updateRestockTotals();
+
+        const modalEl = document.getElementById('restockModal');
+        if (modalEl && window.bootstrap) {
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+    },
+
+    stepRestockQty(button, delta) {
+        const input = button.parentElement.querySelector('input');
+        if (!input) return;
+        input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
+        this.updateRestockTotals();
+    },
+
+    applyRestockAll(amount) {
+        document.querySelectorAll('#restockModalBody .restock-size-row input').forEach(input => {
+            input.value = Math.max(0, amount);
+        });
+        this.updateRestockTotals();
+    },
+
+    updateRestockTotals() {
+        let total = 0;
+        document.querySelectorAll('#restockModalBody .restock-size-row').forEach(row => {
+            const input = row.querySelector('input');
+            const current = parseInt(row.getAttribute('data-current')) || 0;
+            const add = Math.max(0, parseInt(input.value) || 0);
+            total += add;
+            const newStockEl = row.querySelector('.new-stock');
+            if (newStockEl) {
+                newStockEl.textContent = current + add;
+                newStockEl.classList.toggle('text-success', add > 0);
+                newStockEl.classList.toggle('text-muted', add === 0);
+            }
+        });
+
+        // No-sizes fallback: value replaces the total
+        const totalUnitsInput = document.getElementById('restockTotalUnits');
+        if (totalUnitsInput && !document.getElementById('restockModalNoSizes')?.classList.contains('d-none')) {
+            total = 0;
+        }
+
+        const el = document.getElementById('restockGrandTotal');
+        if (el) el.textContent = total;
+    },
+
+    saveRestock() {
+        const id = this.restockProductId;
+        if (!id) return;
+
+        const noSizesVisible = document.getElementById('restockModalNoSizes')
+            && !document.getElementById('restockModalNoSizes').classList.contains('d-none');
+
+        let payload = null;
+        let toastQty = 0;
+
+        if (noSizesVisible) {
+            const total = Math.max(0, parseInt(document.getElementById('restockTotalUnits')?.value) || 0);
+            if (total <= 0) {
+                ZyraApp.showToast('Enter a stock quantity greater than 0.', 'warning');
+                return;
+            }
+            payload = { stock_units: total, in_stock: total > 0 };
+            toastQty = total;
+        } else {
+            const quantities = {};
+            document.querySelectorAll('#restockModalBody .restock-size-row').forEach(row => {
+                const size = row.getAttribute('data-size');
+                const add = Math.max(0, parseInt(row.querySelector('input')?.value) || 0);
+                if (add > 0) quantities[size] = add;
+            });
+
+            if (!Object.keys(quantities).length) {
+                ZyraApp.showToast('Enter a restock quantity for at least one size.', 'warning');
+                return;
+            }
+            payload = { quantities };
+            toastQty = Object.values(quantities).reduce((a, b) => a + b, 0);
+        }
+
+        const btn = document.getElementById('restockSaveBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving…'; }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const url = noSizesVisible
+            ? `/seller/products/${id}/inventory`
+            : `/seller/products/${id}/restock`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json().then(data => ({ status: res.status, data })))
+        .then(({ status, data }) => {
+            if (status >= 400) {
+                const firstError = data.errors ? Object.values(data.errors)[0] : null;
+                ZyraApp.showToast(firstError ? firstError[0] : (data.message || 'Restock failed.'), 'danger');
+                return;
+            }
+
+            // Sync local cache with the server truth
+            let products = this.getProducts();
+            const index = products.findIndex(p => p.id === parseInt(id));
+            if (index > -1 && data.product) {
+                products[index] = { ...products[index], ...data.product };
+                this.saveProducts(products);
+            }
+
+            const modalEl = document.getElementById('restockModal');
+            if (modalEl && window.bootstrap) {
+                bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            }
+
+            ZyraApp.showToast(data.message || `Restocked ${toastQty} unit(s)!`, 'success');
+            this.detectPage();
+        })
+        .catch(() => {
+            ZyraApp.showToast('Could not reach the server. Please try again.', 'danger');
+        })
+        .finally(() => {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Save Restock'; }
+        });
     },
 
     salesViewMode: 'cards',
