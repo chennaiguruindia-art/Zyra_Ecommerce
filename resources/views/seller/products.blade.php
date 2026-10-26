@@ -13,7 +13,12 @@
 
 <div class="seller-page-header">
     <div>
-        <h1 class="h3 fw-bold mb-1">My Products Catalog</h1>
+        <h1 class="h3 fw-bold mb-1 d-flex align-items-center gap-2 flex-wrap">
+            My Products Catalog
+            <span id="sellerProductsTotalHeader" class="badge bg-dark px-3 py-2" style="font-size: 0.78rem;">
+                <i class="bi bi-box-seam me-1"></i>Total: …
+            </span>
+        </h1>
         <p class="text-muted mb-0">Manage pricing, availability, and details for all your women's fashion items.</p>
     </div>
     <a href="{{ route('seller.products.add') }}" class="btn btn-zyra-primary">

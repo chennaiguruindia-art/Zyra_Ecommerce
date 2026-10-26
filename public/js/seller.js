@@ -904,6 +904,7 @@ window.ZyraSeller = {
         if (!tableBody) return;
 
         let products = this.getProducts();
+        const totalCount = products.length;
 
         const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
         const cat = categoryFilter ? categoryFilter.value : 'all';
@@ -916,8 +917,19 @@ window.ZyraSeller = {
             products = products.filter(p => p.category.toLowerCase() === cat.toLowerCase());
         }
 
+        // Grand total next to the page title — always the full catalog size,
+        // never changed by the search box or category filter.
+        const headerCount = document.getElementById('sellerProductsTotalHeader');
+        if (headerCount) {
+            headerCount.innerHTML = '<i class="bi bi-box-seam me-1"></i>Total: ' + totalCount + ' Product' + (totalCount === 1 ? '' : 's');
+        }
+
+        // Toolbar badge shows what is currently visible in the table.
         if (countDisplay) {
-            countDisplay.textContent = `${products.length} Products`;
+            const isFiltered = products.length !== totalCount;
+            countDisplay.textContent = isFiltered
+                ? `${products.length} of ${totalCount} products`
+                : `${totalCount} product${totalCount === 1 ? '' : 's'}`;
         }
 
         if (products.length === 0) {
