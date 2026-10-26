@@ -84,6 +84,19 @@ const ZyraCart = {
         this.saveCart(cart);
         this.syncCartToServer();
 
+        // Meta Pixel – AddToCart
+        if (window.zyraMeta) {
+            window.zyraMeta.track('AddToCart', {
+                content_ids: [String(product.id)],
+                content_type: 'product',
+                content_name: product.name,
+                content_category: product.category || '',
+                contents: [{ id: String(product.id), quantity: qty, item_price: unitPrice }],
+                value: Math.round(unitPrice * qty * 100) / 100,
+                currency: 'INR'
+            });
+        }
+
         // Notify user
         if (window.ZyraApp) {
             window.ZyraApp.showToast(`"${product.name}" added to bag!`, 'success');

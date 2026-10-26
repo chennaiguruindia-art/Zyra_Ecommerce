@@ -37,6 +37,21 @@
         src="https://www.facebook.com/tr?id=2028244431374307&ev=PageView&noscript=1"
         /></noscript>
         <!-- End Meta Pixel Code -->
+
+        <!-- ZYRA Meta event helper -->
+        <script>
+        window.zyraMeta = window.zyraMeta || {
+            track(eventName, data, eventId) {
+                if (typeof fbq !== 'function') return false;
+                try {
+                    if (eventId) fbq('track', eventName, data || {}, { eventID: eventId });
+                    else fbq('track', eventName, data || {});
+                    return true;
+                } catch (e) { return false; }
+            },
+            purchaseEventId(orderNumber) { return 'zyra-purchase-' + orderNumber; }
+        };
+        </script>
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">

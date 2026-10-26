@@ -75,6 +75,29 @@
     src="https://www.facebook.com/tr?id=2028244431374307&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
+
+    <!-- ZYRA Meta event helper – every event passes through this wrapper so
+         Purchase can share an event id with the server side Conversions API. -->
+    <script>
+    window.zyraMeta = window.zyraMeta || {
+        track(eventName, data, eventId) {
+            if (typeof fbq !== 'function') return false;
+            try {
+                if (eventId) {
+                    fbq('track', eventName, data || {}, { eventID: eventId });
+                } else {
+                    fbq('track', eventName, data || {});
+                }
+                return true;
+            } catch (e) {
+                return false;
+            }
+        },
+        purchaseEventId(orderNumber) {
+            return 'zyra-purchase-' + orderNumber;
+        }
+    };
+    </script>
 </head>
 <body data-auth="{{ auth()->check() ? 'true' : 'false' }}">
 

@@ -636,5 +636,26 @@ select.ck-input { appearance: none; background-image: url("data:image/svg+xml,%3
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     window.ZYRA_SERVER_CART = JSON.parse(document.getElementById('zyraServerCart')?.dataset.cart || '[]');
+
+    // Meta Pixel – InitiateCheckout (once per checkout page view)
+    (function () {
+        var cart = window.ZYRA_SERVER_CART || [];
+        if (!cart.length || !window.zyraMeta) return;
+        var contents = cart.map(function (item) {
+            return {
+                id: String(item.id),
+                quantity: parseInt(item.quantity) || 1,
+                item_price: parseFloat(item.price) || 0
+            };
+        });
+        window.zyraMeta.track('InitiateCheckout', {
+            content_ids: contents.map(function (c) { return c.id; }),
+            content_type: 'product',
+            contents: contents,
+            value: {{ (float) ($cartTotal ?? 0) }},
+            currency: 'INR',
+            num_items: cart.reduce(function (sum, item) { return sum + (parseInt(item.quantity) || 1); }, 0)
+        });
+    })();
 </script>
 @endpush

@@ -13,6 +13,7 @@ use App\Services\ActivityTracker;
 use App\Services\PricingService;
 use App\Services\RazorpayService;
 use App\Services\ShiprocketService;
+use App\Support\MetaConversionsApi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -103,6 +104,10 @@ class CheckoutController extends Controller
 
         // Cash on Delivery: create the order directly.
         $order = $this->createDatabaseOrder($data, [], $request->input('notes'));
+
+        // Meta Conversions API – server side Purchase (deduplicated with the
+        // pixel on the success page via a shared event id).
+        MetaConversionsApi::purchase($request, $order);
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -215,6 +220,9 @@ class CheckoutController extends Controller
                 Log::warning('RazorpayTransaction update warning: ' . $e->getMessage());
             }
 
+            // Meta Conversions API – server side Purchase (Razorpay path).
+            MetaConversionsApi::purchase($request, $order);
+
             session()->forget('zyra_pending_order');
 
             return response()->json([
@@ -227,6 +235,7 @@ class CheckoutController extends Controller
             $existingOrder = Order::where('razorpay_order_id', $data['razorpay_order_id'])->first();
             if ($existingOrder) {
                 session()->forget(['cart', 'coupon', 'zyra_pending_order']);
+                MetaConversionsApi::purchase($request, $existingOrder);
                 return response()->json([
                     'success' => true,
                     'order_number' => $existingOrder->order_number,

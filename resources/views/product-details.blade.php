@@ -445,6 +445,17 @@
 @push('scripts')
 <script>
     window.ZYRA_CURRENT_PRODUCT = @json($product);
+
+    // Meta Pixel – ViewContent (product detail page)
+    window.zyraMeta && window.zyraMeta.track('ViewContent', {
+        content_ids: [String(@json($product['id'] ?? ''))],
+        content_type: 'product',
+        content_name: @json($product['name'] ?? ''),
+        content_category: @json($product['category'] ?? ''),
+        value: {{ (float) ($product['price'] ?? 0) }},
+        currency: 'INR'
+    });
+
     let selectedDupatta = true;
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.pd-dupatta-btn').forEach(btn => {

@@ -116,3 +116,33 @@
 </div>
 
 @endsection
+
+@push('scripts')
+@php
+    // Meta purchase payload (built server side; @json cannot handle deeply
+    // nested expressions inline, so it is precomputed here).
+    $purchasePayload = [
+        'value' => round((float) $totalAmount, 2),
+        'currency' => 'INR',
+        'order_id' => $orderNumber,
+        'content_type' => 'product',
+        'content_ids' => $items->map(fn ($it) => (string) ($it->product_id ?? $it->product_name))->values()->all(),
+        'contents' => $items->map(fn ($it) => [
+            'id' => (string) ($it->product_id ?? $it->product_name),
+            'quantity' => (int) $it->quantity,
+            'item_price' => round((float) $it->price, 2),
+        ])->values()->all(),
+        'num_items' => (int) $items->sum('quantity'),
+    ];
+@endphp
+<script>
+    // Meta Pixel – Purchase with the SAME event id the server sent to the
+    // Conversions API (zyra-purchase-{order_number}), so Meta merges both
+    // into a single deduplicated purchase. Refreshing this page re-uses the
+    // same id, so it never double counts.
+    (function () {
+        if (!window.zyraMeta) return;
+        window.zyraMeta.track('Purchase', @json($purchasePayload), window.zyraMeta.purchaseEventId(@json($orderNumber)));
+    })();
+</script>
+@endpush
