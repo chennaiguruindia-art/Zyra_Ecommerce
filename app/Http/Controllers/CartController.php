@@ -22,7 +22,17 @@ class CartController extends Controller
             'dupatta' => 'nullable|boolean',
         ]);
 
-        $product = Product::query()->with(['category', 'sizes', 'colors', 'images'])->findOrFail($data['product_id']);
+        // Bypass the visibility scope so hidden products get a clear 422
+        // message instead of a raw ModelNotFound 404.
+        $product = Product::query()
+            ->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)
+            ->with(['category', 'sizes', 'colors', 'images'])
+            ->find($data['product_id']);
+
+        if (!$product || !$product->is_visible) {
+            return response()->json(['success' => false, 'message' => 'This item is no longer available.'], 422);
+        }
+
         $qty = (int) ($data['quantity'] ?? 1);
         $size = $data['size'] ?? null;
         $withDupatta = filter_var($data['dupatta'] ?? true, FILTER_VALIDATE_BOOLEAN);
@@ -243,20 +253,31 @@ class CartController extends Controller
     public function resolvedCart(): array
     {
         $cart = array_values(session()->get('cart', []));
+        $visible = [];
 
-        foreach ($cart as &$item) {
+        foreach ($cart as $item) {
             $product = Product::query()->with(['images', 'category'])->find($item['id']);
-            if ($product) {
-                $dup = filter_var($item['dupatta'] ?? true, FILTER_VALIDATE_BOOLEAN);
-                $item['dupatta'] = $dup;
-                $item['price'] = $dup ? (float) $product->price : $product->withoutDupattaPrice();
-                $item['old_price'] = $product->old_price ? (float) $product->old_price : null;
-                $item['image'] = $product->image_url;
-                $item['name'] = $product->name;
+            // Product::query() applies the visibility scope: hidden products
+            // return null, so the line is dropped from the bag and the session.
+            if (!$product) {
+                continue;
             }
+
+            $dup = filter_var($item['dupatta'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $item['dupatta'] = $dup;
+            $item['price'] = $dup ? (float) $product->price : $product->withoutDupattaPrice();
+            $item['old_price'] = $product->old_price ? (float) $product->old_price : null;
+            $item['image'] = $product->image_url;
+            $item['name'] = $product->name;
+            $visible[] = $item;
         }
 
-        return $cart;
+        // Persist the cleanup so hidden items don't linger in the session.
+        if (count($visible) !== count($cart)) {
+            session(['cart' => array_values($visible)]);
+        }
+
+        return $visible;
     }
 
     public function update(Request $request)

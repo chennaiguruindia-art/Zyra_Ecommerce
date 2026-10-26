@@ -10,13 +10,16 @@ class ProductController extends Controller
 {
     public function show(string $idOrSlug)
     {
+        // Look up bypassing the visibility scope so a hidden product gets an
+        // explicit 404 instead of falling through to the legacy fallback.
         $productModel = Product::query()
+            ->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)
             ->with(['category', 'subcategory', 'sizes', 'colors', 'images'])
             ->when(is_numeric($idOrSlug), fn ($q) => $q->where('id', $idOrSlug), fn ($q) => $q->where('slug', $idOrSlug))
             ->first();
 
-        if (!$productModel) {
-            $productModel = Product::query()->with(['category', 'subcategory', 'sizes', 'colors', 'images'])->firstOrFail();
+        if (!$productModel || !$productModel->is_visible) {
+            abort(404);
         }
 
         $product = $productModel->toCatalogArray();

@@ -11,7 +11,7 @@ class GlobalSettingController extends Controller
 {
     public function index()
     {
-        $products = Product::query()->with('category')->orderBy('id')->get();
+        $products = Product::query()->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)->with('category')->orderBy('id')->get();
         $coupons = Coupon::query()->orderBy('code')->get();
 
         return view('global-setting', [
@@ -28,7 +28,7 @@ class GlobalSettingController extends Controller
             'value' => 'required|boolean',
         ])->validate();
 
-        $product = Product::query()->findOrFail((int) $data['product_id']);
+        $product = Product::query()->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)->findOrFail((int) $data['product_id']);
         $product->update([
             $data['field'] => filter_var($data['value'], FILTER_VALIDATE_BOOLEAN),
         ]);

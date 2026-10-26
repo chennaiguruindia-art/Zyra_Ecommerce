@@ -378,9 +378,18 @@ class CheckoutController extends Controller
         }
 
         foreach ($cartItems as $item) {
-            $product = Product::query()->find($item['id'] ?? 0);
+            // Bypass the visibility scope so hidden items are rejected with a
+            // clear message instead of being silently skipped.
+            $product = Product::query()
+                ->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)
+                ->find($item['id'] ?? 0);
             if (!$product) {
                 continue;
+            }
+            if (!$product->is_visible) {
+                $size = $item['size'] ?? null;
+                $label = $product->name . ($size ? " (size {$size})" : '');
+                abort(422, "{$label} is no longer available. Please remove it from your bag and try again.");
             }
             $size = $item['size'] ?? null;
             $qty = (int) ($item['quantity'] ?? 1);

@@ -35,7 +35,7 @@ class SellerController extends Controller
 
     public function editProduct(int $id)
     {
-        $product = Product::query()->with(['category', 'subcategory', 'sizes', 'colors', 'images'])->findOrFail($id);
+        $product = $this->panelProducts()->with(['category', 'subcategory', 'sizes', 'colors', 'images'])->findOrFail($id);
         $catalog = $product->toCatalogArray();
         $catalog['image_paths'] = $product->images->pluck('image_path')->values()->all();
         if (empty($catalog['image_paths']) && $product->image) {
@@ -102,7 +102,7 @@ class SellerController extends Controller
 
     public function apiProducts()
     {
-        $products = Product::query()
+        $products = $this->panelProducts()
             ->with(['category', 'subcategory', 'sizes', 'colors', 'images'])
             ->latest()
             ->get()
@@ -184,7 +184,7 @@ class SellerController extends Controller
 
     public function updateProduct(Request $request, int $id)
     {
-        $product = Product::query()->findOrFail($id);
+        $product = $this->panelProducts()->findOrFail($id);
         $data = $this->validateProduct($request, $product->id);
         $product = $this->persistProduct($product, $data, $request);
 
@@ -201,14 +201,14 @@ class SellerController extends Controller
 
     public function destroyProduct(int $id)
     {
-        Product::query()->findOrFail($id)->delete();
+        $this->panelProducts()->findOrFail($id)->delete();
 
         return response()->json(['success' => true, 'message' => 'Product removed.']);
     }
 
     public function updateInventory(Request $request, int $id)
     {
-        $product = Product::query()->findOrFail($id);
+        $product = $this->panelProducts()->findOrFail($id);
         if ($request->has('stock_units')) {
             $units = max(0, (int) $request->input('stock_units'));
             $product->stock_units = $units;
@@ -234,7 +234,7 @@ class SellerController extends Controller
      */
     public function restockSizes(Request $request, int $id)
     {
-        $product = Product::query()->with('sizes')->findOrFail($id);
+        $product = $this->panelProducts()->with('sizes')->findOrFail($id);
 
         $data = Validator::make($request->all(), [
             'quantities' => 'required|array|min:1',
@@ -399,11 +399,44 @@ class SellerController extends Controller
     protected function sellerStats(): array
     {
         return [
-            'productCount' => Product::count(),
-            'stockUnits' => (int) Product::sum('stock_units'),
-            'lowStock' => Product::where('stock_units', '<=', 5)->count(),
+            'productCount' => $this->panelProducts()->count(),
+            'stockUnits' => (int) $this->panelProducts()->sum('stock_units'),
+            'lowStock' => $this->panelProducts()->where('stock_units', '<=', 5)->count(),
             'revenue' => (float) Order::where('order_status', '!=', 'Cancelled')->sum('total'),
         ];
+    }
+
+    /**
+     * Product query for seller/admin panels. Bypasses the global
+     * ProductVisibleScope so products with visibility OFF remain fully
+     * manageable (listed, edited, restocked, deleted) in the panel.
+     */
+    protected function panelProducts(): \Illuminate\Database\Eloquent\Builder
+    {
+        return Product::query()->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class);
+    }
+
+    /**
+     * Toggle buyer-side visibility. The product stays in the DB and in the
+     * seller panel; it disappears from every buyer-facing surface.
+     */
+    public function toggleVisibility(Request $request, int $id)
+    {
+        $product = $this->panelProducts()->findOrFail($id);
+        $visible = $request->has('is_visible')
+            ? $request->boolean('is_visible')
+            : !$product->is_visible;
+
+        $product->is_visible = $visible;
+        $product->save();
+
+        return response()->json([
+            'success' => true,
+            'is_visible' => (bool) $product->is_visible,
+            'message' => $product->is_visible
+                ? '"' . $product->name . '" is now visible to buyers.'
+                : '"' . $product->name . '" is now hidden from buyers.',
+        ]);
     }
 
     protected function validateProduct(Request $request, ?int $ignoreId = null): array

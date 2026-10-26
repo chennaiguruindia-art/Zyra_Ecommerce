@@ -330,6 +330,51 @@ window.ZyraSeller = {
         }
     },
 
+    /**
+     * Buyer-side visibility toggle. The product stays in the DB and in this
+     * panel; hidden products are excluded from every storefront surface.
+     */
+    toggleVisibility(id) {
+        let products = this.getProducts();
+        const product = products.find(p => p.id === parseInt(id));
+        if (!product) return;
+
+        const newState = !(product.is_visible !== false);
+        product.is_visible = newState;
+        this.saveProducts(products);
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        fetch(`/seller/products/${id}/visibility`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ is_visible: newState })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (window.ZyraApp) {
+                    window.ZyraApp.showToast(
+                        data.message || (newState ? 'Product is now visible to buyers.' : 'Product is now hidden from buyers.'),
+                        newState ? 'success' : 'info'
+                    );
+                }
+            })
+            .catch(() => {
+                // Roll back the optimistic flip if the server call failed.
+                product.is_visible = !newState;
+                this.saveProducts(products);
+                this.detectPage();
+                if (window.ZyraApp) {
+                    window.ZyraApp.showToast('Could not update visibility. Please try again.', 'danger');
+                }
+            });
+
+        this.detectPage();
+    },
+
     updateStockQty(id, newQty) {
         let products = this.getProducts();
         const product = products.find(p => p.id === parseInt(id));
@@ -971,8 +1016,9 @@ window.ZyraSeller = {
                     <td>${statusBadge}</td>
                     <td>
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" ${p.stock ? 'checked' : ''} onchange="ZyraSeller.toggleStock(${p.id})">
+                            <input class="form-check-input" type="checkbox" role="switch" ${p.is_visible !== false ? 'checked' : ''} onchange="ZyraSeller.toggleVisibility(${p.id})" title="${p.is_visible !== false ? 'Visible to buyers – click to hide' : 'Hidden from buyers – click to show'}">
                         </div>
+                        <div class="small ${p.is_visible !== false ? 'text-muted' : 'text-danger'} mt-1">${p.is_visible !== false ? 'Visible' : 'Hidden'}</div>
                     </td>
                     <td class="text-end">
                         <div class="btn-group btn-group-sm">

@@ -64,6 +64,7 @@ Route::prefix('seller')->name('seller.')->middleware(['auth', 'seller'])->group(
     Route::post('/products/{id}/delete', [SellerController::class, 'destroyProduct'])->name('products.destroy');
     Route::post('/products/{id}/inventory', [SellerController::class, 'updateInventory'])->name('products.inventory');
     Route::post('/products/{id}/restock', [SellerController::class, 'restockSizes'])->name('products.restock');
+    Route::post('/products/{id}/visibility', [SellerController::class, 'toggleVisibility'])->name('products.visibility');
     Route::post('/orders/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('orders.status');
     Route::post('/orders/{id}/tracking', [SellerController::class, 'updateOrderTracking'])->name('orders.tracking');
 

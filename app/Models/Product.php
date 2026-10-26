@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\ProductVisibleScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,13 +16,14 @@ class Product extends Model
 
     protected $fillable = [
         'category_id', 'subcategory_id', 'name', 'slug', 'sku', 'price', 'old_price',
-        'discount', 'stock_units', 'in_stock', 'image', 'material', 'fit', 'care',
+        'discount', 'stock_units', 'in_stock', 'is_visible', 'image', 'material', 'fit', 'care',
         'description', 'badge', 'is_featured', 'is_best_seller', 'is_trending',
         'dupatta_enabled', 'rating', 'reviews_count', 'weight',
     ];
 
     protected $casts = [
         'in_stock' => 'boolean',
+        'is_visible' => 'boolean',
         'is_featured' => 'boolean',
         'is_best_seller' => 'boolean',
         'is_trending' => 'boolean',
@@ -34,6 +37,15 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Hide products with visibility OFF from every default query.
+     * Seller/admin panels call withoutGlobalScope(ProductVisibleScope::class).
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new ProductVisibleScope);
     }
 
     public function subcategory(): BelongsTo
@@ -160,6 +172,12 @@ class Product extends Model
         return $query->where('in_stock', true);
     }
 
+    /** Explicit visible filter (redundant with the global scope, handy for clarity). */
+    public function scopeVisible(Builder $query): Builder
+    {
+        return $query->where('is_visible', true);
+    }
+
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
@@ -203,6 +221,7 @@ class Product extends Model
             'size_stock' => $this->size_stock,
             'badge' => $this->badge ?? '',
             'stock' => (bool) $this->in_stock,
+            'is_visible' => (bool) $this->is_visible,
             'stock_units' => (int) $this->stock_units,
             'sku' => $this->sku,
             'material' => $this->material,

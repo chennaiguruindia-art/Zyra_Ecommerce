@@ -16,7 +16,7 @@ class ActivityAnalyticsController extends Controller
     public function index()
     {
         return view('seller.customer-activity', [
-            'filterProducts' => Product::query()->select(['id', 'name'])->orderBy('name')->get(),
+            'filterProducts' => Product::query()->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)->select(['id', 'name'])->orderBy('name')->get(),
             'filterCategories' => Category::query()->select(['id', 'name'])->orderBy('name')->get(),
             'filterSizes' => Size::query()->select(['name'])->orderBy('sort_order')->get(),
             'filterColors' => Color::query()->select(['name'])->orderBy('name')->get(),
@@ -125,7 +125,11 @@ class ActivityAnalyticsController extends Controller
             $q->where('customer_activities.product_id', $f['product_id']);
         }
         if ($f['category_id']) {
-            $q->whereHas('product', fn ($p) => $p->where('category_id', $f['category_id']));
+            // withoutGlobalScope: historical activity of products that are now
+            // hidden must still be counted in the seller analytics.
+            $q->whereHas('product', fn ($p) => $p
+                ->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)
+                ->where('category_id', $f['category_id']));
         }
         if ($f['size']) {
             $q->where('customer_activities.size', $f['size']);
