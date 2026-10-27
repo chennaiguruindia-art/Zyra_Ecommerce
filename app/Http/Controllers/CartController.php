@@ -370,6 +370,13 @@ class CartController extends Controller
             ], 422);
         }
 
+        if ($coupon->hasBeenUsedBy(Auth::id())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already used "' . $coupon->code . '". Each coupon code can be used only once per customer.',
+            ], 422);
+        }
+
         if (!$coupon->isValidFor($subtotal, Auth::id())) {
             return response()->json([
                 'success' => false,

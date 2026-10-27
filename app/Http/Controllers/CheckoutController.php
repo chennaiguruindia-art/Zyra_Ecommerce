@@ -95,6 +95,23 @@ class CheckoutController extends Controller
     {
         $data = $this->validatedOrderData($request);
 
+        // Reject a coupon that is no longer redeemable (already used by this
+        // customer, expired, below minimum, …) before any payment starts, so
+        // the shopper never silently pays full price while believing the
+        // discount still applies.
+        $postedCode = strtoupper(trim((string) ($data['coupon_code'] ?? '')));
+        if ($postedCode !== '') {
+            $probe = app(PricingService::class)->breakdown($postedCode, Auth::id());
+            if ($probe['coupon_code'] === null) {
+                $coupon = Coupon::query()->where('code', $postedCode)->first();
+                $message = $coupon && $coupon->hasBeenUsedBy(Auth::id())
+                    ? 'You have already used "' . $postedCode . '". Each coupon code can be used only once per customer.'
+                    : 'The coupon "' . $postedCode . '" cannot be applied to this order. Remove it and try again.';
+
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+        }
+
         $paymentMethod = $data['payment_method'];
 
         // Online payments: create a Razorpay order and defer DB order creation until payment is verified.

@@ -52,10 +52,12 @@ class PricingService
         $discount = 0.0;
         $normalized = strtoupper(trim((string) ($couponCode ?? '')));
         $coupon = null;
+        $applied = false;
 
         if ($normalized !== '') {
             $coupon = Coupon::query()->where('code', $normalized)->first();
             if ($coupon && $coupon->isValidFor($subtotal, $userId)) {
+                $applied = true;
                 $discount = (float) $coupon->calculateDiscount($subtotal);
             }
         }
@@ -69,7 +71,9 @@ class PricingService
             'discount' => round($discount, 2),
             'gst' => $gst,
             'total' => round($total, 2),
-            'coupon_code' => $normalized !== '' && $coupon ? $normalized : null,
+            // Only a coupon that passed validation is recorded on the order;
+            // an invalid/already-used code must not be stored or counted.
+            'coupon_code' => $applied ? $normalized : null,
             'coupon' => $coupon,
             'receipt' => Order::generateOrderNumber(),
             'line_items' => $lineItems,

@@ -35,7 +35,30 @@ class Coupon extends Model
             if ($hasOrder) return false;
         }
 
+        // Single-use per customer: a coupon code may be redeemed only once
+        // per user. Past orders count and a cancelled order does not free it.
+        if ($this->hasBeenUsedBy($userId)) {
+            return false;
+        }
+
         return true;
+    }
+
+    /**
+     * Has this user already redeemed this coupon code on any past order?
+     * Orders store both coupon_code and user_id, so history is the source
+     * of truth (covers orders placed before this rule existed).
+     */
+    public function hasBeenUsedBy(?int $userId): bool
+    {
+        if (!$userId) {
+            return false;
+        }
+
+        return \App\Models\Order::query()
+            ->where('user_id', $userId)
+            ->where('coupon_code', $this->code)
+            ->exists();
     }
 
     public function calculateDiscount(float $subtotal): float

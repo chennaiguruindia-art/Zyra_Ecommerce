@@ -90,6 +90,13 @@ class CouponController extends Controller
             }
         }
 
+        if ($coupon->hasBeenUsedBy(Auth::id())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already used "' . $coupon->code . '". Each coupon code can be used only once per customer.',
+            ], 422);
+        }
+
         if ($coupon->start_date && \Carbon\Carbon::now()->lt($coupon->start_date)) {
             return response()->json([
                 'success' => false,
