@@ -15,7 +15,7 @@
         ],
         [
             'question' => "What is ZYRA's Return and Exchange policy?",
-            'answer' => "We have a 30-day return policy. To be eligible for a return, your item must be unused, unworn, with tags, and in original packaging along with proof of purchase. Contact us at order@shopwithzyra.in to start a return. At Zyra we do not offer returns for products once sold and delivered, but we do provide size exchanges for eligible domestic orders raised within 24-48 hours of delivery, provided the product is unused, unwashed, unworn, and in original condition with tags, packing and accessories intact."
+            'answer' => "We do not offer cash refunds. If you ordered the wrong size or the wrong item, we will exchange it for eligible domestic orders raised within 24-48 hours of delivery, provided the product is unused, unwashed, unworn and in original condition with tags, packing and accessories intact. Exchanges are settled by adjusting the value of what you send back against what you receive: you pay the difference on a higher-priced item, and any difference on a lower-priced item is not refunded. Purchases made during a sale, a promotion, or with a discount or coupon code are not eligible for exchange, return or refund."
         ],
         [
             'question' => 'Is Cash on Delivery (COD) available?',
@@ -80,45 +80,45 @@
                     <div id="collapseReturns" class="accordion-collapse collapse" aria-labelledby="headingReturns" data-bs-parent="#zyraFaqAccordion">
                         <div class="accordion-body text-muted small leading-relaxed">
 
-                            <p class="fw-bold text-dark">Return Policy</p>
-                            <p>We have a <strong>30-day return policy</strong>, which means you have 30 days after receiving your item to request a return.</p>
-                            <p>To be eligible for a return, your item must be in the same condition that you received it, unworn or unused, with tags, and in its original packaging. You'll also need the receipt or proof of purchase.</p>
-                            <p>To start a return, you can contact us at <strong><a href="mailto:order@shopwithzyra.in" class="text-decoration-underline">order@shopwithzyra.in</a></strong>. Please note that returns will need to be sent to the following address: <em>[INSERT RETURN ADDRESS]</em></p>
-                            <p>If your return is accepted, we'll send you a return shipping label, as well as instructions on how and where to send your package. Items sent back to us without first requesting a return will not be accepted.</p>
-                            <p>You can always contact us for any return question at <strong><a href="mailto:order@shopwithzyra.in" class="text-decoration-underline">order@shopwithzyra.in</a></strong>.</p>
+                            <div class="alert alert-light border-start border-warning border-3 rounded-3 mb-3">
+                                <p class="fw-bold text-dark mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> The short version</p>
+                                <p class="mb-0"><strong>We do not offer cash refunds of any kind.</strong> If you ordered the wrong size or the wrong item, we will exchange it for you — but the money does not come back, by cash, card, UPI or bank transfer.</p>
+                            </div>
 
-                            <p class="fw-bold text-dark mt-3">Damages and Issues</p>
-                            <p>Please inspect your order upon reception and contact us immediately if the item is defective, damaged or if you receive the wrong item, so that we can evaluate the issue and make it right.</p>
+                            <p class="fw-bold text-dark">What You Can Ask For</p>
+                            <ul class="mb-0">
+                                <li><strong>A size exchange</strong> — the wrong size for the right one, on eligible domestic orders.</li>
+                                <li><strong>An item exchange</strong> — a different product, of equal or higher value.</li>
+                            </ul>
 
-                            <p class="fw-bold text-dark mt-3">Exceptions / Non-Returnable Items</p>
-                            <p>Certain types of items cannot be returned, like perishable goods (such as food, flowers, or plants), custom products (such as special orders or personalized items), and personal care goods (such as beauty products). We also do not accept returns for hazardous materials, flammable liquids, or gases. Please get in touch if you have questions or concerns about your specific item.</p>
-                            <p>Unfortunately, we cannot accept returns on sale items or gift cards.</p>
+                            <p class="fw-bold text-dark mt-3">How the Price Difference Works</p>
+                            <p>An exchange is settled by adjusting the value of what you send back against what you receive. No part of the purchase price is returned to you.</p>
+                            <ul>
+                                <li><strong>Exchanging for a higher-priced item?</strong> You pay the difference before the replacement is dispatched.</li>
+                                <li><strong>Exchanging for a lower-priced item?</strong> The difference is <strong>forfeited</strong> — it is not refunded and not carried forward as store credit.</li>
+                            </ul>
+                            <p class="mb-0">For example, suppose you buy a product for <strong>₹10</strong> and realise afterwards that it is the wrong choice. You may still exchange it. A <strong>₹10</strong> replacement settles the exchange at exactly nothing more to pay. A <strong>₹15</strong> replacement means paying <strong>₹5</strong> more. A <strong>₹8</strong> replacement leaves <strong>₹2 with us — and that ₹2 is not refunded</strong>.</p>
 
-                            <p class="fw-bold text-dark mt-3">Exchanges</p>
-                            <p>The fastest way to ensure you get what you want is to return the item you have, and once the return is accepted, make a separate purchase for the new item.</p>
+                            <p class="fw-bold text-dark mt-3">Exchange Eligibility</p>
+                            <ul class="mb-0">
+                                <li>The exchange request must be raised within <strong>24–48 hours of delivery</strong>.</li>
+                                <li>The product must be unused, unwashed, unworn, and free from stains, perfume, makeup or damage.</li>
+                                <li>Returned in original condition with tags, packing &amp; accessories (if any) intact.</li>
+                                <li>Products purchased during a <strong>SALE</strong>, a promotional campaign, or using a discount or coupon code are <strong>not eligible</strong> for exchange, return or refund.</li>
+                            </ul>
 
-                            <p class="fw-bold text-dark mt-3">European Union 14-Day Cooling Off Period</p>
-                            <p>Notwithstanding the above, if the merchandise is being shipped into the European Union, you have the right to cancel or return your order within 14 days, for any reason and without a justification. As above, your item must be in the same condition that you received it, unworn or unused, with tags, and in its original packaging. You'll also need the receipt or proof of purchase.</p>
+                            <p class="fw-bold text-dark mt-3">How to Start an Exchange</p>
+                            <p>Email <strong><a href="mailto:order@shopwithzyra.in" class="text-decoration-underline">order@shopwithzyra.in</a></strong> or call <strong><a href="tel:+919884125555" class="text-decoration-underline">+91 98841 25555</a></strong> with your Order ID, within the window above. We will confirm whether the item qualifies and send you the <strong>return address and packing instructions</strong> at that point. Items sent back without first requesting an exchange will not be accepted, and you are responsible for getting the parcel to us safely.</p>
 
-                            <p class="fw-bold text-dark mt-3">Refunds</p>
-                            <p>We will notify you once we've received and inspected your return, and let you know if the refund was approved or not. If approved, you'll be automatically refunded on your original payment method within <strong>10 business days</strong>. Please remember it can take some time for your bank or credit card company to process and post the refund too.</p>
-                            <p>If more than <strong>15 business days</strong> have passed since we've approved your return, please contact us at <strong><a href="mailto:order@shopwithzyra.in" class="text-decoration-underline">order@shopwithzyra.in</a></strong>.</p>
+                            <p class="fw-bold text-dark mt-3">Damages and Wrong Items Received</p>
+                            <p class="mb-0">Please inspect your order as soon as it arrives. If an item reaches you defective, damaged, or simply not what you ordered, contact us immediately and we will put it right. That case is <strong>not</strong> treated as an exchange, and there is no cost to you.</p>
 
-                            <hr>
-
-                            <p class="fw-bold text-dark">Returns &amp; Exchange — ZYRA Policy</p>
-                            <p>At Zyra, we strive to provide premium-quality products and a seamless shopping experience for our customers worldwide. Every product listing is carefully curated with detailed descriptions, sizing information, fabric details, and care instructions to help customers make informed purchasing decisions. All orders undergo multiple quality inspections before dispatch to ensure they reach you in excellent condition. Please read our policy carefully before placing order.</p>
-                            <ol class="mb-0">
-                                <li><strong>Return Policy.</strong> At this time, we do not offer returns for products once sold and delivered. However, we do provide <strong>size exchanges</strong> for eligible domestic orders subject to the conditions mentioned below.</li>
-                                <li><strong>Exchange Eligibility.</strong>
-                                    <ul class="mt-1">
-                                        <li>The exchange request must be raised within <strong>24–48 hours of delivery</strong>.</li>
-                                        <li>The product must be unused, unwashed, unworn, free from stains, perfume, makeup or damage.</li>
-                                        <li>Returned in original condition with tags, packing &amp; accessories (if any) intact.</li>
-                                        <li>Products purchased during SALE, promotional campaigns, or using discount/coupon codes are not eligible for exchange, return, or refund.</li>
-                                    </ul>
-                                </li>
-                            </ol>
+                            <p class="fw-bold text-dark mt-3">What Cannot Be Exchanged</p>
+                            <ul class="mb-0">
+                                <li>Sale items, and anything bought with a discount or coupon code.</li>
+                                <li>Items that have been worn, washed, altered or damaged after delivery.</li>
+                                <li>Items raised for exchange after the 24–48 hour window has closed.</li>
+                            </ul>
 
                         </div>
                     </div>
