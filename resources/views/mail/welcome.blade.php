@@ -21,7 +21,7 @@
                     <!-- Body -->
                     <tr>
                         <td style="padding:36px 32px;">
-                            <h1 style="margin:0 0 12px; font-size:22px; color:#18181b;">Namaste, {{ $name }}! 💛</h1>
+                            <h1 style="margin:0 0 12px; font-size:22px; color:#18181b;">Hii, {{ $name }}! 💛</h1>
                             <p style="margin:0 0 16px; font-size:15px; color:#52525b; line-height:1.6;">
                                 Your ZYRA Lifestyle account has been created successfully. We're so happy to have you!
                             </p>

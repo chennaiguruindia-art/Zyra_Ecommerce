@@ -151,6 +151,25 @@ class Product extends Model
         }
     }
 
+    /**
+     * Return previously decremented units to a size bucket (order cancellation).
+     * No-op when per-size stock is not configured, mirroring decrementSizeStock.
+     */
+    public function incrementSizeStock(?string $size, int $qty): void
+    {
+        if (!$size || $qty <= 0) {
+            return;
+        }
+
+        foreach ($this->sizes as $s) {
+            if ($s->name === $size && $s->pivot->stock !== null) {
+                $newStock = (int) $s->pivot->stock + $qty;
+                $this->sizes()->updateExistingPivot($s->id, ['stock' => $newStock]);
+                return;
+            }
+        }
+    }
+
     public function getGalleryUrlsAttribute(): array
     {
         return $this->images->map(function ($img) {

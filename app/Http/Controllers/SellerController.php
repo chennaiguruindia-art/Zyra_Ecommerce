@@ -301,6 +301,24 @@ class SellerController extends Controller
             'status' => 'required|in:Pending,Processing,Shipped,Delivered,Cancelled',
         ])->validate()['status'];
 
+        // Cancelling must go through cancelOrder() so the stock restore and
+        // buyer email always happen — never set Cancelled directly here.
+        if ($status === 'Cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Use the cancel endpoint to cancel an order.',
+            ], 422);
+        }
+
+        // A cancelled order has already returned its stock; reactivating it
+        // through this endpoint would leave inventory short. Keep it final.
+        if ($order->order_status === 'Cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This order was cancelled and its stock was restored. It cannot be moved to another status.',
+            ], 422);
+        }
+
         $oldStatus = $order->order_status;
         $order->update(['order_status' => $status]);
 
@@ -310,6 +328,78 @@ class SellerController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Cancel an order before dispatch (Pending / In Packing only).
+     *
+     * Restores the reserved stock (product total + per-size buckets) and
+     * notifies the buyer. Once shipped, an order can no longer be cancelled
+     * from here — the courier return has to be handled separately.
+     */
+    public function cancelOrder(Request $request, $id)
+    {
+        $order = Order::query()->with('items')
+            ->where('id', $id)
+            ->orWhere('order_number', $id)
+            ->firstOrFail();
+
+        // Idempotent: cancelling an already-cancelled order is a no-op success.
+        if ($order->order_status === 'Cancelled') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Order is already cancelled.',
+                'order_status' => 'Cancelled',
+            ]);
+        }
+
+        if (!in_array($order->order_status, ['Pending', 'Processing'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Only new or in-packing orders can be cancelled. This order is {$order->order_status}.",
+            ], 422);
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
+            // Return every unit this order reserved so it goes back on sale.
+            // Hidden products are included: the visibility scope must not block
+            // a stock correction.
+            foreach ($order->items as $item) {
+                if (!$item->product_id || $item->quantity <= 0) {
+                    continue;
+                }
+
+                $product = Product::query()
+                    ->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)
+                    ->with('sizes')
+                    ->find($item->product_id);
+
+                if (!$product) {
+                    continue; // Product deleted since purchase — nothing to restore.
+                }
+
+                $restored = (int) $product->stock_units + (int) $item->quantity;
+                $product->update([
+                    'stock_units' => $restored,
+                    'in_stock' => $restored > 0,
+                ]);
+
+                $product->incrementSizeStock($item->size, (int) $item->quantity);
+            }
+
+            $order->update(['order_status' => 'Cancelled']);
+        });
+
+        // Tell the buyer their order was cancelled (template subject handles 'cancelled').
+        if (!empty($order->customer_email)) {
+            $this->sendFulfillmentEmail($order, 'status_updated', 'Cancelled', $order->awb_code, $order->courier_name);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order cancelled. Stock restored and the customer has been notified.',
+            'order_status' => 'Cancelled',
+        ]);
     }
 
     public function updateOrderTracking(Request $request, $id)

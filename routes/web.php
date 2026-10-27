@@ -67,6 +67,7 @@ Route::prefix('seller')->name('seller.')->middleware(['auth', 'seller'])->group(
     Route::post('/products/{id}/visibility', [SellerController::class, 'toggleVisibility'])->name('products.visibility');
     Route::post('/orders/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('orders.status');
     Route::post('/orders/{id}/tracking', [SellerController::class, 'updateOrderTracking'])->name('orders.tracking');
+    Route::post('/orders/{id}/cancel', [SellerController::class, 'cancelOrder'])->name('orders.cancel');
 
     Route::get('/activity', [ActivityAnalyticsController::class, 'index'])->name('activity');
     Route::get('/activity/data', [ActivityAnalyticsController::class, 'data'])->name('activity.data');

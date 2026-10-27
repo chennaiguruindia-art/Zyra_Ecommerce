@@ -31,6 +31,10 @@
                                 <p style="margin:0 0 18px; font-size:15px; color:#52525b; line-height:1.6;">
                                     Your order <strong style="color:#18181b;">{{ $orderNumber }}</strong> has been delivered. We hope you love your new ZYRA pieces! ✨
                                 </p>
+                            @elseif(strtolower($status) === 'cancelled')
+                                <p style="margin:0 0 18px; font-size:15px; color:#52525b; line-height:1.6;">
+                                    Your order <strong style="color:#18181b;">{{ $orderNumber }}</strong> has been cancelled. We're sorry for the inconvenience — if you have already made a payment, it will be refunded shortly. 🙏
+                                </p>
                             @else
                                 <p style="margin:0 0 18px; font-size:15px; color:#52525b; line-height:1.6;">
                                     There is an update on your order <strong style="color:#18181b;">{{ $orderNumber }}</strong>.
@@ -69,7 +73,7 @@
                                             @endif
                                         </table>
 
-                                        @if(!empty($trackingUrl))
+                                        @if(!empty($trackingUrl) && strtolower($status) !== 'cancelled')
                                         <div style="text-align:center; padding-top:18px;">
                                             <a href="{{ $trackingUrl }}" style="display:inline-block; background:#7D1D32; color:#ffffff; text-decoration:none; font-size:14px; font-weight:700; padding:12px 28px; border-radius:8px; letter-spacing:0.4px;">
                                                 Track Your Package &rarr;

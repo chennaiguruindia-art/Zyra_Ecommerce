@@ -509,6 +509,53 @@ window.ZyraSeller = {
             });
     },
 
+    cancelOrderPrompt(dbId, orderDisplayId) {
+        const confirmed = confirm(
+            `Cancel order ${orderDisplayId}?\n\n` +
+            `• The reserved stock will be added back to inventory\n` +
+            `• The customer will be emailed about the cancellation\n\n` +
+            `This cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        this.cancelOrder(dbId, orderDisplayId);
+    },
+
+    cancelOrder(dbId, orderDisplayId) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        fetch(`/seller/orders/${dbId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({})
+        })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    let orders = this.getOrders();
+                    const order = orders.find(o => (o.db_id || o.id) == dbId || o.id === orderDisplayId);
+                    if (order) {
+                        order.status = 'Cancelled';
+                        localStorage.setItem(this.ORDERS_KEY, JSON.stringify(orders));
+                    }
+                    if (window.ZyraApp) {
+                        window.ZyraApp.showToast(`Order ${orderDisplayId} cancelled — stock restored, customer notified.`, 'success');
+                    }
+                    this.syncSidebarBadges();
+                    this.renderNewOrdersPage();
+                    this.renderSalesPage();
+                } else {
+                    if (window.ZyraApp) window.ZyraApp.showToast(result.message || 'Could not cancel this order.', 'danger');
+                }
+            })
+            .catch(() => {
+                if (window.ZyraApp) window.ZyraApp.showToast('Could not cancel this order.', 'danger');
+            });
+    },
+
     updateOrderStatus(orderId, newStatus) {
         let orders = this.getOrders();
         const order = orders.find(o => o.id === orderId);
@@ -1359,6 +1406,8 @@ window.ZyraSeller = {
             statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-truck me-1"></i>Dispatched</span>';
         } else if (statusLower === 'delivered') {
             statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1"><i class="bi bi-check-circle me-1"></i>Delivered</span>';
+        } else if (statusLower === 'cancelled') {
+            statusBadge = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1"><i class="bi bi-x-circle me-1"></i>Cancelled</span>';
         }
 
         const streetAddr = o.shipping_address || '';
@@ -1378,6 +1427,9 @@ window.ZyraSeller = {
                         <button type="button" class="btn btn-outline-success d-flex align-items-center justify-content-center gap-2 py-2" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}')">
                             <i class="bi bi-truck fs-6"></i> Packed &amp; Dispatch
                         </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center gap-1" onclick="ZyraSeller.cancelOrderPrompt('${o.db_id || o.id}', '${o.id}')">
+                            <i class="bi bi-x-circle"></i> Cancel Order
+                        </button>
                     </div>
                 `;
             } else if (statusLower === 'processing') {
@@ -1388,6 +1440,9 @@ window.ZyraSeller = {
                         </button>
                         <button type="button" class="btn btn-sm btn-light border text-muted d-flex align-items-center justify-content-center gap-1" onclick="ZyraSeller.updateOrderStatus('${o.id}', 'Pending')">
                             <i class="bi bi-arrow-counterclockwise"></i> Move back to New Orders
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center gap-1" onclick="ZyraSeller.cancelOrderPrompt('${o.db_id || o.id}', '${o.id}')">
+                            <i class="bi bi-x-circle"></i> Cancel Order
                         </button>
                     </div>
                 `;
@@ -1409,6 +1464,14 @@ window.ZyraSeller = {
                         </button>
                     </div>
                 `;
+            } else if (statusLower === 'cancelled') {
+                actionsBlock = `
+                    <div class="text-center py-2">
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle p-2">
+                            <i class="bi bi-x-circle me-1"></i>Cancelled — Stock Restored
+                        </span>
+                    </div>
+                `;
             } else {
                 actionsBlock = `
                     <div class="text-center py-2">
@@ -1423,11 +1486,12 @@ window.ZyraSeller = {
             actionsBlock = `
                 <div class="mb-2">
                     <label class="form-label small text-muted mb-1 fw-semibold">Status:</label>
-                    <select class="form-select form-select-sm fw-bold border-secondary-subtle" onchange="ZyraSeller.updateOrderStatus('${o.id}', this.value)">
+                    <select class="form-select form-select-sm fw-bold border-secondary-subtle" onchange="ZyraSeller.updateOrderStatus('${o.id}', this.value)" ${o.status === 'Cancelled' ? 'disabled' : ''}>
                         <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>⏳ Pending (New Order)</option>
                         <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>📦 In Packing (Processing)</option>
                         <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>🚚 Dispatched (Shipped)</option>
                         <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>✅ Delivered</option>
+                        <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
                     </select>
                 </div>
                 <div class="tracking-box p-2 bg-light rounded border border-light-subtle">
@@ -1585,7 +1649,10 @@ window.ZyraSeller = {
             );
         }
 
-        const totalSales = allOrders.reduce((acc, o) => acc + (o.total || 0), 0);
+        // Revenue excludes cancelled orders, matching the backend analytics rule.
+        const totalSales = allOrders
+            .filter(o => (o.status || '').toLowerCase() !== 'cancelled')
+            .reduce((acc, o) => acc + (o.total || 0), 0);
         const elRev = document.getElementById('salesTotalRevenue');
         const elOrders = document.getElementById('salesTotalOrders');
         const elDelivered = document.getElementById('salesDeliveredOrders');
@@ -1664,11 +1731,12 @@ window.ZyraSeller = {
                             <td><small class="text-muted">${o.payment}</small></td>
                             <td><small class="text-muted">${o.date}</small></td>
                             <td>
-                                <select class="form-select form-select-sm" onchange="ZyraSeller.updateOrderStatus('${o.id}', this.value)">
+                                <select class="form-select form-select-sm" onchange="ZyraSeller.updateOrderStatus('${o.id}', this.value)" ${o.status === 'Cancelled' ? 'disabled' : ''}>
                                     <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
                                     <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
                                     <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
                                     <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                    <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                                 </select>
                             </td>
                             <td style="min-width: 220px;">
@@ -1840,6 +1908,8 @@ window.ZyraSeller = {
                         statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-truck me-1"></i>Dispatched</span>';
                     } else if (statusLower === 'delivered') {
                         statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1"><i class="bi bi-check-circle me-1"></i>Delivered</span>';
+                    } else if (statusLower === 'cancelled') {
+                        statusBadge = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1"><i class="bi bi-x-circle me-1"></i>Cancelled</span>';
                     }
 
                     const streetAddr = o.shipping_address || '';
@@ -1853,8 +1923,11 @@ window.ZyraSeller = {
                             <button type="button" class="btn btn-sm btn-warning text-dark fw-bold me-1" onclick="ZyraSeller.startPackingOrder('${o.id}')">
                                 <i class="bi bi-box-seam"></i> Start Packing
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-success" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}')">
+                            <button type="button" class="btn btn-sm btn-outline-success me-1" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}')">
                                 <i class="bi bi-truck"></i> Dispatch
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="ZyraSeller.cancelOrderPrompt('${o.db_id || o.id}', '${o.id}')">
+                                <i class="bi bi-x-circle"></i> Cancel
                             </button>
                         `;
                     } else if (statusLower === 'processing') {
@@ -1862,6 +1935,15 @@ window.ZyraSeller = {
                             <button type="button" class="btn btn-sm btn-success fw-bold me-1" onclick="ZyraSeller.quickDispatchPrompt('${o.db_id || o.id}', '${o.id}')">
                                 <i class="bi bi-truck"></i> Packed &amp; Dispatch
                             </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="ZyraSeller.cancelOrderPrompt('${o.db_id || o.id}', '${o.id}')">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </button>
+                        `;
+                    } else if (statusLower === 'cancelled') {
+                        actionsHtml = `
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle p-2">
+                                <i class="bi bi-x-circle me-1"></i>Cancelled
+                            </span>
                         `;
                     } else {
                         actionsHtml = `
