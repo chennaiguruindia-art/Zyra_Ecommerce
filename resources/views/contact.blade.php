@@ -127,8 +127,8 @@
                         </div>
                         <div>
                             <h6 class="fw-bold mb-1">Phone & WhatsApp Support</h6>
-                            <p class="small text-muted mb-1">Direct Line: +91 9884125555</p>
-                            <p class="small text-muted mb-0">WhatsApp Concierge: +91 9884125555</p>
+                            <p class="small text-muted mb-1">Direct Line: +91 9884875555</p>
+                            <p class="small text-muted mb-0">WhatsApp Concierge: +91 9884875555</p>
                             <span class="badge bg-success-subtle text-success border border-success-subtle mt-2">Available 9 AM – 8 PM IST</span>
                         </div>
                     </div>

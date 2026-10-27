@@ -167,7 +167,7 @@
                 <section class="zyra-legal-section">
                     <h2 class="zyra-legal-heading">Contact</h2>
                     <p class="text-muted small">
-                        Should you have any questions about our privacy practices or this Privacy Policy, or if you would like to exercise any of the rights available to you, please call <a href="tel:+919884125555">+91 988 412 5555</a> or email us at <a href="mailto:order@shopwithzyra.in">order@shopwithzyra.in</a> or contact us at No F 200, F Block, 1<sup>st</sup> Street, Annanagar East, No F 200, F Block, 1<sup>st</sup> Street, Annanagar East, 600102 Chennai TN, India.
+                        Should you have any questions about our privacy practices or this Privacy Policy, or if you would like to exercise any of the rights available to you, please call <a href="tel:+919884875555">+91 988 412 5555</a> or email us at <a href="mailto:order@shopwithzyra.in">order@shopwithzyra.in</a> or contact us at No F 200, F Block, 1<sup>st</sup> Street, Annanagar East, No F 200, F Block, 1<sup>st</sup> Street, Annanagar East, 600102 Chennai TN, India.
                     </p>
                 </section>
 

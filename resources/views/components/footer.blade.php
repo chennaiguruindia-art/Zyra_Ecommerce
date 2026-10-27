@@ -60,7 +60,7 @@
                     </div>
                 </form>
                 <div class="small text-muted">
-                    <i class="bi bi-envelope me-1"></i> hello@shopwithzyra.in &nbsp;|&nbsp; <i class="bi bi-telephone me-1"></i> +91 9884125555
+                    <i class="bi bi-envelope me-1"></i> hello@shopwithzyra.in &nbsp;|&nbsp; <i class="bi bi-telephone me-1"></i> +91 9884875555
                 </div>
             </div>
 

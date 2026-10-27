@@ -108,7 +108,7 @@
                             </ul>
 
                             <p class="fw-bold text-dark mt-3">How to Start an Exchange</p>
-                            <p>Email <strong><a href="mailto:order@shopwithzyra.in" class="text-decoration-underline">order@shopwithzyra.in</a></strong> or call <strong><a href="tel:+919884125555" class="text-decoration-underline">+91 98841 25555</a></strong> with your Order ID, within the window above. We will confirm whether the item qualifies and send you the <strong>return address and packing instructions</strong> at that point. Items sent back without first requesting an exchange will not be accepted, and you are responsible for getting the parcel to us safely.</p>
+                            <p>Email <strong><a href="mailto:order@shopwithzyra.in" class="text-decoration-underline">order@shopwithzyra.in</a></strong> or call <strong><a href="tel:+919884875555" class="text-decoration-underline">+91 98841 25555</a></strong> with your Order ID, within the window above. We will confirm whether the item qualifies and send you the <strong>return address and packing instructions</strong> at that point. Items sent back without first requesting an exchange will not be accepted, and you are responsible for getting the parcel to us safely.</p>
 
                             <p class="fw-bold text-dark mt-3">Damages and Wrong Items Received</p>
                             <p class="mb-0">Please inspect your order as soon as it arrives. If an item reaches you defective, damaged, or simply not what you ordered, contact us immediately and we will put it right. That case is <strong>not</strong> treated as an exchange, and there is no cost to you.</p>

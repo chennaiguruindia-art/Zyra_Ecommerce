@@ -162,7 +162,7 @@ class ChatBotController extends Controller
         if ($this->matches($text, ['contact', 'support', 'help', 'human', 'agent', 'call', 'phone', 'email', 'whatsapp', 'instagram', 'complaint', 'talk.*(someone|person)', 'customer care', 'customer support'])) {
             return $this->json(
                 'Reach our team:<br>' .
-                '• Phone: <b>+91 9884125555</b><br>' .
+                '• Phone: <b>+91 9884875555</b><br>' .
                 '• Email: <b>order@shopwithzyra.in</b><br>' .
                 '• Instagram: <b>@zyraofficial46</b><br><br>' .
                 '<a href="/contact">Send us a message →</a>'

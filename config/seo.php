@@ -20,7 +20,7 @@ return [
     ],
 
     'contact' => [
-        'phone' => '+91 9884125555',
+        'phone' => '+91 9884875555',
         'email' => 'order@shopwithzyra.in',
         'address' => '142, 100ft Road, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka - 560038',
     ],

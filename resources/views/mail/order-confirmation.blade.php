@@ -113,7 +113,7 @@
                     <tr>
                         <td style="background:#fafafa; padding:20px 32px; text-align:center; border-top:1px solid #f0f0f0;">
                             <p style="margin:0; font-size:12px; color:#a1a1aa;">
-                                ZYRA Lifestyle · <a href="https://zyralifestyle.in" style="color:#71717a; text-decoration:none;">zyralifestyle.in</a> · +91 9884125555
+                                ZYRA Lifestyle · <a href="https://zyralifestyle.in" style="color:#71717a; text-decoration:none;">zyralifestyle.in</a> · +91 9884875555
                             </p>
                         </td>
                     </tr>

@@ -116,7 +116,7 @@
                             </table>
 
                             <p style="margin:24px 0 0; font-size:13px; color:#71717a; text-align:center; line-height:1.6;">
-                                Need help with your order? Reach out to us at <a href="mailto:order@shopwithzyra.in" style="color:#7D1D32; font-weight:600; text-decoration:none;">order@shopwithzyra.in</a> or +91 9884125555.
+                                Need help with your order? Reach out to us at <a href="mailto:order@shopwithzyra.in" style="color:#7D1D32; font-weight:600; text-decoration:none;">order@shopwithzyra.in</a> or +91 9884875555.
                             </p>
                         </td>
                     </tr>

@@ -43,7 +43,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="seller-form-label">Contact Phone *</label>
-                            <input type="tel" class="form-control seller-form-control" value="9884125555" required>
+                            <input type="tel" class="form-control seller-form-control" value="9884875555" required>
                         </div>
                     </div>
                 </div>

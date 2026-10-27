@@ -703,7 +703,7 @@
         </div>
 
         <div class="mnav-foot">
-            Need help? Call <a href="tel:+919884125555">+91 98841 25555</a> or <a href="{{ route('contact') }}">contact us</a>.
+            Need help? Call <a href="tel:+919884875555">+91 98841 25555</a> or <a href="{{ route('contact') }}">contact us</a>.
         </div>
     </div>
 </div>
