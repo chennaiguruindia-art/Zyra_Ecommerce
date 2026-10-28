@@ -9,9 +9,11 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Size;
 use App\Models\Subcategory;
+use App\Models\StockReceipt;
 use App\Support\ProductImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class SellerController extends Controller
@@ -209,10 +211,27 @@ class SellerController extends Controller
     public function updateInventory(Request $request, int $id)
     {
         $product = $this->panelProducts()->findOrFail($id);
+        $oldUnits = (int) $product->stock_units;
+
         if ($request->has('stock_units')) {
             $units = max(0, (int) $request->input('stock_units'));
             $product->stock_units = $units;
             $product->in_stock = $units > 0;
+
+            if ($units > $oldUnits) {
+                $added = $units - $oldUnits;
+                $unitCost = (float) $product->price;
+                StockReceipt::create([
+                    'product_id' => $product->id,
+                    'user_id' => Auth::id(),
+                    'quantity' => $added,
+                    'unit_cost' => $unitCost,
+                    'total_cost' => round($added * $unitCost, 2),
+                    'sizes_breakdown' => null,
+                    'source' => 'inventory_adjustment',
+                    'reference' => 'Manual Stock Update',
+                ]);
+            }
         }
         if ($request->has('in_stock') && !$request->has('stock_units')) {
             $product->in_stock = $request->boolean('in_stock');
@@ -229,7 +248,7 @@ class SellerController extends Controller
 
     /**
      * Per-size restock: add incoming units to individual sizes.
-     * Payload: { quantities: { "S": 10, "M": 5, ... } }
+     * Payload: { quantities: { "S": 10, "M": 5, ... }, unit_cost: 499.00 }
      * Sizes with 0 or missing qty are skipped.
      */
     public function restockSizes(Request $request, int $id)
@@ -239,9 +258,12 @@ class SellerController extends Controller
         $data = Validator::make($request->all(), [
             'quantities' => 'required|array|min:1',
             'quantities.*' => 'nullable|integer|min:0|max:10000',
+            'unit_cost' => 'nullable|numeric|min:0',
+            'reference' => 'nullable|string|max:100',
         ])->validate();
 
         $updated = [];
+        $sizesBreakdown = [];
         $totalAdded = 0;
 
         foreach ($data['quantities'] as $sizeName => $qty) {
@@ -265,6 +287,7 @@ class SellerController extends Controller
             }
 
             $updated[$sizeName] = $newStock;
+            $sizesBreakdown[$sizeName] = $qty;
             $totalAdded += $qty;
         }
 
@@ -279,11 +302,29 @@ class SellerController extends Controller
         $product->in_stock = true;
         $product->save();
 
+        $unitCost = isset($data['unit_cost']) && (float) $data['unit_cost'] > 0
+            ? (float) $data['unit_cost']
+            : (float) $product->price;
+
+        $totalCost = round($totalAdded * $unitCost, 2);
+
+        StockReceipt::create([
+            'product_id' => $product->id,
+            'user_id' => Auth::id(),
+            'quantity' => $totalAdded,
+            'unit_cost' => $unitCost,
+            'total_cost' => $totalCost,
+            'sizes_breakdown' => $sizesBreakdown,
+            'source' => 'inventory_restock',
+            'reference' => $data['reference'] ?? 'Inventory Restock',
+        ]);
+
         return response()->json([
             'success' => true,
             'added' => $totalAdded,
+            'amount' => $totalCost,
             'updated' => $updated,
-            'message' => "Restocked {$totalAdded} unit(s): " . collect($updated)
+            'message' => "Restocked {$totalAdded} unit(s) (₹" . number_format($totalCost, 2) . "): " . collect($updated)
                 ->map(fn ($stock, $size) => "{$size} → {$stock}")
                 ->implode(', '),
             'product' => $product->fresh()->load(['category', 'subcategory', 'sizes', 'colors', 'images'])->toCatalogArray(),

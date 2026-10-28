@@ -60,6 +60,11 @@
                 <i class="bi bi-receipt"></i> <span>Orders &amp; Sales</span>
             </a>
         </li>
+        <li class="seller-nav-item">
+            <a href="{{ route('seller.order.history') }}" class="seller-nav-link {{ request()->routeIs('seller.order.history*') ? 'active' : '' }}">
+                <i class="bi bi-journal-check"></i> <span>Order History</span>
+            </a>
+        </li>
 
         {{-- ── Catalogue Section ── --}}
         <li class="seller-nav-section-label">
@@ -79,6 +84,11 @@
         <li class="seller-nav-item seller-nav-sub-item">
             <a href="{{ route('seller.inventory') }}" class="seller-nav-link seller-nav-sub-link {{ request()->routeIs('seller.inventory') ? 'active' : '' }}">
                 <i class="bi bi-boxes"></i> <span>Inventory</span>
+            </a>
+        </li>
+        <li class="seller-nav-item seller-nav-sub-item">
+            <a href="{{ route('seller.stock') }}" class="seller-nav-link seller-nav-sub-link {{ request()->routeIs('seller.stock*') ? 'active' : '' }}">
+                <i class="bi bi-stack"></i> <span>Stock Management</span>
             </a>
         </li>
 

@@ -1103,11 +1103,23 @@ window.ZyraSeller = {
 
         let html = '';
         products.forEach(p => {
-            const isLow = (p.stock_units || 0) < 10;
+            const isLow = (p.stock_units || 0) < 10 && (p.stock_units || 0) > 0;
             const isOut = (p.stock_units || 0) === 0;
 
+            const sizes = Array.isArray(p.sizes) ? p.sizes : [];
+            const sizeStock = p.size_stock || {};
+            let sizeBadges = '';
+            if (sizes.length > 0) {
+                sizeBadges = sizes.map(sz => {
+                    const st = sizeStock[sz] !== undefined ? sizeStock[sz] : (p.stock_units || 0);
+                    return `<span class="badge ${st <= 0 ? 'bg-danger-subtle text-danger' : 'bg-light text-dark'} border me-1 mb-1" style="font-size:0.75rem;">${sz}: <strong>${st}</strong></span>`;
+                }).join('');
+            } else {
+                sizeBadges = `<span class="text-muted small">Standard</span>`;
+            }
+
             html += `
-                <tr class="${isLow ? 'table-warning-subtle' : ''}">
+                <tr class="${isOut ? 'table-danger-subtle' : (isLow ? 'table-warning-subtle' : '')}">
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <img src="${p.image}" alt="${p.name}" class="seller-product-img">
@@ -1120,11 +1132,10 @@ window.ZyraSeller = {
                     <td>${p.category}</td>
                     <td>₹${p.price}</td>
                     <td>
-                        <div class="stock-stepper">
-                            <button type="button" onclick="ZyraSeller.updateStockQty(${p.id}, ${(p.stock_units || 0) - 1})">-</button>
-                            <input type="text" value="${p.stock_units || 0}" onchange="ZyraSeller.updateStockQty(${p.id}, this.value)">
-                            <button type="button" onclick="ZyraSeller.updateStockQty(${p.id}, ${(p.stock_units || 0) + 1})">+</button>
-                        </div>
+                        <div class="d-flex flex-wrap">${sizeBadges}</div>
+                    </td>
+                    <td>
+                        <strong class="${isOut ? 'text-danger' : (isLow ? 'text-warning' : 'text-dark')} fs-6">${p.stock_units || 0}</strong>
                     </td>
                     <td>
                         ${isOut ? '<span class="badge bg-danger">Out of Stock</span>' : (isLow ? '<span class="badge bg-warning text-dark">Low Stock (' + p.stock_units + ')</span>' : '<span class="badge bg-success">Healthy Stock</span>')}
@@ -1160,6 +1171,12 @@ window.ZyraSeller = {
         if (title) title.textContent = product.name || 'Restock Product';
         if (subtitle) subtitle.textContent = `SKU: ${product.sku || '-'} · ${product.category || ''}`;
 
+        const unitCostInput = document.getElementById('restockUnitCost');
+        if (unitCostInput) unitCostInput.value = (parseFloat(product.price) || 0).toFixed(2);
+
+        const refInput = document.getElementById('restockReference');
+        if (refInput) refInput.value = 'Inventory Restock';
+
         const sizes = Array.isArray(product.sizes) ? product.sizes : [];
         const sizeStock = product.size_stock || {};
 
@@ -1168,7 +1185,7 @@ window.ZyraSeller = {
             if (noSizes) noSizes.classList.remove('d-none');
             const totalInput = document.getElementById('restockTotalUnits');
             if (totalInput) {
-                totalInput.value = product.stock_units || 0;
+                totalInput.value = 10;
                 totalInput.onchange = () => this.updateRestockTotals();
                 totalInput.oninput = () => this.updateRestockTotals();
             }
@@ -1256,14 +1273,27 @@ window.ZyraSeller = {
             }
         });
 
-        // No-sizes fallback: value replaces the total
+        // No-sizes fallback
         const totalUnitsInput = document.getElementById('restockTotalUnits');
         if (totalUnitsInput && !document.getElementById('restockModalNoSizes')?.classList.contains('d-none')) {
-            total = 0;
+            total = Math.max(0, parseInt(totalUnitsInput.value) || 0);
         }
 
         const el = document.getElementById('restockGrandTotal');
         if (el) el.textContent = total;
+
+        const badgeUnits = document.getElementById('restockUnitsBadge');
+        if (badgeUnits) badgeUnits.textContent = total + ' unit(s)';
+
+        const product = this.getProducts().find(p => p.id === parseInt(this.restockProductId));
+        const defaultCost = product ? (parseFloat(product.price) || 0) : 0;
+        const unitCost = Math.max(0, parseFloat(document.getElementById('restockUnitCost')?.value) || defaultCost);
+        const totalAmount = total * unitCost;
+
+        const badgeAmount = document.getElementById('restockAmountBadge');
+        if (badgeAmount) {
+            badgeAmount.textContent = '₹' + totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
     },
 
     saveRestock() {
@@ -1272,6 +1302,10 @@ window.ZyraSeller = {
 
         const noSizesVisible = document.getElementById('restockModalNoSizes')
             && !document.getElementById('restockModalNoSizes').classList.contains('d-none');
+
+        const product = this.getProducts().find(p => p.id === parseInt(id));
+        const unitCost = Math.max(0, parseFloat(document.getElementById('restockUnitCost')?.value) || (product ? product.price : 0));
+        const reference = document.getElementById('restockReference')?.value || 'Inventory Restock';
 
         let payload = null;
         let toastQty = 0;
@@ -1282,7 +1316,7 @@ window.ZyraSeller = {
                 ZyraApp.showToast('Enter a stock quantity greater than 0.', 'warning');
                 return;
             }
-            payload = { stock_units: total, in_stock: total > 0 };
+            payload = { stock_units: total, in_stock: total > 0, unit_cost: unitCost, reference: reference };
             toastQty = total;
         } else {
             const quantities = {};
@@ -1296,7 +1330,7 @@ window.ZyraSeller = {
                 ZyraApp.showToast('Enter a restock quantity for at least one size.', 'warning');
                 return;
             }
-            payload = { quantities };
+            payload = { quantities, unit_cost: unitCost, reference: reference };
             toastQty = Object.values(quantities).reduce((a, b) => a + b, 0);
         }
 

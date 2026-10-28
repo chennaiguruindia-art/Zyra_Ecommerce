@@ -23,6 +23,8 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ChatBotController;
 use App\Http\Controllers\ActivityTrackController;
 use App\Http\Controllers\ActivityAnalyticsController;
+use App\Http\Controllers\StockManagementController;
+use App\Http\Controllers\OrderHistoryController;
 
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
@@ -72,6 +74,16 @@ Route::prefix('seller')->name('seller.')->middleware(['auth', 'seller'])->group(
     Route::get('/activity', [ActivityAnalyticsController::class, 'index'])->name('activity');
     Route::get('/activity/data', [ActivityAnalyticsController::class, 'data'])->name('activity.data');
     Route::get('/activity/export', [ActivityAnalyticsController::class, 'export'])->name('activity.export');
+
+    Route::get('/stock-management', [StockManagementController::class, 'index'])->name('stock');
+    Route::get('/stock-management/data', [StockManagementController::class, 'data'])->name('stock.data');
+    Route::post('/stock-management/inward', [StockManagementController::class, 'storeInward'])->name('stock.inward');
+    Route::get('/stock-management/export/excel', [StockManagementController::class, 'exportExcel'])->name('stock.export.excel');
+    Route::get('/stock-management/export/pdf', [StockManagementController::class, 'exportPdf'])->name('stock.export.pdf');
+
+    Route::get('/order-history', [OrderHistoryController::class, 'index'])->name('order.history');
+    Route::get('/order-history/export/excel', [OrderHistoryController::class, 'exportExcel'])->name('order.history.export.excel');
+    Route::get('/order-history/export/pdf', [OrderHistoryController::class, 'exportPdf'])->name('order.history.export.pdf');
 });
 
 Route::middleware(['auth', 'seller'])->group(function () {
@@ -79,6 +91,7 @@ Route::middleware(['auth', 'seller'])->group(function () {
     Route::post('/query/{id}/status', [QueryController::class, 'updateStatus'])->name('queries.status');
 
     Route::get('/global_setting', [GlobalSettingController::class, 'index'])->name('global_setting');
+    Route::get('/global_setting/analytics', [GlobalSettingController::class, 'analyticsSnapshot'])->name('global_setting.analytics');
     Route::post('/global_setting/toggle', [GlobalSettingController::class, 'toggle'])->name('global_setting.toggle');
     Route::post('/global_setting/coupons', [GlobalSettingController::class, 'storeCoupon'])->name('global_setting.coupons.store');
     Route::post('/global_setting/coupons/{id}/delete', [GlobalSettingController::class, 'destroyCoupon'])->name('global_setting.coupons.destroy');
@@ -122,6 +135,7 @@ Route::middleware('auth')->get('/my-orders', [OrderController::class, 'myOrders'
 Route::get('/wishlist', fn () => view('wishlist'))->name('wishlist');
 Route::get('/cart', fn () => view('cart'))->name('cart');
 
+Route::get('/wishlist/ids',    [WishlistController::class, 'ids'])->name('wishlist.ids');
 Route::get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
 Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 

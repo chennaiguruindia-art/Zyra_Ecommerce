@@ -17,6 +17,9 @@
         <p class="text-muted mb-0">Monitor stock levels, set replenishment triggers, and prevent out-of-stock items.</p>
     </div>
     <div class="d-flex gap-2">
+        <a href="{{ route('seller.stock') }}" class="btn btn-dark">
+            <i class="bi bi-stack me-1"></i> Stock Management &amp; Inwards
+        </a>
         <button type="button" class="btn btn-outline-dark" onclick="ZyraApp.showToast('All stock levels synchronized with buyer storefront!', 'success')">
             <i class="bi bi-arrow-repeat me-1"></i> Sync Inventory
         </button>
@@ -45,7 +48,8 @@
                         <th>Product</th>
                         <th>Category</th>
                         <th>Price</th>
-                        <th>Current Units</th>
+                        <th>Sizes Breakdown</th>
+                        <th>Total Units</th>
                         <th>Stock Status</th>
                         <th>Restock</th>
                     </tr>
@@ -89,6 +93,32 @@
                         <div class="col-sm-6">
                             <small class="text-muted">This product has no size variants. The value above replaces the total stock.</small>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Unit Cost & Inward Amount Calculation -->
+                <div class="row g-2 align-items-center mt-3 pt-3 border-top">
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1" for="restockUnitCost">Unit Price / Cost (₹)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" step="0.01" min="0" class="form-control" id="restockUnitCost" placeholder="0.00" oninput="ZyraSeller.updateRestockTotals()">
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1" for="restockReference">Reference / Batch</label>
+                        <input type="text" class="form-control form-control-sm" id="restockReference" placeholder="e.g. Inward Restock">
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3 bg-light border mt-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="small text-muted text-uppercase" style="letter-spacing: .05em;">Incoming Units</span>
+                        <div class="h5 fw-bold text-dark mb-0" id="restockUnitsBadge">0 units</div>
+                    </div>
+                    <div class="text-end">
+                        <span class="small text-muted text-uppercase" style="letter-spacing: .05em;">Calculated Inward Value</span>
+                        <div class="h5 fw-bold text-success mb-0" id="restockAmountBadge">₹0.00</div>
                     </div>
                 </div>
             </div>

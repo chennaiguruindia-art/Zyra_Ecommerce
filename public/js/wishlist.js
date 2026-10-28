@@ -55,6 +55,15 @@ const ZyraWishlist = {
             if (window.ZyraApp) {
                 window.ZyraApp.showToast(`Added "${productName}" to wishlist!`, 'success');
             }
+            // Meta Pixel – AddToWishlist
+            if (window.zyraMeta) {
+                window.zyraMeta.track('AddToWishlist', {
+                    content_ids: [String(id)],
+                    content_name: productName,
+                    content_type: 'product',
+                    currency: 'INR'
+                });
+            }
         }
 
         return this.isInWishlist(id);

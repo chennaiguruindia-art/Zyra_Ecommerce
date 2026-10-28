@@ -407,7 +407,17 @@ const ZyraCheckout = {
         };
 
         tabs.forEach(tab => {
-            tab.addEventListener('click', () => switchTo(tab.dataset.method));
+            tab.addEventListener('click', () => {
+                switchTo(tab.dataset.method);
+                // Meta Pixel – AddPaymentInfo (fires each time user selects a payment method)
+                if (window.zyraMeta) {
+                    window.zyraMeta.track('AddPaymentInfo', {
+                        content_type: 'product',
+                        payment_method: tab.dataset.method,
+                        currency: 'INR'
+                    });
+                }
+            });
         });
 
         // Activate default (upi)

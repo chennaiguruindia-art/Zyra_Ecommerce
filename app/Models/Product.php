@@ -78,6 +78,11 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function stockReceipts(): HasMany
+    {
+        return $this->hasMany(StockReceipt::class);
+    }
+
     public function getImageUrlAttribute(): string
     {
         return \App\Support\ProductImageStorage::url($this->image);

@@ -141,7 +141,7 @@ class MetaConversionsApi
             }
 
             $payload = [
-                'data' => json_encode([$event]),
+                'data' => [$event],   // asJson() handles encoding — no double-encode
                 'access_token' => $token,
             ];
 
