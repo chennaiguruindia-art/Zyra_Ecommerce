@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Dupatta Collection - Styles With & Without Dupatta | ZYRA')
-@section('meta_description', 'Shop styles with the option to go with or without a dupatta. Choose "Without Dupatta" and save ₹300 off the original price.')
+@section('meta_description', 'Shop styles with the option to go with or without a dupatta. Choose "Without Dupatta" and save ₹350 off the original price.')
 
 @push('schema')
     {!! \App\Support\Seo::breadcrumbSchema([

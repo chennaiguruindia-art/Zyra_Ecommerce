@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
     /** Amount deducted from the original price when "Without Dupatta" is selected. */
-    public const DUPATTA_DISCOUNT = 300;
+    public const DUPATTA_DISCOUNT = 350;
 
     protected $fillable = [
         'category_id', 'subcategory_id', 'name', 'slug', 'sku', 'price', 'old_price',

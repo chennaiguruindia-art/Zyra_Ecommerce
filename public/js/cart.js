@@ -53,7 +53,7 @@ const ZyraCart = {
         const basePrice = parseFloat(product.price) || 0;
         const unitPrice = dupatta
             ? basePrice
-            : (parseFloat(product.without_dupatta_price) || (basePrice - parseFloat(product.dupatta_discount || 300)));
+            : (parseFloat(product.without_dupatta_price) || (basePrice - parseFloat(product.dupatta_discount || 350)));
 
         const selectedColor = color || (product.colors && product.colors[0]) || 'Standard';
         const selectedSize = size || (product.sizes && product.sizes[0]) || 'M';

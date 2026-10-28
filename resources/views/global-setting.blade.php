@@ -27,7 +27,7 @@
         <div>
             <h1 class="fw-bold mb-1">Global Settings</h1>
             <p class="text-muted mb-0">
-                Enable a product's toggle to show it in the corresponding home page section (Best Sellers / Trending Collection). Toggle a product's <strong>Dupatta</strong> to feature it on the <code>/duppata</code> collection page and offer the "With / Without Dupatta" option on its detail page (Without Dupatta = ₹300 off the original price). Toggles are saved to the database.
+                Enable a product's toggle to show it in the corresponding home page section (Best Sellers / Trending Collection). Toggle a product's <strong>Dupatta</strong> to feature it on the <code>/duppata</code> collection page and offer the "With / Without Dupatta" option on its detail page (Without Dupatta = ₹350 off the original price). Toggles are saved to the database.
             </p>
         </div>
         <a href="{{ route('home') }}" class="btn btn-outline-dark btn-sm">View Home Page</a>
