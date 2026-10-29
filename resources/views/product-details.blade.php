@@ -6,36 +6,82 @@
 @section('og_image', $product['image'])
 @section('og_type', 'product')
 
-@push('schema')
-    {!! \App\Support\Seo::breadcrumbSchema([
+@php
+    $categoryName = (string) ($product['category'] ?? '');
+    $categorySlug = (string) ($product['category_slug'] ?? '');
+    $breadcrumbs = [['label' => 'Shop', 'url' => route('shop')]];
+    $schemaBreadcrumbs = [
         ['name' => 'Home', 'url' => \App\Support\Seo::url('/')],
         ['name' => 'Shop', 'url' => \App\Support\Seo::url('/shop')],
-        ['name' => $product['category'] ?? 'Category', 'url' => \App\Support\Seo::url('/category/' . strtolower($product['category'] ?? ''))],
-        ['name' => $product['name']],
-    ]) !!}
-    {!! \App\Support\Seo::productSchema($product) !!}
+    ];
+
+    if ($categoryName !== '' && $categorySlug !== '') {
+        $breadcrumbs[] = [
+            'label' => $categoryName,
+            'url' => route('category', $categorySlug),
+        ];
+        $schemaBreadcrumbs[] = array_merge(
+            ['name' => $categoryName],
+            ['url' => \App\Support\Seo::url('/category/' . $categorySlug)]
+        );
+    }
+
+    $breadcrumbs[] = ['label' => $product['name'], 'url' => ''];
+    $schemaBreadcrumbs[] = ['name' => $product['name']];
+    $schemaProduct = $product;
+    $schemaProduct['in_stock'] = $product['stock'] ?? false;
+@endphp
+
+@push('schema')
+    {!! \App\Support\Seo::breadcrumbSchema($schemaBreadcrumbs) !!}
+    {!! \App\Support\Seo::productSchema($schemaProduct) !!}
 @endpush
 
 @section('content')
 
-<x-breadcrumb :items="[
-    ['label' => 'Shop', 'url' => route('shop')],
-    ['label' => $product['category'], 'url' => route('category', strtolower($product['category']))],
-    ['label' => $product['name'], 'url' => '']
-]" />
+<x-breadcrumb :items="$breadcrumbs" />
 
 <div class="container py-5">
 
     {{-- ═══════════════════ HERO: Gallery + Buy Panel ═══════════════════ --}}
     @php
-        $mainImg = (str_starts_with($product['image'], 'http://') || str_starts_with($product['image'], 'https://')) ? $product['image'] : asset('storage/' . $product['image']);
-        $defaultSize = null;
-        foreach ($product['sizes'] as $size) {
-            $sizeQty = isset($product['size_stock'][$size]) ? (int) $product['size_stock'][$size] : null;
-            if ($sizeQty === null || $sizeQty > 0) { $defaultSize = $size; break; }
+        $mainImg = $product['image'] ?? '';
+        $sizes = $product['sizes'] ?? [];
+        $sizeStock = $product['size_stock'] ?? [];
+        $stockUnits = (int) ($product['stock_units'] ?? 0);
+        $availableSizes = [];
+
+        foreach ($sizes as $size) {
+            $sizeQty = array_key_exists($size, $sizeStock) ? (int) $sizeStock[$size] : $stockUnits;
+            if ($sizeQty > 0 && !empty($product['stock'])) {
+                $availableSizes[] = $size;
+            }
         }
-        $defaultSize = $defaultSize ?? ($product['sizes'][0] ?? 'M');
-        $shortDesc = mb_strimwidth(strip_tags($product['description']), 0, 140, '…');
+
+        $defaultSize = $availableSizes[0] ?? (empty($sizes) && !empty($product['stock']) && $stockUnits > 0 ? 'M' : null);
+        $canPurchase = empty($sizes)
+            ? !empty($product['stock']) && $stockUnits > 0
+            : !empty($availableSizes);
+        $productPrice = (float) ($product['price'] ?? 0);
+        $withoutDupattaPrice = isset($product['without_dupatta_price'])
+            ? (float) $product['without_dupatta_price']
+            : null;
+        $oldPrice = isset($product['old_price']) ? (float) $product['old_price'] : null;
+        $dupattaPriceDifference = $withoutDupattaPrice !== null
+            ? max(0, $productPrice - $withoutDupattaPrice)
+            : 0;
+        $withoutDupattaOldPrice = $oldPrice !== null
+            ? max($withoutDupattaPrice ?? 0, $oldPrice - $dupattaPriceDifference)
+            : null;
+        $withoutDupattaDiscount = $withoutDupattaPrice !== null
+            && $withoutDupattaOldPrice !== null
+            && $withoutDupattaOldPrice > $withoutDupattaPrice
+            ? (int) round((($withoutDupattaOldPrice - $withoutDupattaPrice) / $withoutDupattaOldPrice) * 100)
+            : 0;
+        $canChooseDupatta = !empty($product['dupatta_enabled'])
+            && $withoutDupattaPrice !== null
+            && $withoutDupattaPrice < $productPrice;
+        $shortDesc = mb_strimwidth(strip_tags((string) ($product['description'] ?? '')), 0, 140, '…');
     @endphp
 
     <div class="row g-5 zyra-pdp-hero">
@@ -54,9 +100,11 @@
                         @php
                             $resolvedImg = (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) ? $img : asset('storage/' . $img);
                         @endphp
-                        <div class="zyra-thumb-item {{ $idx === 0 ? 'active' : '' }}" data-img-src="{{ $resolvedImg }}">
-                            <img src="{{ $resolvedImg }}" alt="{{ $product['name'] }} thumbnail {{ $idx + 1 }}">
-                        </div>
+                        <button type="button" class="zyra-thumb-item {{ $idx === 0 ? 'active' : '' }}"
+                            data-img-src="{{ $resolvedImg }}" aria-label="View product image {{ $idx + 1 }}"
+                            aria-pressed="{{ $idx === 0 ? 'true' : 'false' }}">
+                            <img src="{{ $resolvedImg }}" alt="">
+                        </button>
                     @endforeach
                 </div>
             </div>
@@ -76,12 +124,18 @@
 
                 {{-- Price --}}
                 <div class="zyra-pdp-price-box">
-                    <span id="pdPriceDisplay" class="zyra-pdp-price">₹{{ $product['price'] }}</span>
-                    @if($product['old_price'])
-                        <span class="zyra-pdp-old-price">₹{{ $product['old_price'] }}</span>
+                    <span id="pdPriceDisplay" class="zyra-pdp-price"
+                        data-price-with-dupatta="{{ $productPrice }}"
+                        data-price-without-dupatta="{{ $withoutDupattaPrice ?? $productPrice }}">₹{{ $productPrice }}</span>
+                    @if($oldPrice !== null && $oldPrice > $productPrice)
+                        <span id="pdOldPriceDisplay" class="zyra-pdp-old-price"
+                            data-old-price-with-dupatta="{{ $oldPrice }}"
+                            data-old-price-without-dupatta="{{ $withoutDupattaOldPrice }}">₹{{ $oldPrice }}</span>
                     @endif
                     @if($product['discount'] > 0)
-                        <span class="zyra-pdp-discount-badge">SAVE {{ $product['discount'] }}%</span>
+                        <span id="pdDiscountBadge" class="zyra-pdp-discount-badge"
+                            data-discount-with-dupatta="{{ (int) $product['discount'] }}"
+                            data-discount-without-dupatta="{{ $withoutDupattaDiscount }}">SAVE {{ $product['discount'] }}%</span>
                     @endif
                     <div class="zyra-pdp-tax-note">
                         <i class="bi bi-check-circle-fill text-success me-1"></i>Free shipping
@@ -94,20 +148,25 @@
                 <div class="zyra-pdp-divider"></div>
 
                 {{-- Color Selection --}}
-                @if(count($product['colors']) > 1)
+                @if(count($product['colors'] ?? []) > 1)
                 <div class="zyra-pdp-option-group">
                     <label class="zyra-pdp-label">
-                        Color: <span id="selectedColorName">{{ $product['colors'][0] ?? 'Default' }}</span>
+                        Color: <span id="selectedColorName">{{ $product['colors'][0] }}</span>
                     </label>
                     <div class="d-flex flex-wrap gap-2">
                         @foreach($product['colors'] as $idx => $color)
-                            @php $code = $product['color_codes'][$idx] ?? '#1a1a1a'; @endphp
+                            @php
+                                $code = $product['color_codes'][$idx] ?? '#1a1a1a';
+                                if (!is_string($code) || !preg_match('/\A#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\z/', $code)) {
+                                    $code = '#1a1a1a';
+                                }
+                            @endphp
                             <button type="button"
                                 class="zyra-pdp-swatch pd-color-swatch {{ $idx === 0 ? 'active' : '' }}"
-                                style="background-color: {{ $code }};"
+                                aria-pressed="{{ $idx === 0 ? 'true' : 'false' }}"
+                                style="--swatch-color: {{ $code }}; background-color: var(--swatch-color);"
                                 data-color="{{ $color }}"
-                                title="{{ $color }}"
-                                onclick="document.querySelectorAll('.pd-color-swatch').forEach(b=>b.classList.remove('active')); this.classList.add('active'); document.getElementById('selectedColorName').textContent='{{ $color }}';">
+                                title="{{ $color }}">
                                 <span class="visually-hidden">{{ $color }}</span>
                             </button>
                         @endforeach
@@ -119,24 +178,24 @@
                 <div class="zyra-pdp-option-group">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="zyra-pdp-label m-0">
-                            Size: <span id="selectedSizeName">{{ $defaultSize }}</span>
+                            Size: <span id="selectedSizeName">{{ $defaultSize ?? 'Unavailable' }}</span>
                         </label>
                         <button type="button" class="zyra-pdp-sizechart-link" data-bs-toggle="modal" data-bs-target="#sizeChartModal">
                             <i class="bi bi-rulers me-1"></i>Size Chart
                         </button>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        @foreach($product['sizes'] as $size)
+                        @foreach($sizes as $size)
                             @php
-                                $sizeQty = isset($product['size_stock'][$size]) ? (int) $product['size_stock'][$size] : null;
-                                $sizeSoldOut = $sizeQty !== null && $sizeQty <= 0;
+                                $sizeQty = array_key_exists($size, $sizeStock) ? (int) $sizeStock[$size] : $stockUnits;
+                                $sizeSoldOut = $sizeQty <= 0 || empty($product['stock']);
                             @endphp
                             <div class="position-relative d-inline-block">
                                 <button type="button"
                                     class="zyra-pdp-size pd-size-btn {{ $size === $defaultSize ? 'active' : '' }}"
                                     data-size="{{ $size }}"
-                                    @if($sizeSoldOut) disabled @endif
-                                    onclick="document.querySelectorAll('.pd-size-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); document.getElementById('selectedSizeName').textContent='{{ $size }}';">
+                                    aria-pressed="{{ $size === $defaultSize ? 'true' : 'false' }}"
+                                    @if($sizeSoldOut) disabled @endif>
                                     {{ $size }}
                                 </button>
                                 @if($sizeSoldOut)
@@ -145,23 +204,26 @@
                             </div>
                         @endforeach
                     </div>
+                    @unless($canPurchase)
+                        <p class="text-danger small mt-2 mb-0" role="status">Currently out of stock.</p>
+                    @endunless
                 </div>
 
                 {{-- Dupatta Option --}}
-                @if(!empty($product['dupatta_enabled']) && !empty($product['without_dupatta_price']) && (float) $product['without_dupatta_price'] < (float) $product['price'])
+                @if($canChooseDupatta)
                 <div class="zyra-pdp-option-group">
                     <label class="zyra-pdp-label">Dupatta Option</label>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="zyra-pdp-chip pd-dupatta-btn active" data-dupatta="1">
+                        <button type="button" class="zyra-pdp-chip pd-dupatta-btn active" data-dupatta="1" aria-pressed="true">
                             <i class="bi bi-check-circle-fill me-1"></i>With Dupatta
-                            <span class="zyra-pdp-chip-price">₹{{ $product['price'] }}</span>
+                            <span class="zyra-pdp-chip-price">₹{{ $productPrice }}</span>
                         </button>
-                        <button type="button" class="zyra-pdp-chip pd-dupatta-btn" data-dupatta="0">
+                        <button type="button" class="zyra-pdp-chip pd-dupatta-btn" data-dupatta="0" aria-pressed="false">
                             Without Dupatta
-                            <span class="zyra-pdp-chip-price">₹{{ $product['without_dupatta_price'] }}</span>
+                            <span class="zyra-pdp-chip-price">₹{{ $withoutDupattaPrice }}</span>
                         </button>
                     </div>
-                    <small class="zyra-pdp-hint"><i class="bi bi-tag me-1"></i>Choose "Without Dupatta" and save ₹{{ (float) $product['price'] - (float) $product['without_dupatta_price'] }}</small>
+                    <small class="zyra-pdp-hint"><i class="bi bi-tag me-1"></i>Choose "Without Dupatta" and save ₹{{ $dupattaPriceDifference }}</small>
                 </div>
                 @endif
 
@@ -175,23 +237,13 @@
                             <x-quantity-selector :value="1" id="pdQuantityInput" />
                         </div>
 
-                        <button type="button" class="zyra-pdp-add-to-cart" id="pdAddToCartBtn" onclick="
-                            const size = document.querySelector('.pd-size-btn.active')?.getAttribute('data-size') || 'M';
-                            const color = document.querySelector('.pd-color-swatch.active')?.getAttribute('data-color') || 'Standard';
-                            const qty = parseInt(document.getElementById('pdQuantityInput')?.value) || 1;
-                            ZyraCart.addToCart({{ (int) $product['id'] }}, size, color, qty, null, selectedDupatta);
-                        ">
+                        <button type="button" class="zyra-pdp-add-to-cart" id="pdAddToCartBtn"
+                            data-product-id="{{ (int) $product['id'] }}" @disabled(!$canPurchase)>
                             <i class="bi bi-bag-plus me-1"></i> Add to Cart
                         </button>
 
-                        <button type="button" class="zyra-pdp-buy-now" onclick="
-                            const size = document.querySelector('.pd-size-btn.active')?.getAttribute('data-size') || 'M';
-                            const color = document.querySelector('.pd-color-swatch.active')?.getAttribute('data-color') || 'Standard';
-                            const qty = parseInt(document.getElementById('pdQuantityInput')?.value) || 1;
-                            if (ZyraCart.addToCart({{ (int) $product['id'] }}, size, color, qty, null, selectedDupatta)) {
-                                setTimeout(() => window.location.href = '{{ route('checkout') }}', 300);
-                            }
-                        ">
+                        <button type="button" class="zyra-pdp-buy-now" data-product-id="{{ (int) $product['id'] }}"
+                            @disabled(!$canPurchase)>
                             Buy Now
                         </button>
 
@@ -244,20 +296,20 @@
     <div class="zyra-pdp-tabs mt-5 pt-5 border-top">
         <ul class="nav zyra-pdp-tab-nav justify-content-center mb-4" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#desc-tab-pane" type="button" role="tab">Description</button>
+                <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-tab-pane" type="button" role="tab" aria-controls="desc-tab-pane" aria-selected="true">Description</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#specs-tab-pane" type="button" role="tab">Specifications & Care</button>
+                <button class="nav-link" id="specs-tab" data-bs-toggle="tab" data-bs-target="#specs-tab-pane" type="button" role="tab" aria-controls="specs-tab-pane" aria-selected="false">Specifications & Care</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#shipping-tab-pane" type="button" role="tab">Shipping & Returns</button>
+                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping-tab-pane" type="button" role="tab" aria-controls="shipping-tab-pane" aria-selected="false">Shipping & Returns</button>
             </li>
         </ul>
 
         <div class="zyra-pdp-tab-content tab-content">
 
             {{-- Description --}}
-            <div class="tab-pane fade show active" id="desc-tab-pane" role="tabpanel">
+            <div class="tab-pane fade show active" id="desc-tab-pane" role="tabpanel" aria-labelledby="desc-tab">
                 <div class="row g-4">
                     <div class="col-lg-8">
                         <h5 class="zyra-pdp-tab-heading">About This Design</h5>
@@ -281,7 +333,7 @@
             </div>
 
             {{-- Specifications --}}
-            <div class="tab-pane fade" id="specs-tab-pane" role="tabpanel">
+            <div class="tab-pane fade" id="specs-tab-pane" role="tabpanel" aria-labelledby="specs-tab">
                 <div class="row g-4">
                     <div class="col-md-6">
                         <h5 class="zyra-pdp-tab-heading">Product Details</h5>
@@ -295,7 +347,7 @@
                     <div class="col-md-6">
                         <h5 class="zyra-pdp-tab-heading">Care Instructions</h5>
                         <div class="zyra-pdp-spec-grid">
-                            <div class="zyra-pdp-spec-row"><span class="zyra-pdp-spec-key">Wash</span><span class="zyra-pdp-spec-val">{{ $product['care'] ?? 'Gentle Machine Wash' }}</span></div>
+                            <div class="zyra-pdp-spec-row"><span class="zyra-pdp-spec-key">Wash</span><span class="zyra-pdp-spec-val">{{ $product['care'] ?? 'Dry clean for the first wash. For subsequent washes, gently hand wash in cold water with mild detergent. Avoid wringing; if machine washing, use a delicate cycle.' }}</span></div>
                             <div class="zyra-pdp-spec-row"><span class="zyra-pdp-spec-key">Ironing</span><span class="zyra-pdp-spec-val">Warm iron on reverse side</span></div>
                             <div class="zyra-pdp-spec-row"><span class="zyra-pdp-spec-key">Bleach</span><span class="zyra-pdp-spec-val">Do not bleach</span></div>
                             <div class="zyra-pdp-spec-row"><span class="zyra-pdp-spec-key">Translucency</span><span class="zyra-pdp-spec-val">Opaque / Lined where needed</span></div>
@@ -305,7 +357,7 @@
             </div>
 
             {{-- Shipping --}}
-            <div class="tab-pane fade" id="shipping-tab-pane" role="tabpanel">
+            <div class="tab-pane fade" id="shipping-tab-pane" role="tabpanel" aria-labelledby="shipping-tab">
                 <div class="row g-4">
                     <div class="col-md-6">
                         <div class="zyra-pdp-ship-card">
@@ -394,14 +446,14 @@
                 </div>
                 <ul class="nav zyra-sc-tabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#scKurti" type="button" role="tab"><i class="bi bi-person-standing me-1"></i> Kurti</button>
+                        <button class="nav-link active" id="sc-kurti-tab" data-bs-toggle="tab" data-bs-target="#scKurti" type="button" role="tab" aria-controls="scKurti" aria-selected="true"><i class="bi bi-person-standing me-1"></i> Kurti</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#scPant" type="button" role="tab"><i class="bi bi-person-walking me-1"></i> Pant</button>
+                        <button class="nav-link" id="sc-pant-tab" data-bs-toggle="tab" data-bs-target="#scPant" type="button" role="tab" aria-controls="scPant" aria-selected="false"><i class="bi bi-person-walking me-1"></i> Pant</button>
                     </li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane fade show active" id="scKurti" role="tabpanel">
+                    <div class="tab-pane fade show active" id="scKurti" role="tabpanel" aria-labelledby="sc-kurti-tab">
                         <table class="table zyra-sc-table text-center align-middle">
                             <thead><tr><th>Size</th><th>Chest</th><th>Waist</th><th>Hip</th></tr></thead>
                             <tbody>
@@ -415,7 +467,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="tab-pane fade" id="scPant" role="tabpanel">
+                    <div class="tab-pane fade" id="scPant" role="tabpanel" aria-labelledby="sc-pant-tab">
                         <table class="table zyra-sc-table text-center align-middle">
                             <thead><tr><th>Size</th><th>Length</th><th>Waist</th><th>Ankle</th></tr></thead>
                             <tbody>
@@ -458,19 +510,91 @@
 
     let selectedDupatta = true;
     document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.pd-dupatta-btn').forEach(btn => {
+        const buyPanel = document.querySelector('.zyra-pdp-buy');
+        if (!buyPanel) return;
+
+        const thumbnails = document.querySelectorAll('.zyra-thumb-item');
+        thumbnails.forEach((thumbnail, index) => {
+            thumbnail.addEventListener('click', () => {
+                thumbnails.forEach(item => item.setAttribute('aria-pressed', 'false'));
+                thumbnail.setAttribute('aria-pressed', 'true');
+                document.getElementById('productMainImage').alt = @json($product['name'] ?? '') + ' image ' + (index + 1);
+            });
+        });
+
+        buyPanel.querySelectorAll('.pd-color-swatch').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.pd-dupatta-btn').forEach(b => b.classList.remove('active'));
+                buyPanel.querySelectorAll('.pd-color-swatch').forEach(swatch => {
+                    swatch.classList.remove('active');
+                    swatch.setAttribute('aria-pressed', 'false');
+                });
                 btn.classList.add('active');
-                selectedDupatta = btn.getAttribute('data-dupatta') === '1';
+                btn.setAttribute('aria-pressed', 'true');
+                document.getElementById('selectedColorName').textContent = btn.dataset.color;
+            });
+        });
+
+        buyPanel.querySelectorAll('.pd-size-btn:not(:disabled)').forEach(btn => {
+            btn.addEventListener('click', () => {
+                buyPanel.querySelectorAll('.pd-size-btn').forEach(sizeButton => {
+                    sizeButton.classList.remove('active');
+                    sizeButton.setAttribute('aria-pressed', 'false');
+                });
+                btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
+                document.getElementById('selectedSizeName').textContent = btn.dataset.size;
+            });
+        });
+
+        buyPanel.querySelectorAll('.pd-dupatta-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                buyPanel.querySelectorAll('.pd-dupatta-btn').forEach(option => {
+                    option.classList.remove('active');
+                    option.setAttribute('aria-pressed', 'false');
+                });
+                btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
+                selectedDupatta = btn.dataset.dupatta === '1';
+
                 const priceDisplay = document.getElementById('pdPriceDisplay');
-                if (priceDisplay) {
-                    priceDisplay.textContent = '₹' + (selectedDupatta
-                        ? {{ json_encode((float) $product['price']) }}
-                        : {{ json_encode((float) $product['without_dupatta_price']) }});
+                const price = Number(priceDisplay.dataset[selectedDupatta ? 'priceWithDupatta' : 'priceWithoutDupatta']);
+                priceDisplay.textContent = '₹' + price.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
+                const oldPriceDisplay = document.getElementById('pdOldPriceDisplay');
+                if (oldPriceDisplay) {
+                    const oldPrice = Number(oldPriceDisplay.dataset[selectedDupatta ? 'oldPriceWithDupatta' : 'oldPriceWithoutDupatta']);
+                    oldPriceDisplay.hidden = !Number.isFinite(oldPrice) || oldPrice <= price;
+                    if (!oldPriceDisplay.hidden) {
+                        oldPriceDisplay.textContent = '₹' + oldPrice.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                    }
+                }
+
+                const discountBadge = document.getElementById('pdDiscountBadge');
+                if (discountBadge) {
+                    const discount = Number(discountBadge.dataset[selectedDupatta ? 'discountWithDupatta' : 'discountWithoutDupatta']);
+                    discountBadge.hidden = !Number.isFinite(discount) || discount <= 0;
+                    if (!discountBadge.hidden) {
+                        discountBadge.textContent = 'SAVE ' + discount + '%';
+                    }
                 }
             });
         });
+
+        const addToCart = (button, buyNow = false) => {
+            const size = buyPanel.querySelector('.pd-size-btn.active')?.dataset.size || 'M';
+            const color = buyPanel.querySelector('.pd-color-swatch.active')?.dataset.color || 'Standard';
+            const quantity = Number.parseInt(document.getElementById('pdQuantityInput')?.value, 10) || 1;
+            const added = ZyraCart.addToCart(Number(button.dataset.productId), size, color, quantity, null, selectedDupatta);
+
+            if (buyNow && added) {
+                setTimeout(() => {
+                    window.location.href = @json(route('checkout'));
+                }, 300);
+            }
+        };
+
+        document.getElementById('pdAddToCartBtn')?.addEventListener('click', event => addToCart(event.currentTarget));
+        buyPanel.querySelector('.zyra-pdp-buy-now')?.addEventListener('click', event => addToCart(event.currentTarget, true));
     });
 </script>
 @endpush

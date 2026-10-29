@@ -173,6 +173,79 @@
     }
 }
 
+/* ── Mobile Search ────────────────────────────────────────────────── */
+.festive-search-container {
+    width: 100%;
+    margin: 0 0 1.25rem;
+}
+
+.festive-search-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    min-height: 48px;
+    padding: 5px 6px 5px 15px;
+    border: 1px solid var(--festive-border);
+    border-radius: 999px;
+    background: var(--festive-card-bg);
+    box-shadow: 0 3px 12px rgba(67, 43, 30, 0.07);
+    color: var(--festive-muted);
+    text-decoration: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.festive-search-pill:focus-within {
+    border-color: var(--festive-burgundy);
+    box-shadow: 0 0 0 3px rgba(125, 29, 50, 0.1);
+}
+
+.festive-search-pill > .bi-search {
+    flex: 0 0 auto;
+    font-size: 0.95rem;
+}
+
+.festive-search-pill input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--festive-text);
+    font: inherit;
+    font-size: 0.875rem;
+}
+
+.festive-search-pill input::placeholder {
+    color: #817973;
+    opacity: 1;
+}
+
+.festive-search-btn {
+    display: inline-flex;
+    flex: 0 0 38px;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--festive-burgundy);
+    color: #fff;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.festive-search-btn:hover,
+.festive-search-btn:focus-visible {
+    background: var(--festive-burgundy-dark);
+    color: #fff;
+    transform: scale(1.04);
+}
+
 /* ── Section Header ──────────────────────────────────────────────── */
 .festive-section-header {
     display: flex;
@@ -533,9 +606,9 @@
                 <input type="text"
                        name="q"
                        id="homeSearchPillInput"
-                       placeholder="Search Kurtis, Tops, Festive Maxis..."
+                       placeholder="Search products, styles..."
                        autocomplete="off">
-                <a href="{{ route('shop') }}" class="festive-search-btn" title="Filter Catalog">
+                <a href="{{ route('shop') }}" class="festive-search-btn" title="Filter Catalog" aria-label="Browse and filter products">
                     <i class="bi bi-sliders"></i>
                 </a>
             </form>
