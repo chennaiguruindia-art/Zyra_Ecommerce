@@ -165,6 +165,7 @@ class GlobalSettingController extends Controller
             'discount_type'     => 'required|in:percent,fixed',
             'discount_value'    => 'required|numeric|min:0.01|max:10000',
             'min_order_amount'  => 'nullable|numeric|min:0',
+            'before_purchase_amount' => 'nullable|numeric|min:0',
             'max_discount'      => 'nullable|numeric|min:0',
             'start_date'        => 'nullable|date',
             'expiry_date'       => 'nullable|date|after_or_equal:start_date',
@@ -181,6 +182,7 @@ class GlobalSettingController extends Controller
         $coupon->discount_type    = $data['discount_type'];
         $coupon->discount_value   = $data['discount_value'];
         $coupon->min_order_amount = $data['min_order_amount'] ?? 0;
+        $coupon->before_purchase_amount = $data['before_purchase_amount'] ?? 0;
         $coupon->max_discount     = $data['max_discount'] ?? null;
         $coupon->start_date       = $data['start_date'] ?? null;
         $coupon->expiry_date      = $data['expiry_date'] ?? null;

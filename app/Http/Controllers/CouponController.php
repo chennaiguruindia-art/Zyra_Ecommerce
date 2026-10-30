@@ -97,6 +97,14 @@ class CouponController extends Controller
             ], 422);
         }
 
+        if (!$coupon->meetsBeforePurchaseRequirement(Auth::id())) {
+            $required = number_format((float) $coupon->before_purchase_amount);
+            return response()->json([
+                'success' => false,
+                'message' => '"' . $coupon->code . '" is for returning customers: your last delivered order must be ₹' . $required . ' or more.',
+            ], 422);
+        }
+
         if ($coupon->start_date && \Carbon\Carbon::now()->lt($coupon->start_date)) {
             return response()->json([
                 'success' => false,

@@ -9,7 +9,7 @@ class Coupon extends Model
 {
     protected $fillable = [
         'code', 'discount_type', 'discount_value', 'min_order_amount',
-        'max_discount', 'start_date', 'expiry_date', 'status', 'used_count',
+        'before_purchase_amount', 'max_discount', 'start_date', 'expiry_date', 'status', 'used_count',
     ];
 
     protected $casts = [
@@ -18,6 +18,7 @@ class Coupon extends Model
         'expiry_date' => 'date',
         'discount_value' => 'decimal:2',
         'min_order_amount' => 'decimal:2',
+        'before_purchase_amount' => 'decimal:2',
         'max_discount' => 'decimal:2',
     ];
 
@@ -35,6 +36,14 @@ class Coupon extends Model
             if ($hasOrder) return false;
         }
 
+        // Loyalty gate: the customer's LAST Delivered order must be worth at
+        // least this coupon's before_purchase_amount. A guest (no userId) or a
+        // customer with no Delivered orders has not purchased before, so they
+        // are not eligible. When the field is empty/0 there is no gate.
+        if (!$this->meetsBeforePurchaseRequirement($userId)) {
+            return false;
+        }
+
         // Single-use per customer: a coupon code may be redeemed only once
         // per user. Past orders count and a cancelled order does not free it.
         if ($this->hasBeenUsedBy($userId)) {
@@ -42,6 +51,35 @@ class Coupon extends Model
         }
 
         return true;
+    }
+
+    /**
+     * Does this customer satisfy the coupon's "before purchase amount" gate?
+     * Compares the total of their most recent DELIVERED order (cancelled,
+     * pending and in-transit orders do not count).
+     */
+    public function meetsBeforePurchaseRequirement(?int $userId): bool
+    {
+        $required = (float) ($this->before_purchase_amount ?? 0);
+        if ($required <= 0) {
+            return true; // No gate configured on this coupon.
+        }
+
+        if (!$userId) {
+            return false; // Gate needs a known customer.
+        }
+
+        $lastDelivered = \App\Models\Order::query()
+            ->where('user_id', $userId)
+            ->where('order_status', 'Delivered')
+            ->orderByDesc('id')
+            ->value('total');
+
+        if ($lastDelivered === null) {
+            return false; // Nothing delivered yet — no purchase history.
+        }
+
+        return (float) $lastDelivered >= $required;
     }
 
     /**

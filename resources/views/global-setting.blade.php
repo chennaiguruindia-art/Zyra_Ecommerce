@@ -239,6 +239,10 @@
                 <input type="number" step="0.01" min="0" id="couponMax" name="max_discount" class="form-control" placeholder="Unlimited">
             </div>
             <div class="col-md-3">
+                <label class="form-label small fw-semibold">Before Purchase ₹ <span class="text-muted">(opt.)</span></label>
+                <input type="number" step="0.01" min="0" id="couponBeforePurchase" name="before_purchase_amount" class="form-control" placeholder="Any customer" title="Only customers whose last DELIVERED order is at least this amount may use the code. Leave empty for everyone.">
+            </div>
+            <div class="col-md-3">
                 <label class="form-label small fw-semibold">Start Date</label>
                 <input type="date" id="couponStart" name="start_date" class="form-control">
             </div>
@@ -269,6 +273,7 @@
                         <th>Code</th>
                         <th>Discount</th>
                         <th>Min Order</th>
+                        <th>Before Purchase</th>
                         <th>Validity</th>
                         <th>Status</th>
                         <th class="text-end">Actions</th>
@@ -285,6 +290,13 @@
                             @endif
                         </td>
                         <td>₹{{ $c->min_order_amount }}</td>
+                        <td>
+                            @if((float) $c->before_purchase_amount > 0)
+                                <span class="badge bg-info text-dark">Last order ≥ ₹{{ $c->before_purchase_amount }}</span>
+                            @else
+                                <span class="text-muted small">—</span>
+                            @endif
+                        </td>
                         <td class="small">
                             @if($c->start_date || $c->expiry_date)
                                 {{ optional($c->start_date)?->format('d M Y') ?? 'Always' }} → {{ optional($c->expiry_date)?->format('d M Y') ?? 'Forever' }}
@@ -303,6 +315,7 @@
                             <button type="button" class="btn btn-sm btn-outline-dark coupon-edit"
                                 data-id="{{ $c->id }}" data-code="{{ $c->code }}" data-type="{{ $c->discount_type }}"
                                 data-value="{{ $c->discount_value }}" data-min="{{ $c->min_order_amount }}"
+                                data-before="{{ $c->before_purchase_amount }}"
                                 data-max="{{ $c->max_discount ?? '' }}"
                                 data-start="{{ optional($c->start_date)?->format('Y-m-d') ?? '' }}"
                                 data-end="{{ optional($c->expiry_date)?->format('Y-m-d') ?? '' }}"
@@ -316,7 +329,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">No coupons yet.</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">No coupons yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -516,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('couponType').value  = btn.dataset.type;
                 document.getElementById('couponValue').value = btn.dataset.value;
                 document.getElementById('couponMin').value   = btn.dataset.min;
+                document.getElementById('couponBeforePurchase').value = btn.dataset.before > 0 ? btn.dataset.before : '';
                 document.getElementById('couponMax').value   = btn.dataset.max || '';
                 document.getElementById('couponStart').value = btn.dataset.start || '';
                 document.getElementById('couponEnd').value   = btn.dataset.end || '';
