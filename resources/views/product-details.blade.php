@@ -81,7 +81,6 @@
         $canChooseDupatta = !empty($product['dupatta_enabled'])
             && $withoutDupattaPrice !== null
             && $withoutDupattaPrice < $productPrice;
-        $shortDesc = mb_strimwidth(strip_tags((string) ($product['description'] ?? '')), 0, 140, '…');
     @endphp
 
     <div class="row g-5 zyra-pdp-hero">
@@ -141,9 +140,6 @@
                         <i class="bi bi-check-circle-fill text-success me-1"></i>Free shipping
                     </div>
                 </div>
-
-                {{-- Short description --}}
-                <p class="zyra-pdp-short">{{ $shortDesc }}</p>
 
                 <div class="zyra-pdp-divider"></div>
 
