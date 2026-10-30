@@ -296,10 +296,7 @@
     <div class="zyra-pdp-tabs mt-5 pt-5 border-top">
         <ul class="nav zyra-pdp-tab-nav justify-content-center mb-4" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-tab-pane" type="button" role="tab" aria-controls="desc-tab-pane" aria-selected="true">Description</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="specs-tab" data-bs-toggle="tab" data-bs-target="#specs-tab-pane" type="button" role="tab" aria-controls="specs-tab-pane" aria-selected="false">Specifications & Care</button>
+                <button class="nav-link active" id="specs-tab" data-bs-toggle="tab" data-bs-target="#specs-tab-pane" type="button" role="tab" aria-controls="specs-tab-pane" aria-selected="true">Specifications & Care</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping-tab-pane" type="button" role="tab" aria-controls="shipping-tab-pane" aria-selected="false">Shipping & Returns</button>
@@ -308,32 +305,8 @@
 
         <div class="zyra-pdp-tab-content tab-content">
 
-            {{-- Description --}}
-            <div class="tab-pane fade show active" id="desc-tab-pane" role="tabpanel" aria-labelledby="desc-tab">
-                <div class="row g-4">
-                    <div class="col-lg-8">
-                        <h5 class="zyra-pdp-tab-heading">About This Design</h5>
-                        <p class="text-muted">{{ $product['description'] }}</p>
-                        <p class="text-muted">
-                            Designed specifically for the contemporary woman who appreciates traditional craftsmanship combined with clean, modern silhouettes. Made with breathable lightweight fibers that offer maximum airflow and luxurious all-day comfort.
-                        </p>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="zyra-pdp-highlights-card">
-                            <h6 class="zyra-pdp-highlights-title">Style Highlights</h6>
-                            <ul class="zyra-pdp-highlights-list">
-                                <li><i class="bi bi-check2-circle"></i> Versatile for morning casual or evening gatherings</li>
-                                <li><i class="bi bi-check2-circle"></i> Pre-shrunk and bio-washed fabric</li>
-                                <li><i class="bi bi-check2-circle"></i> Double-stitched seams for longevity</li>
-                                <li><i class="bi bi-check2-circle"></i> Fade-resistant eco-friendly dye</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {{-- Specifications --}}
-            <div class="tab-pane fade" id="specs-tab-pane" role="tabpanel" aria-labelledby="specs-tab">
+            <div class="tab-pane fade show active" id="specs-tab-pane" role="tabpanel" aria-labelledby="specs-tab">
                 <div class="row g-4">
                     <div class="col-md-6">
                         <h5 class="zyra-pdp-tab-heading">Product Details</h5>
