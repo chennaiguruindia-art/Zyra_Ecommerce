@@ -36,7 +36,7 @@
 <!-- Stock Inward KPI Metric Cards -->
 <div class="row g-3 mb-4">
     <!-- Today -->
-    <div class="col-6 col-xl-3">
+    <div class="col-12 col-sm-6 col-xxl-3">
         <div class="seller-stat-card border-start border-primary border-3">
             <div class="seller-stat-icon bg-primary-soft text-primary"><i class="bi bi-calendar-check"></i></div>
             <div>
@@ -48,7 +48,7 @@
     </div>
 
     <!-- This Week -->
-    <div class="col-6 col-xl-3">
+    <div class="col-12 col-sm-6 col-xxl-3">
         <div class="seller-stat-card border-start border-info border-3">
             <div class="seller-stat-icon bg-info-soft text-info"><i class="bi bi-calendar3"></i></div>
             <div>
@@ -60,7 +60,7 @@
     </div>
 
     <!-- This Month -->
-    <div class="col-6 col-xl-3">
+    <div class="col-12 col-sm-6 col-xxl-3">
         <div class="seller-stat-card border-start border-success border-3">
             <div class="seller-stat-icon bg-success-soft text-success"><i class="bi bi-calendar-month"></i></div>
             <div>
@@ -72,7 +72,7 @@
     </div>
 
     <!-- Total Catalog Valuation -->
-    <div class="col-6 col-xl-3">
+    <div class="col-12 col-sm-6 col-xxl-3">
         <div class="seller-stat-card border-start border-warning border-3">
             <div class="seller-stat-icon bg-gold-soft text-gold"><i class="bi bi-cash-stack"></i></div>
             <div>
