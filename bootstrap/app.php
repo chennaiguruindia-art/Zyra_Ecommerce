@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         $middleware->alias([
             'seller' => EnsureUserIsSeller::class,
             'auth.api' => \App\Http\Middleware\ApiAuthenticate::class,
@@ -26,6 +28,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\TrackVisit::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/razorpay',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

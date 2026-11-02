@@ -121,6 +121,7 @@ class CheckoutController extends Controller
 
         // Cash on Delivery: create the order directly.
         $order = $this->createDatabaseOrder($data, [], $request->input('notes'));
+        session()->put('recent_placed_order', $order->order_number);
 
         // Meta Conversions API – server side Purchase (deduplicated with the
         // pixel on the success page via a shared event id).
@@ -241,6 +242,7 @@ class CheckoutController extends Controller
             MetaConversionsApi::purchase($request, $order);
 
             session()->forget('zyra_pending_order');
+            session()->put('recent_placed_order', $order->order_number);
 
             return response()->json([
                 'success' => true,
@@ -394,30 +396,37 @@ class CheckoutController extends Controller
             $cartItems = array_values(session()->get('cart', []));
         }
 
+        // Aggregate total demanded quantity per product and size across cart variants
+        $demanded = [];
         foreach ($cartItems as $item) {
-            // Bypass the visibility scope so hidden items are rejected with a
-            // clear message instead of being silently skipped.
+            $prodId = (int) ($item['id'] ?? 0);
+            $size = (string) ($item['size'] ?? '');
+            $qty = max(1, (int) ($item['quantity'] ?? 1));
+            $k = "{$prodId}:{$size}";
+            $demanded[$k] = ($demanded[$k] ?? 0) + $qty;
+        }
+
+        foreach ($demanded as $key => $totalQty) {
+            [$prodId, $size] = explode(':', $key, 2);
             $product = Product::query()
                 ->withoutGlobalScope(\App\Models\Scopes\ProductVisibleScope::class)
-                ->find($item['id'] ?? 0);
+                ->find($prodId);
             if (!$product) {
                 continue;
             }
             if (!$product->is_visible) {
-                $size = $item['size'] ?? null;
                 $label = $product->name . ($size ? " (size {$size})" : '');
                 abort(422, "{$label} is no longer available. Please remove it from your bag and try again.");
             }
-            $size = $item['size'] ?? null;
-            $qty = (int) ($item['quantity'] ?? 1);
+
+            $available = $product->stockForSize($size ?: null);
             $label = $product->name . ($size ? " (size {$size})" : '');
-            $available = $product->stockForSize($size);
 
             if ($available <= 0) {
                 abort(422, "{$label} is out of stock. Please remove it from your bag and try again.");
             }
-            if ($qty > $available) {
-                abort(422, "Only {$available} unit(s) of {$label} are left. Please reduce the quantity and try again.");
+            if ($totalQty > $available) {
+                abort(422, "Only {$available} unit(s) of {$label} are left in stock. You have {$totalQty} in your bag. Please reduce the quantity.");
             }
         }
     }
@@ -478,8 +487,9 @@ class CheckoutController extends Controller
             $shipping = 0;
 
             $paymentMethod = $data['payment_method'];
+            $orderNumber = $data['receipt'] ?? $data['_receipt'] ?? $pricing['receipt'] ?? Order::generateOrderNumber();
             $order = Order::create(array_merge([
-                'order_number' => Order::generateOrderNumber(),
+                'order_number' => $orderNumber,
                 'user_id' => Auth::id(),
                 'customer_name' => trim($data['first_name'] . ' ' . ($data['last_name'] ?? '')),
                 'customer_email' => $data['email'],
@@ -501,21 +511,26 @@ class CheckoutController extends Controller
             ], $razorpay));
 
             foreach ($lineItems as $line) {
-                // Hard per-size stock guard (falls back to product total for legacy sizes).
+                // Hard per-size stock guard with pessimistic row locking to prevent overselling
+                $product = Product::withoutGlobalScopes()->where('id', $line['product']->id)->lockForUpdate()->first();
+                if (!$product) {
+                    abort(422, "Product \"{$line['product']->name}\" is no longer available.");
+                }
+
                 $sizeLabel = $line['size'] ?? 'selected size';
-                $availableForSize = $line['product']->stockForSize($line['size']);
+                $availableForSize = $product->stockForSize($line['size']);
                 if ($availableForSize <= 0) {
-                    abort(422, "Size {$sizeLabel} of \"{$line['product']->name}\" is out of stock.");
+                    abort(422, "Size {$sizeLabel} of \"{$product->name}\" is out of stock.");
                 }
                 if ($line['quantity'] > $availableForSize) {
-                    abort(422, "Only {$availableForSize} unit(s) of \"{$line['product']->name}\" are left in size {$sizeLabel}.");
+                    abort(422, "Only {$availableForSize} unit(s) of \"{$product->name}\" are left in size {$sizeLabel}.");
                 }
 
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $line['product']->id,
-                    'product_name' => $line['product']->name,
-                    'product_image' => $line['product']->image,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'product_image' => $product->image,
                     'price' => $line['price'],
                     'quantity' => $line['quantity'],
                     'size' => $line['size'],
@@ -524,13 +539,13 @@ class CheckoutController extends Controller
                     'total' => $line['total'],
                 ]);
 
-                $newStock = max(0, $line['product']->stock_units - $line['quantity']);
-                $line['product']->update([
+                $newStock = max(0, $product->stock_units - $line['quantity']);
+                $product->update([
                     'stock_units' => $newStock,
                     'in_stock' => $newStock > 0,
                 ]);
 
-                $line['product']->decrementSizeStock($line['size'], $line['quantity']);
+                $product->decrementSizeStock($line['size'], $line['quantity']);
             }
 
             ActivityTracker::trackMany(CustomerActivity::PURCHASED, $order->items()->get(['product_id', 'size', 'color', 'quantity'])->all());
@@ -567,38 +582,12 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Email the customer their order confirmation. Never throws.
+     * Email buyer confirmation and seller new-order notifications reliably. Never throws.
      */
     protected function sendOrderConfirmation(Order $order): void
     {
         try {
-            $order->loadMissing('items');
-            $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
-
-            $sendWithFallback = function (string $recipient, \Illuminate\Mail\Mailable $mailable, string $label) use ($order) {
-                try {
-                    \Illuminate\Support\Facades\Mail::to($recipient)->send($mailable);
-                    \Illuminate\Support\Facades\Log::info("{$label} sent successfully", ['order' => $order->order_number, 'to' => $recipient]);
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning("{$label} failed on default mailer: " . $e->getMessage(), ['order' => $order->order_number]);
-                    try {
-                        \Illuminate\Support\Facades\Mail::mailer('smtp_ssl')->to($recipient)->send($mailable);
-                        \Illuminate\Support\Facades\Log::info("{$label} sent successfully via smtp_ssl fallback", ['order' => $order->order_number, 'to' => $recipient]);
-                    } catch (\Throwable $e2) {
-                        \Illuminate\Support\Facades\Log::error("{$label} failed on fallback as well: " . $e2->getMessage(), ['order' => $order->order_number]);
-                    }
-                }
-            };
-
-            // 1. Send dedicated notification directly to Admin/Seller Inbox
-            if (!empty($adminEmail)) {
-                $sendWithFallback($adminEmail, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: true), 'Seller New Order Email');
-            }
-
-            // 2. Send order confirmation directly to Buyer
-            if (!empty($order->customer_email)) {
-                $sendWithFallback($order->customer_email, new \App\Mail\OrderConfirmationMail($order, isSellerNotification: false), 'Buyer Order Confirmation');
-            }
+            \App\Services\OrderMailService::sendOrderNotifications($order);
         } catch (\Throwable $e) {
             Log::warning('sendOrderConfirmation outer exception: ' . $e->getMessage());
         }

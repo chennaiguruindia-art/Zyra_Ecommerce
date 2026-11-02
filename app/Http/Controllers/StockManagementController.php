@@ -151,15 +151,6 @@ class StockManagementController extends Controller
                     continue;
                 }
 
-                $current = $size->pivot->stock !== null ? (int) $size->pivot->stock : 0;
-                $newStock = $current + $qty;
-
-                $affected = $product->sizes()->updateExistingPivot($size->id, ['stock' => $newStock]);
-                if ($affected === 0) {
-                    $product->sizes()->attach($size->id, ['stock' => $newStock]);
-                }
-
-                $updatedSizes[$sizeName] = $newStock;
                 $sizesBreakdown[$sizeName] = $qty;
                 $totalAdded += $qty;
             }
@@ -180,7 +171,23 @@ class StockManagementController extends Controller
 
         $totalCost = round($totalAdded * $unitCost, 2);
 
-        $receipt = DB::transaction(function () use ($product, $totalAdded, $unitCost, $totalCost, $sizesBreakdown, $request) {
+        $receipt = DB::transaction(function () use ($product, $totalAdded, $unitCost, $totalCost, $sizesBreakdown, $request, &$updatedSizes) {
+            // Apply per-size updates atomically inside transaction
+            foreach ($sizesBreakdown as $sizeName => $qty) {
+                $size = $product->sizes->first(fn ($s) => $s->name === $sizeName);
+                if (!$size) {
+                    continue;
+                }
+                $current = $size->pivot->stock !== null ? (int) $size->pivot->stock : 0;
+                $newStock = $current + $qty;
+
+                $affected = $product->sizes()->updateExistingPivot($size->id, ['stock' => $newStock]);
+                if ($affected === 0) {
+                    $product->sizes()->attach($size->id, ['stock' => $newStock]);
+                }
+                $updatedSizes[$sizeName] = $newStock;
+            }
+
             $product->stock_units = (int) $product->stock_units + $totalAdded;
             $product->in_stock = true;
             $product->save();

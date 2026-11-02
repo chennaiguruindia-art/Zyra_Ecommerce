@@ -214,11 +214,15 @@ class CartController extends Controller
         $userId = auth()->id();
 
         $record = Cart::query()
-            ->where('user_id', $userId)
-            ->orWhere(function ($q) use ($sessionId) {
-                $q->whereNotNull('session_id')->where('session_id', $sessionId);
-            })
             ->active()
+            ->where(function ($q) use ($userId, $sessionId) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                }
+                if ($sessionId) {
+                    $q->orWhere('session_id', $sessionId);
+                }
+            })
             ->latest()
             ->first();
 

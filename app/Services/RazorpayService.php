@@ -63,6 +63,24 @@ class RazorpayService
     }
 
     /**
+     * Verify Razorpay webhook signature.
+     */
+    public function verifyWebhookSignature(string $payload, string $actualSignature, ?string $secret = null): bool
+    {
+        $secret = $secret ?: (string) config('razorpay.webhook_secret');
+        if ($secret === '') {
+            return false;
+        }
+
+        try {
+            $this->client->utility->verifyWebhookSignature($payload, $actualSignature, $secret);
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * Fetch the payment entity to confirm final status (authorized/captured).
      */
     public function fetchPayment(string $paymentId): array

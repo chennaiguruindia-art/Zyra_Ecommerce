@@ -18,11 +18,48 @@ class ShiprocketService
     }
 
     /**
-     * Whether the integration is configured (a token is present).
+     * Resolve the active Shiprocket API token.
+     * Prefers explicit static token, or automatically logs in and caches token for 9 days.
+     */
+    public function token(): string
+    {
+        if ($this->token !== '') {
+            return $this->token;
+        }
+
+        $email = (string) config('shiprocket.email');
+        $password = (string) config('shiprocket.password');
+
+        if ($email !== '' && $password !== '') {
+            try {
+                return (string) \Illuminate\Support\Facades\Cache::remember('shiprocket_auth_token', now()->addDays(9), function () use ($email, $password) {
+                    $client = new \GuzzleHttp\Client([
+                        'base_uri' => $this->baseUrl . '/',
+                        'timeout' => 20,
+                        'http_errors' => false,
+                    ]);
+
+                    $res = $client->post('auth/login', [
+                        'json' => ['email' => $email, 'password' => $password],
+                    ]);
+
+                    $data = json_decode((string) $res->getBody(), true);
+                    return (string) ($data['token'] ?? '');
+                });
+            } catch (\Throwable $e) {
+                Log::warning('Shiprocket auto-login failed: ' . $e->getMessage());
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Whether the integration is configured (a token or login credentials are present).
      */
     public function isConfigured(): bool
     {
-        return $this->token !== '';
+        return $this->token() !== '';
     }
 
     /**
@@ -38,7 +75,7 @@ class ShiprocketService
 
         $options = [
             'headers' => [
-                'AUTHORIZATION' => 'Bearer ' . $this->token,
+                'AUTHORIZATION' => 'Bearer ' . $this->token(),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ],

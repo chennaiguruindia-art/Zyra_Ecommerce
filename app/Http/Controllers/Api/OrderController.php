@@ -51,10 +51,29 @@ class OrderController extends Controller
             return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
         }
 
-        // Customer access check (allow if owner, or guest order matches phone/email query)
-        $userId = Auth::id();
-        if ($userId && $order->user_id && $order->user_id !== $userId) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        // Customer access check (allow if owner/seller, or guest order matches phone/email verification)
+        $user = Auth::user();
+        if ($user) {
+            if (!$user->isSeller() && $order->user_id && $order->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access to this order.'], 403);
+            }
+        } else {
+            // Unauthenticated guest: require matching phone or email to prevent enumeration of customer PII
+            $phone = preg_replace('/\D/', '', (string) $request->input('phone'));
+            $email = strtolower(trim((string) $request->input('email')));
+
+            $orderPhone = preg_replace('/\D/', '', (string) $order->customer_phone);
+            $orderEmail = strtolower(trim((string) $order->customer_email));
+
+            $matchesPhone = ($phone !== '' && $orderPhone !== '' && (str_ends_with($orderPhone, $phone) || str_ends_with($phone, $orderPhone)));
+            $matchesEmail = ($email !== '' && $orderEmail !== '' && $email === $orderEmail);
+
+            if (!$matchesPhone && !$matchesEmail) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Verification required. Please supply matching phone or email parameter to track this order.',
+                ], 403);
+            }
         }
 
         return response()->json([

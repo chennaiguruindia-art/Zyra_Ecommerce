@@ -53,7 +53,6 @@ class RegisteredUserController extends Controller
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10}$/', 'unique:'.User::class],
             'district' => ['required', 'string', 'max:255'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:customer,seller'],
         ]);
 
         $user = User::create([
@@ -65,9 +64,8 @@ class RegisteredUserController extends Controller
             'state' => $request->state,
             'phone_number' => $request->phone_number,
             'district' => $request->district,
-            'role' => $request->role,
+            'role' => 'customer',
             'password' => Hash::make($request->password),
-            'original_password' => $request->password,
         ]);
 
         event(new Registered($user));

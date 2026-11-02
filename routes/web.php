@@ -25,6 +25,7 @@ use App\Http\Controllers\ActivityTrackController;
 use App\Http\Controllers\ActivityAnalyticsController;
 use App\Http\Controllers\StockManagementController;
 use App\Http\Controllers\OrderHistoryController;
+use App\Http\Controllers\RazorpayWebhookController;
 
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
@@ -149,6 +150,9 @@ Route::post('/cart/apply-coupon', [CartController::class, 'applyCoupon'])->name(
 Route::post('/cart/remove-coupon', [CartController::class, 'removeCoupon'])->name('cart.remove-coupon');
 
 Route::get('/order-success/{order_number}', [OrderController::class, 'success'])->name('order.success');
+
+// Razorpay Webhooks (order.paid, payment.captured)
+Route::post('/webhooks/razorpay', [RazorpayWebhookController::class, 'handle'])->name('webhooks.razorpay');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/search/live', [SearchController::class, 'live'])->name('search.live');

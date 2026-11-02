@@ -9,6 +9,12 @@ class PublicStorageController extends Controller
 {
     public function show(string $path): BinaryFileResponse
     {
+        // Disallow dangerous, executable, or sensitive file extensions
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        if (in_array($ext, ['php', 'phtml', 'phar', 'env', 'htaccess', 'json', 'sql', 'sh', 'bat', 'cmd'], true)) {
+            abort(404);
+        }
+
         $file = ProductImageStorage::resolveOnDisk($path);
 
         if (!$file) {
@@ -20,7 +26,6 @@ class PublicStorageController extends Controller
             realpath(public_path('uploads')),
             realpath(storage_path('app/public')),
             realpath(public_path('storage')),
-            realpath(public_path()),
         ];
 
         $fileCheck = PHP_OS_FAMILY === 'Windows' ? strtolower($file) : $file;

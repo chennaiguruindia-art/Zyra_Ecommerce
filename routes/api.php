@@ -38,11 +38,13 @@ Route::get('/search', [SearchController::class, 'search'])->name('api.search');
 Route::get('/search/live', [SearchController::class, 'live'])->name('api.search.live');
 
 // ==========================================
-// 3. AUTHENTICATION (PUBLIC)
+// 3. AUTHENTICATION (PUBLIC WITH RATE LIMITING)
 // ==========================================
-Route::post('/register', [AuthController::class, 'register'])->name('api.register');
-Route::post('/login', [AuthController::class, 'login'])->name('api.login');
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('api.forgot-password');
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register'])->name('api.register');
+    Route::post('/login', [AuthController::class, 'login'])->name('api.login');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('api.forgot-password');
+});
 
 // ==========================================
 // 4. CUSTOMER PROFILE (PROTECTED)
@@ -86,11 +88,13 @@ Route::middleware('auth.api.optional')->group(function () {
 });
 
 // ==========================================
-// 6. SUPPORT, CHATBOT & TRACKING
+// 6. SUPPORT, CHATBOT & TRACKING (RATE LIMITED)
 // ==========================================
-Route::post('/contact', [SupportController::class, 'contact'])->name('api.contact');
-Route::post('/chatbot', [SupportController::class, 'chatbot'])->name('api.chatbot');
-Route::post('/track', [SupportController::class, 'track'])->name('api.track');
+Route::middleware('throttle:30,1')->group(function () {
+    Route::post('/contact', [SupportController::class, 'contact'])->name('api.contact');
+    Route::post('/chatbot', [SupportController::class, 'chatbot'])->name('api.chatbot');
+    Route::post('/track', [SupportController::class, 'track'])->name('api.track');
+});
 
 // ==========================================
 // 7. SELLER APP APIs (SELLER PROTECTED)

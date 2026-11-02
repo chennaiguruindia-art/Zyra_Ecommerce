@@ -614,7 +614,9 @@ class ChatBotController extends Controller
 
     protected function orderLink(Order $order): string
     {
-        return '<a href="/order-success/' . e($order->order_number) . '">' . e($order->order_number) . '</a>';
+        return auth()->check()
+            ? '<a href="/my-orders">' . e($order->order_number) . '</a>'
+            : '<b>' . e($order->order_number) . '</b>';
     }
 
     protected function statusHint(Order $order): string

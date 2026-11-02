@@ -15,6 +15,8 @@ return [
     'base_url' => env('SHIPROCKET_BASE_URL', 'https://apiv2.shiprocket.in/v1/external'),
 
     'token' => env('SHIPROCKET_TOKEN', ''),
+    'email' => env('SHIPROCKET_EMAIL', ''),
+    'password' => env('SHIPROCKET_PASSWORD', ''),
 
     /*
     |--------------------------------------------------------------------------

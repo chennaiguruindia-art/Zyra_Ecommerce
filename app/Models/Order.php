@@ -44,6 +44,10 @@ public function items(): HasMany
 
     public static function generateOrderNumber(): string
     {
-        return 'ZYRA-' . strtoupper(substr(uniqid(), -6));
+        do {
+            $candidate = 'ZYRA-' . strtoupper(\Illuminate\Support\Str::random(8));
+        } while (static::where('order_number', $candidate)->exists());
+
+        return $candidate;
     }
 }

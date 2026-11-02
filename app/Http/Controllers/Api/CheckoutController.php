@@ -269,7 +269,21 @@ class CheckoutController extends Controller
             ], $paymentAttributes));
 
             foreach ($pricing['line_items'] as $line) {
-                $product = $line['product'];
+                // Hard per-size stock guard with pessimistic row locking to prevent overselling
+                $product = Product::withoutGlobalScopes()->where('id', $line['product']->id)->lockForUpdate()->first();
+                if (!$product) {
+                    abort(422, "Product \"{$line['product']->name}\" is no longer available.");
+                }
+
+                $sizeLabel = $line['size'] ?? 'selected size';
+                $availableForSize = $product->stockForSize($line['size']);
+                if ($availableForSize <= 0) {
+                    abort(422, "Size {$sizeLabel} of \"{$product->name}\" is out of stock.");
+                }
+                if ($line['quantity'] > $availableForSize) {
+                    abort(422, "Only {$availableForSize} unit(s) of \"{$product->name}\" are left in size {$sizeLabel}.");
+                }
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
@@ -333,19 +347,10 @@ class CheckoutController extends Controller
 
     protected function sendOrderEmails(Order $order): void
     {
-        $order->loadMissing('items');
-        $adminEmail = config('mail.from.address', 'order@shopwithzyra.in');
-
         try {
-            Mail::to($order->customer_email)->send(new \App\Mail\OrderConfirmationMail($order));
+            \App\Services\OrderMailService::sendOrderNotifications($order);
         } catch (\Throwable $e) {
-            Log::warning('Customer order confirmation email failed: ' . $e->getMessage());
-        }
-
-        try {
-            Mail::to($adminEmail)->send(new \App\Mail\AdminOrderNotificationMail($order));
-        } catch (\Throwable $e) {
-            Log::warning('Admin order notification email failed: ' . $e->getMessage());
+            Log::warning('Order confirmation email API error: ' . $e->getMessage());
         }
     }
 

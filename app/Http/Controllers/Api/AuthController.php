@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
@@ -45,7 +46,6 @@ class AuthController extends Controller
             'pincode' => ['nullable', 'digits:6'],
             'state' => ['nullable', 'string', 'max:255'],
             'district' => ['nullable', 'string', 'max:255'],
-            'role' => ['nullable', 'in:customer,seller'],
         ]);
 
         $token = Str::random(60);
@@ -55,13 +55,12 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
             'password' => Hash::make($validated['password']),
-            'original_password' => $validated['password'],
             'address' => $validated['address'] ?? null,
             'nearby_area' => $validated['nearby_area'] ?? null,
             'pincode' => $validated['pincode'] ?? null,
             'state' => $validated['state'] ?? null,
             'district' => $validated['district'] ?? null,
-            'role' => ($validated['role'] ?? 'customer') === 'seller' ? 'seller' : 'customer',
+            'role' => 'customer',
             'remember_token' => $token,
         ]);
 
@@ -104,17 +103,31 @@ class AuthController extends Controller
             ], 422);
         }
 
+        $throttleKey = 'api_login:' . Str::lower(trim($loginInput)) . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many login attempts. Your account is temporarily locked for security. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
+            ], 429);
+        }
+
         $user = User::query()
             ->where('email', $loginInput)
             ->orWhere('phone_number', $loginInput)
             ->first();
 
         if (!$user || !Hash::check($request->input('password'), $user->password)) {
+            RateLimiter::hit($throttleKey, 300);
+
             return response()->json([
                 'success' => false,
                 'message' => 'The provided credentials do not match our records.',
             ], 401);
         }
+
+        RateLimiter::clear($throttleKey);
 
         $token = Str::random(60);
         $user->remember_token = $token;

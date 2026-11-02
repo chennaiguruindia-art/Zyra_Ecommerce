@@ -17,7 +17,7 @@ class PricingService
      *
      * @return array{subtotal:float,discount:float,gst:float,total:float,coupon_code:?string,receipt:string,line_items:array}
      */
-    public function breakdown(?string $couponCode = null, ?int $userId = null): array
+    public function breakdown(?string $couponCode = null, ?int $userId = null, ?string $email = null, ?string $phone = null): array
     {
         $cartItems = array_values(session()->get('cart', []));
 
@@ -56,7 +56,7 @@ class PricingService
 
         if ($normalized !== '') {
             $coupon = Coupon::query()->where('code', $normalized)->first();
-            if ($coupon && $coupon->isValidFor($subtotal, $userId)) {
+            if ($coupon && $coupon->isValidFor($subtotal, $userId, $email, $phone)) {
                 $applied = true;
                 $discount = (float) $coupon->calculateDiscount($subtotal);
             }

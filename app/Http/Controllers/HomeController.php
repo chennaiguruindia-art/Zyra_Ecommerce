@@ -24,7 +24,8 @@ class HomeController extends Controller
         $newArrivals = Product::query()->with($with)->latest()->take(4)->get()->map->toCatalogArray()->all();
         $bestSellers = Product::query()->with($with)->bestSeller()->take(8)->get()->map->toCatalogArray()->all();
         $trending = Product::query()->with($with)->trending()->take(8)->get()->map->toCatalogArray()->all();
-        $allProducts = Product::query()->with($with)->latest()->get()->map->toCatalogArray()->all();
+        $totalProductsCount = Product::query()->count();
+        $allProducts = Product::query()->with($with)->latest()->take(8)->get()->map->toCatalogArray()->all();
 
         $heroBanner = Banner::query()->active()->where('position', 'hero')->first();
         $promoBanner = Banner::query()->active()->where('position', 'promo')->first();
@@ -43,6 +44,7 @@ class HomeController extends Controller
             'bestSellers',
             'trending',
             'allProducts',
+            'totalProductsCount',
             'heroBanner',
             'promoBanner',
             'instagramItems'

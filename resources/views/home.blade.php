@@ -739,7 +739,7 @@
                     <h2 class="festive-section-title">Trending Now</h2>
                     <span class="festive-section-sub">Handpicked for modern festive elegance</span>
                 </div>
-                <a href="{{ route('shop') }}" class="festive-section-link">View All ({{ count($allProducts) }})</a>
+                <a href="{{ route('shop') }}" class="festive-section-link">View All ({{ $totalProductsCount ?? count($allProducts) }})</a>
             </div>
 
             <div class="row g-3 g-md-4">
@@ -760,7 +760,7 @@
                     <h2 class="festive-section-title">New Arrivals</h2>
                     <span class="festive-section-sub">Fresh additions to our collection</span>
                 </div>
-                <a href="{{ route('shop') }}" class="festive-section-link">View All ({{ count($allProducts) }})</a>
+                <a href="{{ route('shop') }}" class="festive-section-link">View All ({{ $totalProductsCount ?? count($allProducts) }})</a>
             </div>
             @if(!empty($allProducts))
                 <div class="row g-3 g-md-4">

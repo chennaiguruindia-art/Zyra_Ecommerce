@@ -22,7 +22,7 @@ class Coupon extends Model
         'max_discount' => 'decimal:2',
     ];
 
-    public function isValidFor(float $orderAmount, ?int $userId = null): bool
+    public function isValidFor(float $orderAmount, ?int $userId = null, ?string $email = null, ?string $phone = null): bool
     {
         if (!$this->status) return false;
         if ($orderAmount < $this->min_order_amount) return false;
@@ -30,9 +30,19 @@ class Coupon extends Model
         if ($this->expiry_date && Carbon::now()->gt($this->expiry_date->endOfDay())) return false;
 
         // FIRSTORDER: common first-purchase coupon, only valid if the customer has no orders yet.
+        // Validated across user_id, email, and phone to prevent guest/multi-account abuse.
         if (strtoupper($this->code) === 'FIRSTORDER') {
-            if (!$userId) return false;
-            $hasOrder = \App\Models\Order::where('user_id', $userId)->exists();
+            $hasOrder = \App\Models\Order::query()
+                ->where(function ($q) use ($userId, $email, $phone) {
+                    if ($userId) $q->orWhere('user_id', $userId);
+                    if ($email && trim($email) !== '') $q->orWhereRaw('LOWER(customer_email) = ?', [strtolower(trim($email))]);
+                    if ($phone) {
+                        $digits = preg_replace('/\D/', '', $phone);
+                        if ($digits !== '') $q->orWhere('customer_phone', 'LIKE', '%' . substr($digits, -10));
+                    }
+                })
+                ->exists();
+
             if ($hasOrder) return false;
         }
 
@@ -45,8 +55,8 @@ class Coupon extends Model
         }
 
         // Single-use per customer: a coupon code may be redeemed only once
-        // per user. Past orders count and a cancelled order does not free it.
-        if ($this->hasBeenUsedBy($userId)) {
+        // per customer across user_id, email, and phone number.
+        if ($this->hasBeenUsedBy($userId, $email, $phone)) {
             return false;
         }
 
@@ -83,19 +93,31 @@ class Coupon extends Model
     }
 
     /**
-     * Has this user already redeemed this coupon code on any past order?
-     * Orders store both coupon_code and user_id, so history is the source
-     * of truth (covers orders placed before this rule existed).
+     * Has this customer already redeemed this coupon code on any past order?
+     * Checked across user_id, email, and phone number to stop multi-account abuse.
      */
-    public function hasBeenUsedBy(?int $userId): bool
+    public function hasBeenUsedBy(?int $userId, ?string $email = null, ?string $phone = null): bool
     {
-        if (!$userId) {
+        if (!$userId && empty($email) && empty($phone)) {
             return false;
         }
 
         return \App\Models\Order::query()
-            ->where('user_id', $userId)
             ->where('coupon_code', $this->code)
+            ->where(function ($q) use ($userId, $email, $phone) {
+                if ($userId) {
+                    $q->orWhere('user_id', $userId);
+                }
+                if ($email && trim($email) !== '') {
+                    $q->orWhereRaw('LOWER(customer_email) = ?', [strtolower(trim($email))]);
+                }
+                if ($phone) {
+                    $digits = preg_replace('/\D/', '', $phone);
+                    if ($digits !== '') {
+                        $q->orWhere('customer_phone', 'LIKE', '%' . substr($digits, -10));
+                    }
+                }
+            })
             ->exists();
     }
 
