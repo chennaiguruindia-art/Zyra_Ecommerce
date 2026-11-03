@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="facebook-domain-verification" content="xxl41an2ik7vt145e5o3cet8tuispd" />
     <link rel="icon" type="image/png" href="{{ asset('images/logo/logo.png') }}">
 
     <!-- SEO & Social Meta Tags -->
