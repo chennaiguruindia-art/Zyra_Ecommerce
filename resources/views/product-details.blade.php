@@ -116,9 +116,12 @@
                 <div class="zyra-pdp-eyebrow">{{ $product['category'] }} / {{ $product['subcategory'] }}</div>
                 <h1 class="zyra-pdp-title">{{ $product['name'] }}</h1>
 
-                {{-- SKU Row --}}
-                <div class="zyra-pdp-rating-row">
+                {{-- SKU & Share Row --}}
+                <div class="zyra-pdp-rating-row d-flex justify-content-between align-items-center">
                     <span class="text-muted">SKU {{ $product['sku'] }}</span>
+                    <button type="button" class="zyra-pdp-share-link-btn" data-bs-toggle="modal" data-bs-target="#shareProductModal" title="Share this product">
+                        <i class="bi bi-share me-1"></i>Share
+                    </button>
                 </div>
 
                 {{-- Price --}}
@@ -245,6 +248,10 @@
 
                         <button type="button" class="zyra-pdp-wishlist-btn zyra-wishlist-btn" data-product-id="{{ $product['id'] }}" onclick="ZyraWishlist.toggleWishlist({{ $product['id'] }}, this)" title="Add to Wishlist" aria-label="Add to Wishlist">
                             <i class="bi bi-heart"></i>
+                        </button>
+
+                        <button type="button" class="zyra-pdp-share-btn" data-bs-toggle="modal" data-bs-target="#shareProductModal" title="Share Product" aria-label="Share Product">
+                            <i class="bi bi-share"></i>
                         </button>
                     </div>
                 </div>
@@ -461,6 +468,94 @@
     </div>
 </div>
 
+{{-- ═══════════════════ Share Product Modal ═══════════════════ --}}
+<div class="modal fade" id="shareProductModal" tabindex="-1" aria-labelledby="shareProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="zyra-share-modal-icon">
+                        <i class="bi bi-share-fill"></i>
+                    </span>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-dark" id="shareProductModalLabel" style="font-family: 'Playfair Display', serif; font-size: 1.35rem;">Share this Product</h5>
+                        <small class="text-muted">Share with friends &amp; family</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                {{-- Product Mini Preview --}}
+                <div class="d-flex align-items-center gap-3 p-3 mb-4 rounded-3" style="background: #FAF6F2; border: 1px solid #EFE4DA;">
+                    <img src="{{ $mainImg }}" alt="{{ $product['name'] }}" class="rounded-2" style="width: 58px; height: 72px; object-fit: cover; flex-shrink: 0;">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <h6 class="mb-1 text-truncate fw-semibold" style="font-size: 0.95rem; color: #1E1A18;" title="{{ $product['name'] }}">{{ $product['name'] }}</h6>
+                        <div class="text-muted small mb-1">{{ $product['category'] }} &bull; SKU: {{ $product['sku'] }}</div>
+                        <div class="fw-bold" style="color: #7D1D32; font-size: 1rem;">₹{{ $productPrice }}</div>
+                    </div>
+                </div>
+
+                {{-- Social Share Options --}}
+                <div class="mb-4">
+                    <label class="form-label text-uppercase fw-semibold text-muted small mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">Share via</label>
+                    <div class="row g-2 text-center">
+                        <div class="col-3">
+                            <a href="#" class="zyra-share-social-btn zyra-share-whatsapp" id="shareWhatsAppBtn" target="_blank" rel="noopener noreferrer">
+                                <div class="zyra-share-social-icon"><i class="bi bi-whatsapp"></i></div>
+                                <span>WhatsApp</span>
+                            </a>
+                        </div>
+                        <div class="col-3">
+                            <a href="#" class="zyra-share-social-btn zyra-share-facebook" id="shareFacebookBtn" target="_blank" rel="noopener noreferrer">
+                                <div class="zyra-share-social-icon"><i class="bi bi-facebook"></i></div>
+                                <span>Facebook</span>
+                            </a>
+                        </div>
+                        <div class="col-3">
+                            <a href="#" class="zyra-share-social-btn zyra-share-twitter" id="shareTwitterBtn" target="_blank" rel="noopener noreferrer">
+                                <div class="zyra-share-social-icon"><i class="bi bi-twitter-x"></i></div>
+                                <span>Twitter</span>
+                            </a>
+                        </div>
+                        <div class="col-3">
+                            <a href="#" class="zyra-share-social-btn zyra-share-telegram" id="shareTelegramBtn" target="_blank" rel="noopener noreferrer">
+                                <div class="zyra-share-social-icon"><i class="bi bi-telegram"></i></div>
+                                <span>Telegram</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Copy Link Field --}}
+                <div>
+                    <label for="zyraShareLinkInput" class="form-label text-uppercase fw-semibold text-muted small mb-2" style="letter-spacing: 0.5px; font-size: 0.75rem;">Product Link</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted" style="border-color: #EFE4DA;">
+                            <i class="bi bi-link-45deg fs-5"></i>
+                        </span>
+                        <input type="text" class="form-control bg-white border-start-0 border-end-0 ps-0" id="zyraShareLinkInput" readonly style="border-color: #EFE4DA; font-size: 0.88rem; color: #495057;">
+                        <button class="btn zyra-share-copy-btn px-3" type="button" id="zyraCopyLinkBtn">
+                            <i class="bi bi-clipboard me-1" id="zyraCopyIcon"></i>
+                            <span id="zyraCopyText">Copy</span>
+                        </button>
+                    </div>
+                    <div id="zyraCopyFeedback" class="zyra-copy-alert mt-2" style="display: none;">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i> Link copied to clipboard!
+                    </div>
+                </div>
+
+                {{-- Native Web Share API (Mobile / Supported Browsers) --}}
+                <div class="mt-3 text-center" id="zyraNativeShareWrap" style="display: none;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary w-100 py-2 rounded-3" id="zyraNativeShareBtn" style="font-size: 0.85rem;">
+                        <i class="bi bi-share me-1"></i> More sharing options...
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -564,6 +659,105 @@
 
         document.getElementById('pdAddToCartBtn')?.addEventListener('click', event => addToCart(event.currentTarget));
         buyPanel.querySelector('.zyra-pdp-buy-now')?.addEventListener('click', event => addToCart(event.currentTarget, true));
+
+        // ══════════ Share Product Modal Logic ══════════
+        const shareModal = document.getElementById('shareProductModal');
+        if (shareModal) {
+            const linkInput = document.getElementById('zyraShareLinkInput');
+            const copyBtn = document.getElementById('zyraCopyLinkBtn');
+            const copyText = document.getElementById('zyraCopyText');
+            const copyIcon = document.getElementById('zyraCopyIcon');
+            const copyFeedback = document.getElementById('zyraCopyFeedback');
+            const nativeShareWrap = document.getElementById('zyraNativeShareWrap');
+            const nativeShareBtn = document.getElementById('zyraNativeShareBtn');
+
+            const currentUrl = window.location.href;
+            const productTitle = @json($product['name'] ?? 'Product');
+            const shareText = `Check out "${productTitle}" on ZYRA!`;
+
+            if (linkInput) {
+                linkInput.value = currentUrl;
+            }
+
+            // Populate social share URLs
+            const waBtn = document.getElementById('shareWhatsAppBtn');
+            if (waBtn) {
+                waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + currentUrl)}`;
+            }
+
+            const fbBtn = document.getElementById('shareFacebookBtn');
+            if (fbBtn) {
+                fbBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+            }
+
+            const twBtn = document.getElementById('shareTwitterBtn');
+            if (twBtn) {
+                twBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`;
+            }
+
+            const tgBtn = document.getElementById('shareTelegramBtn');
+            if (tgBtn) {
+                tgBtn.href = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
+            }
+
+            // Copy Link Action
+            const copyLinkHandler = async () => {
+                let copied = false;
+                if (navigator.clipboard && window.isSecureContext) {
+                    try {
+                        await navigator.clipboard.writeText(currentUrl);
+                        copied = true;
+                    } catch (e) {
+                        copied = false;
+                    }
+                }
+                
+                if (!copied) {
+                    if (linkInput) {
+                        linkInput.select();
+                        linkInput.setSelectionRange(0, 99999);
+                        try {
+                            copied = document.execCommand('copy');
+                        } catch (e) {
+                            copied = false;
+                        }
+                    }
+                }
+
+                if (copyText) copyText.textContent = 'Copied!';
+                if (copyIcon) copyIcon.className = 'bi bi-check2 me-1';
+                if (copyBtn) copyBtn.classList.add('btn-success', 'text-white');
+                if (copyFeedback) copyFeedback.style.display = 'block';
+
+                setTimeout(() => {
+                    if (copyText) copyText.textContent = 'Copy';
+                    if (copyIcon) copyIcon.className = 'bi bi-clipboard me-1';
+                    if (copyBtn) copyBtn.classList.remove('btn-success', 'text-white');
+                    if (copyFeedback) copyFeedback.style.display = 'none';
+                }, 2500);
+            };
+
+            copyBtn?.addEventListener('click', copyLinkHandler);
+            linkInput?.addEventListener('click', () => {
+                linkInput.select();
+            });
+
+            // Native device share if supported (e.g. Mobile Chrome / Safari / Edge)
+            if (navigator.share) {
+                if (nativeShareWrap) nativeShareWrap.style.display = 'block';
+                nativeShareBtn?.addEventListener('click', async () => {
+                    try {
+                        await navigator.share({
+                            title: productTitle,
+                            text: shareText,
+                            url: currentUrl
+                        });
+                    } catch (err) {
+                        // User cancelled or share dismissed
+                    }
+                });
+            }
+        }
     });
 </script>
 @endpush

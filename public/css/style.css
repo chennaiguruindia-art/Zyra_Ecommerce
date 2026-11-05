@@ -2449,6 +2449,125 @@ html {
     color: #b4394a;
 }
 
+/* Share Button in Action Bar */
+.zyra-pdp-share-btn {
+    position: static;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1.5px solid var(--zyra-border);
+    background: var(--zyra-white);
+    color: var(--zyra-text-main);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: var(--zyra-transition);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.zyra-pdp-share-btn:hover {
+    border-color: var(--zyra-burgundy);
+    color: var(--zyra-burgundy);
+    background: #FAF6F2;
+    transform: translateY(-2px);
+}
+
+/* Quick Share Link next to SKU */
+.zyra-pdp-share-link-btn {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    color: var(--zyra-text-muted);
+    font-size: 0.82rem;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.zyra-pdp-share-link-btn:hover {
+    color: var(--zyra-burgundy);
+    background: #FAF6F2;
+}
+
+/* Share Modal Elements */
+.zyra-share-modal-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #FAF0E8;
+    color: var(--zyra-burgundy);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.zyra-share-social-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px;
+    border-radius: 12px;
+    background: #FAF6F2;
+    border: 1px solid #EFE4DA;
+    color: var(--zyra-text-main);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.zyra-share-social-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    color: var(--zyra-text-main);
+}
+
+.zyra-share-social-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+    color: #fff;
+    transition: transform 0.2s;
+}
+
+.zyra-share-whatsapp .zyra-share-social-icon { background: #25D366; }
+.zyra-share-facebook .zyra-share-social-icon { background: #1877F2; }
+.zyra-share-twitter .zyra-share-social-icon { background: #000000; }
+.zyra-share-telegram .zyra-share-social-icon { background: #24A1DE; }
+
+.zyra-share-copy-btn {
+    background: var(--zyra-burgundy);
+    color: #FFFFFF;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-color: var(--zyra-burgundy);
+    transition: all 0.2s ease;
+}
+
+.zyra-share-copy-btn:hover {
+    background: var(--zyra-burgundy-dark);
+    color: #FFFFFF;
+    border-color: var(--zyra-burgundy-dark);
+}
+
+.zyra-copy-alert {
+    font-size: 0.82rem;
+    color: #198754;
+    font-weight: 500;
+}
+
 /* Pincode */
 .zyra-pdp-pincode {
     background: var(--zyra-bg-muted);
