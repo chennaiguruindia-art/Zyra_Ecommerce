@@ -10,6 +10,10 @@
 @endpush
 
 @push('styles')
+{{-- Preload Largest Contentful Paint (LCP) Hero Banner for Instant Mobile & Desktop Render --}}
+<link rel="preload" as="image" href="{{ asset('images/banners/Banner 1-mobile.webp') }}" type="image/webp" media="(max-width: 768px)" fetchpriority="high">
+<link rel="preload" as="image" href="{{ asset('images/banners/Banner 1.webp') }}" type="image/webp" media="(min-width: 769px)" fetchpriority="high">
+
 <style>
 /* ==========================================================================
    ZYRA - Bulletproof Festive & Responsive Index Page Styles
@@ -53,6 +57,7 @@
     border-radius: 0;
     overflow: hidden;
     background-color: #FAF6F2;
+    aspect-ratio: 1600 / 581;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
@@ -60,6 +65,7 @@
     position: relative;
     width: 100%;
     overflow: hidden;
+    aspect-ratio: 1600 / 581;
 }
 
 #zyraHeroCarousel .carousel-item {
@@ -70,6 +76,7 @@
     display: block;
     width: 100%;
     height: auto;
+    aspect-ratio: 1600 / 581;
     object-fit: cover;
     object-position: center;
     border-radius: 0;
@@ -532,19 +539,19 @@
     @php
         $bannerFiles = [
             [
-                'image' => asset('images/banners/Banner 1.png'),
+                'file' => 'Banner 1',
                 'title' => 'Festive Kurti Collection 2026',
                 'subtitle' => 'Handcrafted pure cotton & designer silhouettes',
                 'link' => route('pages.kurtis'),
             ],
             [
-                'image' => asset('images/banners/Banner 2.png'),
+                'file' => 'Banner 2',
                 'title' => 'Celebration Festive Wear - Exclusive Offers',
                 'subtitle' => 'Explore luxury ethnic wear crafted for celebrations',
                 'link' => route('shop'),
             ],
             [
-                'image' => asset('images/banners/Banner 3.png'),
+                'file' => 'Banner 3',
                 'title' => 'Luxury Festive Maxis & Modern Kurtis',
                 'subtitle' => 'Elegance in every fold - shop trending styles',
                 'link' => route('pages.maxi'),
@@ -569,16 +576,22 @@
                 </div>
             @endif
 
-            <!-- Carousel Slides -->
+            <!-- Carousel Slides (Next-Gen Responsive WebP + Instant Paint) -->
             <div class="carousel-inner">
                 @foreach($bannerFiles as $idx => $b)
                     <div class="carousel-item {{ $idx === 0 ? 'active' : '' }} festive-carousel-slide">
                         <a href="{{ $b['link'] }}" class="d-block text-decoration-none" title="{{ $b['title'] }}">
-                            <img src="{{ $b['image'] }}" 
-                                 alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
-                                 class="festive-hero-img w-100" 
-                                 loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
-                                 @if($idx === 0) fetchpriority="high" @endif>
+                            <picture>
+                                <source media="(max-width: 768px)" type="image/webp" srcset="{{ asset('images/banners/' . $b['file'] . '-mobile.webp') }}">
+                                <source type="image/webp" srcset="{{ asset('images/banners/' . $b['file'] . '.webp') }}">
+                                <img src="{{ asset('images/banners/' . $b['file'] . '.png') }}" 
+                                     alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
+                                     class="festive-hero-img w-100" 
+                                     width="1600"
+                                     height="581"
+                                     loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
+                                     @if($idx === 0) fetchpriority="high" decoding="sync" @else decoding="async" @endif>
+                            </picture>
                         </a>
                     </div>
                 @endforeach
@@ -706,7 +719,11 @@
                         READ ARTISAN STORY <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
-                <img src="{{ asset('images/banners/Handcrafted.png') }}" alt="Hand block print artisan craft" class="festive-craft-thumb" loading="lazy">
+                <picture>
+                    <source type="image/webp" srcset="{{ asset('images/banners/Handcrafted-mobile.webp') }}" media="(max-width: 768px)">
+                    <source type="image/webp" srcset="{{ asset('images/banners/Handcrafted.webp') }}">
+                    <img src="{{ asset('images/banners/Handcrafted.png') }}" alt="Hand block print artisan craft" class="festive-craft-thumb" loading="lazy" width="480" height="320">
+                </picture>
             </div>
         </div>
 
