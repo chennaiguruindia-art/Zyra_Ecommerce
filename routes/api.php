@@ -35,12 +35,12 @@ Route::get('/products/{id}/quick-view', [ProductController::class, 'quickView'])
 // 2. SEARCH
 // ==========================================
 Route::get('/search', [SearchController::class, 'search'])->name('api.search');
-Route::get('/search/live', [SearchController::class, 'live'])->name('api.search.live');
+Route::get('/search/live', [SearchController::class, 'live'])->name('api.search.live')->middleware('throttle:search');
 
 // ==========================================
 // 3. AUTHENTICATION (PUBLIC WITH RATE LIMITING)
 // ==========================================
-Route::middleware('throttle:10,1')->group(function () {
+Route::middleware('throttle:auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('api.register');
     Route::post('/login', [AuthController::class, 'login'])->name('api.login');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('api.forgot-password');
@@ -83,8 +83,12 @@ Route::middleware('auth.api.optional')->group(function () {
 
     // Checkout & Payments
     Route::get('/checkout/summary', [CheckoutController::class, 'summary'])->name('api.checkout.summary');
-    Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('api.checkout.place-order');
-    Route::post('/checkout/verify-payment', [CheckoutController::class, 'verifyPayment'])->name('api.checkout.verify-payment');
+    Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])
+        ->name('api.checkout.place-order')
+        ->middleware('throttle:checkout');
+    Route::post('/checkout/verify-payment', [CheckoutController::class, 'verifyPayment'])
+        ->name('api.checkout.verify-payment')
+        ->middleware('throttle:checkout');
 });
 
 // ==========================================

@@ -28,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\TrackVisit::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':web',
+        ]);
+
+        $middleware->api(append: [
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
         ]);
 
         $middleware->validateCsrfTokens(except: [

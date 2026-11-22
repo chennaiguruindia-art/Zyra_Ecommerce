@@ -125,8 +125,12 @@ Route::get('/product/{id}/quick-view', [ProductController::class, 'quickView'])-
 // Authenticated customer routes (Checkout placement only; cart & wishlist are public)
 Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-    Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.place-order');
-    Route::post('/checkout/payment/verify', [CheckoutController::class, 'verifyPayment'])->name('checkout.payment.verify');
+    Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])
+        ->name('checkout.place-order')
+        ->middleware('throttle:checkout');
+    Route::post('/checkout/payment/verify', [CheckoutController::class, 'verifyPayment'])
+        ->name('checkout.payment.verify')
+        ->middleware('throttle:checkout');
     Route::post('/checkout/coupon/apply', [CouponController::class, 'apply'])->name('checkout.coupon.apply');
     Route::post('/checkout/coupon/remove', [CouponController::class, 'remove'])->name('checkout.coupon.remove');
 });
@@ -155,7 +159,7 @@ Route::get('/order-success/{order_number}', [OrderController::class, 'success'])
 Route::post('/webhooks/razorpay', [RazorpayWebhookController::class, 'handle'])->name('webhooks.razorpay');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
-Route::get('/search/live', [SearchController::class, 'live'])->name('search.live');
+Route::get('/search/live', [SearchController::class, 'live'])->name('search.live')->middleware('throttle:search');
 
 // Anonymous shopping-analytics beacon (public, rate-limited: 60/min per IP)
 Route::post('/track', [ActivityTrackController::class, 'store'])
