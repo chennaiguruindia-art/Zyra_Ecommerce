@@ -13,6 +13,17 @@ class Banner extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            \App\Services\ZyraCache::clearHome();
+        });
+
+        static::deleted(function () {
+            \App\Services\ZyraCache::clearHome();
+        });
+    }
+
     public function getImageUrlAttribute(): string
     {
         return \App\Support\ProductImageStorage::url($this->image);

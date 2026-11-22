@@ -11,6 +11,17 @@ class Category extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            \App\Services\ZyraCache::clearCategories();
+        });
+
+        static::deleted(function () {
+            \App\Services\ZyraCache::clearCategories();
+        });
+    }
+
     public function subcategories(): HasMany
     {
         return $this->hasMany(Subcategory::class)->orderBy('sort_order');

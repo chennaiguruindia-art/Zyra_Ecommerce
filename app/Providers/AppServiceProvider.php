@@ -42,22 +42,27 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            static $navCategories = null;
-            if ($navCategories === null) {
-                try {
-                    if (\Illuminate\Support\Facades\Schema::hasTable('categories')) {
-                        $navCategories = \App\Models\Category::query()
-                            ->active()
-                            ->with('subcategories')
-                            ->withCount('products')
-                            ->get()
-                            ->map(fn ($c) => $c->toNavArray())
-                            ->all();
+            $navCategories = \Illuminate\Support\Facades\Cache::remember(
+                'zyra_nav_categories',
+                \App\Services\ZyraCache::TTL_NAV_CATEGORIES,
+                function () {
+                    try {
+                        if (\Illuminate\Support\Facades\Schema::hasTable('categories')) {
+                            return \App\Models\Category::query()
+                                ->active()
+                                ->with('subcategories')
+                                ->withCount('products')
+                                ->get()
+                                ->map(fn ($c) => $c->toNavArray())
+                                ->all();
+                        }
+                    } catch (\Throwable $e) {
+                        return [];
                     }
-                } catch (\Throwable $e) {
-                    $navCategories = [];
+                    return [];
                 }
-            }
+            );
+
             $view->with('navCategories', $navCategories ?? []);
         });
     }

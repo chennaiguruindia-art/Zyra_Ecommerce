@@ -46,6 +46,14 @@ class Product extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new ProductVisibleScope);
+
+        static::saved(function (Product $product) {
+            \App\Services\ZyraCache::clearProduct($product->id, $product->slug);
+        });
+
+        static::deleted(function (Product $product) {
+            \App\Services\ZyraCache::clearProduct($product->id, $product->slug);
+        });
     }
 
     public function subcategory(): BelongsTo

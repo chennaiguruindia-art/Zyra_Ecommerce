@@ -171,11 +171,11 @@ Route::post('/chatbot/reply', [ChatBotController::class, 'reply'])
     ->name('chatbot.reply')
     ->middleware('throttle:30,1');
 
-Route::get('/about', fn () => view('about'))->name('about');
-Route::get('/contact', fn () => view('contact'))->name('contact');
+Route::get('/about', fn () => response()->view('about')->header('Cache-Control', 'public, max-age=3600'))->name('about');
+Route::get('/contact', fn () => response()->view('contact')->header('Cache-Control', 'public, max-age=3600'))->name('contact');
 Route::post('/contact', [QueryController::class, 'store'])->name('contact.submit');
-Route::get('/faq', fn () => view('faq'))->name('faq');
-Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy-policy');
+Route::get('/faq', fn () => response()->view('faq')->header('Cache-Control', 'public, max-age=3600'))->name('faq');
+Route::get('/privacy-policy', fn () => response()->view('privacy-policy')->header('Cache-Control', 'public, max-age=3600'))->name('privacy-policy');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
