@@ -1,0 +1,68 @@
+name: ZYRA Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  laravel-tests:
+    name: PHP 8.3 Quality & Syntax Verification
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup PHP 8.3
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, gd, zip
+        coverage: none
+
+    - name: Cache Composer Dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.composer/cache
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Install Composer Dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction
+
+    - name: Create Environment File
+      run: cp .env.example .env
+
+    - name: Generate Application Key
+      run: php artisan key:generate
+
+    - name: Verify Blade Template Syntax
+      run: php artisan view:cache
+
+    - name: Verify Route Configuration
+      run: php artisan route:cache
+
+    - name: Verify Config Compilation
+      run: php artisan config:cache
+
+  frontend-build:
+    name: Frontend Asset Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install NPM Dependencies
+      run: npm ci
+
+    - name: Compile Production Assets
+      run: npm run build

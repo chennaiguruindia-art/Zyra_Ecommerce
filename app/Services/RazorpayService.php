@@ -31,18 +31,20 @@ class RazorpayService
     }
 
     /**
-     * Create a Razorpay order for the given amount (in INR).
+     * Create a Razorpay order for the given amount (in INR), protected by CircuitBreaker.
      */
     public function createOrder(float $amount, string $receipt, array $notes = []): array
     {
-        $order = $this->client->order->create([
-            'amount' => (int) round($amount * 100),
-            'currency' => $this->currency(),
-            'receipt' => $receipt,
-            'notes' => $notes,
-        ]);
+        return CircuitBreaker::call('razorpay', function () use ($amount, $receipt, $notes) {
+            $order = $this->client->order->create([
+                'amount' => (int) round($amount * 100),
+                'currency' => $this->currency(),
+                'receipt' => $receipt,
+                'notes' => $notes,
+            ]);
 
-        return $order->toArray();
+            return $order->toArray();
+        }, failureThreshold: 3, recoveryTimeSeconds: 30);
     }
 
     /**

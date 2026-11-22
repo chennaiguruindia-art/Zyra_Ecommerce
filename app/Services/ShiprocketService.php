@@ -63,47 +63,49 @@ class ShiprocketService
     }
 
     /**
-     * Send an authenticated request to Shiprocket.
+     * Send an authenticated request to Shiprocket, protected by CircuitBreaker.
      */
     public function request(string $method, string $path, array $payload = []): array
     {
-        $client = new \GuzzleHttp\Client([
-            'base_uri' => $this->baseUrl . '/',
-            'timeout' => 30,
-            'http_errors' => false,
-        ]);
-
-        $options = [
-            'headers' => [
-                'AUTHORIZATION' => 'Bearer ' . $this->token(),
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ],
-        ];
-
-        if (!empty($payload)) {
-            $options['json'] = $payload;
-        }
-
-        $response = $client->request($method, ltrim($path, '/'), $options);
-        $status = $response->getStatusCode();
-        $body = json_decode((string) $response->getBody(), true);
-
-        if ($status >= 400) {
-            Log::warning('Shiprocket API error', [
-                'method' => $method,
-                'path' => $path,
-                'status' => $status,
-                'response' => $body,
+        return CircuitBreaker::call('shiprocket', function () use ($method, $path, $payload) {
+            $client = new \GuzzleHttp\Client([
+                'base_uri' => $this->baseUrl . '/',
+                'timeout' => 15,
+                'http_errors' => false,
             ]);
 
-            throw new \RuntimeException(
-                ($body['message'] ?? 'Shiprocket request failed') . ' (HTTP ' . $status . ')',
-                $status
-            );
-        }
+            $options = [
+                'headers' => [
+                    'AUTHORIZATION' => 'Bearer ' . $this->token(),
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ],
+            ];
 
-        return is_array($body) ? $body : [];
+            if (!empty($payload)) {
+                $options['json'] = $payload;
+            }
+
+            $response = $client->request($method, ltrim($path, '/'), $options);
+            $status = $response->getStatusCode();
+            $body = json_decode((string) $response->getBody(), true);
+
+            if ($status >= 400) {
+                Log::warning('Shiprocket API error', [
+                    'method' => $method,
+                    'path' => $path,
+                    'status' => $status,
+                    'response' => $body,
+                ]);
+
+                throw new \RuntimeException(
+                    ($body['message'] ?? 'Shiprocket request failed') . ' (HTTP ' . $status . ')',
+                    $status
+                );
+            }
+
+            return is_array($body) ? $body : [];
+        }, failureThreshold: 3, recoveryTimeSeconds: 45);
     }
 
     /**

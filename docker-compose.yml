@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # 1. PHP 8.3 FPM Application Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zyra_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-ecommerce1}
+      DB_USERNAME: ${DB_USERNAME:-zyra_user}
+      DB_PASSWORD: ${DB_PASSWORD:-zyra_secret}
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ./:/var/www/html
+      - ./storage:/var/www/html/storage
+    depends_on:
+      - db
+      - redis
+    networks:
+      - zyra_network
+
+  # 2. Nginx Web Server / Reverse Proxy
+  web:
+    image: nginx:alpine
+    container_name: zyra_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - zyra_network
+
+  # 3. MySQL 8 Database
+  db:
+    image: mysql:8.0
+    container_name: zyra_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-ecommerce1}
+      MYSQL_USER: ${DB_USERNAME:-zyra_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-zyra_secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_secret}
+    volumes:
+      - zyra_db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - zyra_network
+
+  # 4. Redis In-Memory Cache, Rate Limiting & Queue Broker
+  redis:
+    image: redis:7-alpine
+    container_name: zyra_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD:-}"
+    ports:
+      - "6379:6379"
+    volumes:
+      - zyra_redis_data:/data
+    networks:
+      - zyra_network
+
+  # 5. Background Queue Worker (Sends order emails, Shiprocket sync)
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zyra_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work redis --sleep=3 --tries=3 --timeout=90
+    volumes:
+      - ./:/var/www/html
+      - ./storage:/var/www/html/storage
+    depends_on:
+      - app
+      - redis
+      - db
+    networks:
+      - zyra_network
+
+networks:
+  zyra_network:
+    driver: bridge
+
+volumes:
+  zyra_db_data:
+    driver: local
+  zyra_redis_data:
+    driver: local

@@ -1,0 +1,53 @@
+name: ZYRA Continuous Deployment (CD)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    # Run only if GitHub secrets are configured
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      if: "${{ secrets.SSH_HOST != '' }}"
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SSH_PORT || 22 }}
+        script: |
+          set -e
+          echo "🚀 Starting ZYRA Deployment..."
+          cd ${{ secrets.DEPLOY_PATH || '/var/www/vhosts/zyralifestyle.in/httpdocs' }}
+
+          # 1. Enable Maintenance Mode during sensitive steps (optional, 2-5 sec)
+          php artisan down --render="errors.503" --retry=10 || true
+
+          # 2. Pull Latest Production Code
+          git pull origin main
+
+          # 3. Install/Update PHP Dependencies
+          composer install --no-dev --optimize-autoloader --no-interaction
+
+          # 4. Run Pending Database Migrations
+          php artisan migrate --force
+
+          # 5. Compile & Warm High-Performance Caches
+          php artisan zyra:cache
+
+          # 6. Restart Queue Workers & OPcache
+          php artisan queue:restart || true
+
+          # 7. Bring Application Back Online
+          php artisan up
+
+          echo "✅ ZYRA deployed successfully with zero downtime!"
