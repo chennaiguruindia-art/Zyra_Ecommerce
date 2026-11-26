@@ -19,6 +19,24 @@
 
     <!-- Active Cart Content Section -->
     <div id="cartContentSection">
+        <!-- Friday Deal Notification Banner -->
+        <div id="fridayDealBanner" style="display: none;" class="mb-4">
+            <div class="alert alert-warning border-warning d-flex align-items-center justify-content-between p-3 rounded-3 shadow-sm">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-2">🎉</span>
+                    <div>
+                        <strong class="d-block text-dark fw-bold" id="fridayDealTitle">Special Friday Offer Unlocked!</strong>
+                        <span class="text-secondary small" id="fridayDealDesc">
+                            You have 2+ items in your cart! Choose any 1 Short Kurti for just <strong class="text-danger fw-bold">₹500</strong>.
+                        </span>
+                    </div>
+                </div>
+                <a href="/shop?subcategory=short-kurtis" class="btn btn-dark btn-sm px-3 py-2 fw-semibold text-nowrap">
+                    Add Short Kurti &rarr;
+                </a>
+            </div>
+        </div>
+
         <div class="row g-4">
             
             <!-- Left: Cart Items Table -->
@@ -96,14 +114,14 @@
                     <div class="mt-4 pt-3 border-top">
                         <label for="cartCouponInput" class="form-label small fw-bold text-uppercase">Have a Promo Code?</label>
                         <div class="input-group input-group-sm mb-2">
-                            <input type="text" id="cartCouponInput" class="form-control" placeholder="e.g. SAVE20" style="text-transform: uppercase;">
+                            <input type="text" id="cartCouponInput" class="form-control" placeholder="e.g. FIRSTORDER" style="text-transform: uppercase;">
                             <button class="btn btn-dark" type="button" onclick="ZyraCart.applyCoupon(document.getElementById('cartCouponInput').value)">
                                 Apply
                             </button>
                         </div>
                         <div id="appliedCouponWrap"></div>
                         <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
-                            <i class="bi bi-tag-fill me-1 text-secondary"></i> Available: <strong>WELCOME10</strong> (10%), <strong>SAVE20</strong> (20%), <strong>FASHION15</strong> (15%)
+                            <i class="bi bi-tag-fill me-1 text-secondary"></i> Available: <strong>FIRSTORDER</strong> (₹100 off 1st order), <strong>ZYRA300</strong> (₹250 off after ₹3,000+), <strong>ZYRA500</strong> (₹500 off after ₹5,000+)
                         </small>
                     </div>
 

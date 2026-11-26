@@ -89,11 +89,13 @@ class CartController extends Controller
             'quantity' => $qty,
         ]);
 
+        $pricingBreakdown = app(\App\Services\PricingService::class)->breakdown();
+
         return response()->json([
             'success' => true,
-            'message' => '"' . $product->name . '" added to cart!',
             'cart' => $this->resolvedCart(),
             'count' => array_sum(array_column($this->resolvedCart(), 'quantity')),
+            'pricing' => $pricingBreakdown,
         ]);
     }
 
@@ -113,10 +115,13 @@ class CartController extends Controller
             $this->replaceCartFromItems($items);
         }
 
+        $pricingBreakdown = app(\App\Services\PricingService::class)->breakdown();
+
         return response()->json([
             'success' => true,
             'cart' => $this->resolvedCart(),
             'count' => array_sum(array_column($this->resolvedCart(), 'quantity')),
+            'pricing' => $pricingBreakdown,
         ]);
     }
 
@@ -259,8 +264,22 @@ class CartController extends Controller
         $cart = array_values(session()->get('cart', []));
         $visible = [];
 
+        $pricingService = app(\App\Services\PricingService::class);
+        $fridayActive = $pricingService->isFridayDealActive();
+
+        // Count non-short-kurtis to determine eligibility
+        $nonShortCount = 0;
         foreach ($cart as $item) {
-            $product = Product::query()->with(['images', 'category'])->find($item['id']);
+            $product = Product::query()->with('subcategory')->find($item['id'] ?? 0);
+            if ($product && !$pricingService->isShortKurtiProduct($product)) {
+                $nonShortCount += (int) ($item['quantity'] ?? 1);
+            }
+        }
+        $eligibleForFridayDeal = $fridayActive && ($nonShortCount >= 2);
+        $fridayDealPieceApplied = false;
+
+        foreach ($cart as $item) {
+            $product = Product::query()->with(['images', 'category', 'subcategory'])->find($item['id']);
             // Product::query() applies the visibility scope: hidden products
             // return null, so the line is dropped from the bag and the session.
             if (!$product) {
@@ -268,11 +287,32 @@ class CartController extends Controller
             }
 
             $dup = filter_var($item['dupatta'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $origPrice = $dup ? (float) $product->price : $product->withoutDupattaPrice();
+            $qty = (int) ($item['quantity'] ?? 1);
+            $isShort = $pricingService->isShortKurtiProduct($product);
+
             $item['dupatta'] = $dup;
-            $item['price'] = $dup ? (float) $product->price : $product->withoutDupattaPrice();
+            $item['is_short_kurti'] = $isShort;
+            $item['original_price'] = $origPrice;
             $item['old_price'] = $product->old_price ? (float) $product->old_price : null;
             $item['image'] = $product->image_url;
             $item['name'] = $product->name;
+
+            // Apply Friday deal for 1st piece of short kurti
+            if ($eligibleForFridayDeal && $isShort && !$fridayDealPieceApplied && $origPrice > \App\Services\PricingService::FRIDAY_SHORT_KURTI_PRICE) {
+                $fridayDealPieceApplied = true;
+                $item['friday_deal_applied'] = true;
+                // If qty == 1, unit price is 500
+                // If qty > 1, average unit price or display deal note
+                $item['price'] = \App\Services\PricingService::FRIDAY_SHORT_KURTI_PRICE;
+                $item['friday_deal_note'] = 'Friday Offer: 1st piece ₹500';
+                $item['line_total'] = \App\Services\PricingService::FRIDAY_SHORT_KURTI_PRICE + ($origPrice * ($qty - 1));
+            } else {
+                $item['friday_deal_applied'] = false;
+                $item['price'] = $origPrice;
+                $item['line_total'] = $origPrice * $qty;
+            }
+
             $visible[] = $item;
         }
 
@@ -351,7 +391,7 @@ class CartController extends Controller
         if (!$coupon) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid coupon code. Try WELCOME10, SAVE20 or FASHION15',
+                'message' => 'Invalid coupon code. Try FIRSTORDER, ZYRA300 or ZYRA500.',
             ], 422);
         }
 
@@ -365,12 +405,12 @@ class CartController extends Controller
             if (!Auth::id()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Please login to use the FIRSTORDER coupon. It is valid once for your very first order above ₹1,500.',
+                    'message' => 'Please login to use the FIRSTORDER coupon. It is valid once for your very first order.',
                 ], 422);
             }
             return response()->json([
                 'success' => false,
-                'message' => 'FIRSTORDER gives ₹100 off on orders above ₹1,500 for your first order only.',
+                'message' => 'FIRSTORDER gives ₹100 off on your very first order only.',
             ], 422);
         }
 
@@ -381,10 +421,18 @@ class CartController extends Controller
             ], 422);
         }
 
+        if (!$coupon->meetsBeforePurchaseRequirement(Auth::id())) {
+            $required = number_format((float) $coupon->before_purchase_amount);
+            return response()->json([
+                'success' => false,
+                'message' => '"' . $coupon->code . '" is for returning customers: your last delivered order must be ₹' . $required . ' or more.',
+            ], 422);
+        }
+
         if (!$coupon->isValidFor($subtotal, Auth::id())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid coupon code. Try WELCOME10, SAVE20 or FASHION15',
+                'message' => 'This coupon cannot be applied to your current order.',
             ], 422);
         }
 

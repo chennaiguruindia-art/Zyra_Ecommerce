@@ -254,9 +254,9 @@ const ZyraCart = {
         })
         .catch(() => {
             const fallbackCoupons = {
-                'WELCOME10': { discount: 10, type: 'percent', label: '10% Welcome Discount' },
-                'SAVE20': { discount: 20, type: 'percent', label: '20% Mega Fashion Savings' },
-                'FASHION15': { discount: 15, type: 'percent', label: '15% Seasonal Discount' }
+                'FIRSTORDER': { discount: 100, type: 'fixed', label: '₹100 Off (FIRSTORDER)' },
+                'ZYRA300': { discount: 250, type: 'fixed', label: '₹250 Off (ZYRA300)' },
+                'ZYRA500': { discount: 500, type: 'fixed', label: '₹500 Off (ZYRA500)' }
             };
             if (fallbackCoupons[cleanCode]) {
                 localStorage.setItem(this.COUPON_KEY, JSON.stringify({
@@ -388,10 +388,26 @@ const ZyraCart = {
         if (contentSection) contentSection.style.display = 'block';
         if (emptyState) emptyState.style.display = 'none';
 
-        let rowsHtml = '';
+                let rowsHtml = '';
+        let hasShortKurti = false;
+        let nonShortCount = 0;
+        let shortKurtiCount = 0;
+
         cart.forEach((item, index) => {
             const dupLabel = item.dupatta === false ? 'Without Dupatta' : (item.dupatta === true ? 'With Dupatta' : '');
             const dupMeta = dupLabel ? ` | ${dupLabel}` : '';
+            const isShort = item.is_short_kurti || (item.name && item.name.toLowerCase().includes('short'));
+            if (isShort) {
+                shortKurtiCount += item.quantity;
+            } else {
+                nonShortCount += item.quantity;
+            }
+
+            const isDealApplied = item.friday_deal_applied;
+            const dealBadge = isDealApplied 
+                ? `<span class="badge bg-danger ms-1">Friday Offer: 1st pc @ ₹500</span>` 
+                : '';
+
             rowsHtml += `
                 <tr>
                     <td data-label="Product">
@@ -399,14 +415,14 @@ const ZyraCart = {
                             <img src="${item.image}" alt="${item.name}" class="cart-item-thumb">
                             <div>
                                 <a href="/product/${item.id}" class="fw-bold text-dark text-decoration-none d-block">${item.name}</a>
-                                <small class="text-muted d-block mt-1">Size: <span class="badge bg-light text-dark border">${item.size}</span> | Color: ${item.color}${dupMeta}</small>
+                                <small class="text-muted d-block mt-1">Size: <span class="badge bg-light text-dark border">${item.size}</span> | Color: ${item.color}${dupMeta}${dealBadge}</small>
                                 <small class="text-muted">SKU: ZYR-ITEM-${item.id}</small>
                             </div>
                         </div>
                     </td>
                     <td data-label="Price" class="text-nowrap">
                         <span class="fw-semibold">₹${item.price}</span>
-                        ${item.old_price ? `<br><small class="text-muted text-decoration-line-through">₹${item.old_price}</small>` : ''}
+                        ${item.original_price && item.original_price > item.price ? `<br><small class="text-muted text-decoration-line-through">₹${item.original_price}</small>` : (item.old_price ? `<br><small class="text-muted text-decoration-line-through">₹${item.old_price}</small>` : '')}
                     </td>
                     <td data-label="Quantity">
                         <div class="zyra-qty-stepper">
@@ -416,7 +432,7 @@ const ZyraCart = {
                         </div>
                     </td>
                     <td data-label="Subtotal" class="fw-bold text-nowrap">
-                        ₹${item.price * item.quantity}
+                        ₹${item.line_total || (item.price * item.quantity)}
                     </td>
                     <td data-label="Action" class="text-center">
                         <button class="btn btn-sm btn-link text-danger p-0" onclick="ZyraCart.removeFromCart(${index})" title="Remove item">
@@ -428,6 +444,23 @@ const ZyraCart = {
         });
 
         if (tableBody) tableBody.innerHTML = rowsHtml;
+
+        // Manage Friday Deal Banner
+        const fridayBanner = document.getElementById('fridayDealBanner');
+        const isFriday = new Date().getDay() === 5; // 5 is Friday
+        if (fridayBanner) {
+            if (isFriday && nonShortCount >= 2) {
+                fridayBanner.style.display = 'block';
+                const desc = document.getElementById('fridayDealDesc');
+                if (shortKurtiCount > 0) {
+                    if (desc) desc.innerHTML = `Awesome! Your Friday Offer is applied: 1 Short Kurti is discounted to <strong class="text-danger fw-bold">₹500</strong>!`;
+                } else {
+                    if (desc) desc.innerHTML = `You have 2+ items in your cart! Choose any 1 Short Kurti for just <strong class="text-danger fw-bold">₹500</strong>.`;
+                }
+            } else {
+                fridayBanner.style.display = 'none';
+            }
+        }
 
         // Update Summary Elements
         const subtotal = this.calculateSubtotal();

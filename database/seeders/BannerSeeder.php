@@ -44,8 +44,8 @@ class BannerSeeder extends Seeder
                 'sort_order' => 3,
             ],
             [
-                'title' => 'Flat 20% Off - Use Code SAVE20',
-                'subtitle' => 'On orders above Rs. 500. Limited time offer on selected styles.',
+                'title' => 'Flat ₹100 Off - Use Code FIRSTORDER',
+                'subtitle' => 'Valid on your very first order with ZYRA Lifestyle.',
                 'badge' => 'Special Offer',
                 'image' => 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80',
                 'link' => '/shop',

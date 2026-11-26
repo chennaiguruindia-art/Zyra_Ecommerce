@@ -55,7 +55,7 @@
                             </table>
 
                             <p style="margin:24px 0 0; font-size:13px; color:#a1a1aa; text-align:center; line-height:1.6;">
-                                Psst… use code <strong style="color:#71717a;">WELCOME10</strong> at checkout for 10% off your first order.<br>
+                                Psst… use code <strong style="color:#71717a;">FIRSTORDER</strong> at checkout for ₹100 off your first order.<br>
                                 <a href="{{ url('/shop') }}" style="color:#71717a; text-decoration:underline;">Explore the collection</a>
                             </p>
                         </td>
