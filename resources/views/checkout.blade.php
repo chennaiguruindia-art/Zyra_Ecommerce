@@ -587,9 +587,9 @@ select.ck-input { appearance: none; background-image: url("data:image/svg+xml,%3
                         <span>Subtotal</span>
                         <span class="val" id="checkoutSubtotal">₹{{ $cartSubtotal ?? 0 }}</span>
                     </div>
-                    <div class="ck-sum-row discount" id="checkoutDiscountRow" style="display:none;">
-                        <span>Coupon Discount</span>
-                        <span class="val" id="checkoutDiscount">-₹0</span>
+                    <div class="ck-sum-row discount" id="checkoutDiscountRow" style="{{ ($cartDiscount ?? 0) > 0 ? '' : 'display:none;' }}">
+                        <span>Coupon Discount (<strong id="checkoutDiscountCode">{{ $appliedCoupon['code'] ?? '' }}</strong>)</span>
+                        <span class="val text-success fw-bold" id="checkoutDiscount">-₹{{ number_format($cartDiscount ?? 0) }}</span>
                     </div>
                     <div class="ck-sum-row">
                         <span>Delivery</span>
@@ -606,10 +606,19 @@ select.ck-input { appearance: none; background-image: url("data:image/svg+xml,%3
                 <div class="ck-coupon-wrap">
                     <span class="ck-coupon-lbl"><i class="bi bi-tag-fill me-1"></i>Have a promo code?</span>
                     <div class="ck-coupon-row">
-                        <input type="text" id="checkoutCouponInput" class="ck-coupon-input" placeholder="e.g. FIRSTORDER">
-                        <button type="button" id="checkoutCouponApplyBtn" class="ck-coupon-btn">Apply</button>
+                        <input type="text" id="checkoutCouponInput" class="ck-coupon-input" placeholder="e.g. FIRSTORDER" value="{{ $appliedCoupon['code'] ?? '' }}" {{ !empty($appliedCoupon['code']) ? 'disabled' : '' }}>
+                        <button type="button" id="checkoutCouponApplyBtn" class="ck-coupon-btn" {{ !empty($appliedCoupon['code']) ? 'disabled' : '' }}>{{ !empty($appliedCoupon['code']) ? 'Applied' : 'Apply' }}</button>
                     </div>
-                    <div id="checkoutCouponMsg" class="small mt-2"></div>
+                    <div id="checkoutCouponMsg" class="small mt-2">
+                        @if(!empty($appliedCoupon['code']))
+                            <span class="d-flex align-items-center justify-content-between">
+                                <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>{{ $appliedCoupon['code'] }} applied (-₹{{ number_format($cartDiscount ?? 0) }})</span>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-danger" id="checkoutCouponRemoveBtn">
+                                    <i class="bi bi-x-circle"></i> Remove
+                                </button>
+                            </span>
+                        @endif
+                    </div>
                 </div>
 
                 {{-- Place Order --}}
@@ -636,6 +645,7 @@ select.ck-input { appearance: none; background-image: url("data:image/svg+xml,%3
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     window.ZYRA_SERVER_CART = JSON.parse(document.getElementById('zyraServerCart')?.dataset.cart || '[]');
+    window.ZYRA_APPLIED_COUPON = @json($appliedCoupon ?? null);
 
     // Meta Pixel – InitiateCheckout (once per checkout page view)
     (function () {

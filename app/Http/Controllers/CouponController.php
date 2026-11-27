@@ -41,6 +41,14 @@ class CouponController extends Controller
 
         $pricing = app(PricingService::class)->breakdown($code, Auth::id());
 
+        session(['coupon' => [
+            'code' => $coupon->code,
+            'discount' => (float) $pricing['discount'],
+            'type' => $coupon->discount_type,
+            'label' => $coupon->label,
+            'amount' => (float) $pricing['discount'],
+        ]]);
+
         return response()->json([
             'success' => true,
             'message' => 'Coupon "' . $coupon->code . '" applied successfully!',
@@ -64,6 +72,7 @@ class CouponController extends Controller
      */
     public function remove()
     {
+        session()->forget('coupon');
         $pricing = app(PricingService::class)->breakdown(null, Auth::id());
 
         return response()->json([

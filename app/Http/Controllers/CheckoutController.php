@@ -65,7 +65,20 @@ class CheckoutController extends Controller
             }
         }
 
-        $pricing = app(PricingService::class)->breakdown(null, $user->id);
+        $sessionCoupon = session('coupon');
+        $couponCode = is_array($sessionCoupon) ? ($sessionCoupon['code'] ?? null) : (is_string($sessionCoupon) ? $sessionCoupon : null);
+        $pricing = app(PricingService::class)->breakdown($couponCode, $user->id, $user->email, $user->phone_number);
+
+        $appliedCoupon = null;
+        if (!empty($pricing['coupon_code'])) {
+            $appliedCoupon = [
+                'code' => $pricing['coupon_code'],
+                'discount' => (float) $pricing['discount'],
+                'label' => $pricing['coupon']?->label ?? $pricing['coupon_code'],
+            ];
+        } elseif (!empty($couponCode)) {
+            session()->forget('coupon');
+        }
 
         $hasOrders = Order::where('user_id', $user->id)->exists();
 
@@ -82,9 +95,11 @@ class CheckoutController extends Controller
             'user' => $user,
             'customer' => $customer,
             'cartItems' => $cartItems,
-            'cartSubtotal' => $cartSubtotal,
+            'cartSubtotal' => $pricing['subtotal'] ?? $cartSubtotal,
             'cartShipping' => $cartShipping,
+            'cartDiscount' => (float) ($pricing['discount'] ?? 0),
             'cartTotal' => $pricing['total'],
+            'appliedCoupon' => $appliedCoupon,
             'hasOrders' => $hasOrders,
             'isFirstOrderEligible' => !$hasOrders,
             'razorpayKey' => app(RazorpayService::class)->keyId(),

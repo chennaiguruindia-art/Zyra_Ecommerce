@@ -70,6 +70,75 @@ const ZyraCheckout = {
         this.bindCoupon();
         this.bindPaymentSelectors();
         this.bindPlaceOrder();
+        this.syncInitialCoupon();
+    },
+
+    syncInitialCoupon() {
+        // 1. If server already provided appliedCoupon:
+        if (window.ZYRA_APPLIED_COUPON && window.ZYRA_APPLIED_COUPON.code) {
+            this.appliedCouponCode = window.ZYRA_APPLIED_COUPON.code;
+            this.appliedDiscount = Number(window.ZYRA_APPLIED_COUPON.discount) || 0;
+            localStorage.setItem('zyra_coupon', JSON.stringify(window.ZYRA_APPLIED_COUPON));
+            const removeBtn = document.getElementById('checkoutCouponRemoveBtn');
+            if (removeBtn) removeBtn.addEventListener('click', () => this.removeCouponUI());
+            return;
+        }
+
+        // 2. If server didn't have it in session, but localStorage has a saved coupon from the mini-cart:
+        try {
+            const raw = localStorage.getItem('zyra_coupon');
+            if (raw) {
+                const stored = JSON.parse(raw);
+                if (stored && stored.code) {
+                    const input = document.getElementById('checkoutCouponInput');
+                    if (input) input.value = stored.code;
+                    // Auto-apply this coupon to checkout so user doesn't have to enter it again
+                    this.applyCouponDirect(stored.code);
+                }
+            }
+        } catch (e) {}
+    },
+
+    applyCouponDirect(code) {
+        const cleanCode = code ? code.trim().toUpperCase() : '';
+        if (!cleanCode) return;
+        const applyBtn = document.getElementById('checkoutCouponApplyBtn');
+        const input = document.getElementById('checkoutCouponInput');
+        if (applyBtn) applyBtn.disabled = true;
+
+        fetch('/checkout/coupon/apply', {
+            method: 'POST',
+            headers: this.csrfHeaders(),
+            body: JSON.stringify({ code: cleanCode })
+        })
+        .then(async res => {
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success && data.coupon) {
+                this.appliedDiscount = data.pricing.discount;
+                this.appliedCouponCode = data.coupon.code;
+                localStorage.setItem('zyra_coupon', JSON.stringify({
+                    code: data.coupon.code,
+                    discount: data.pricing.discount,
+                    type: data.coupon.type,
+                    label: data.coupon.label
+                }));
+                this.renderAppliedCoupon(data.coupon);
+                this.applyServerPricing(data.pricing);
+            } else {
+                localStorage.removeItem('zyra_coupon');
+                if (applyBtn) {
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Apply';
+                }
+                if (input) {
+                    input.disabled = false;
+                }
+            }
+        })
+        .catch(() => {})
+        .finally(() => {
+            if (applyBtn && !this.appliedCouponCode) applyBtn.disabled = false;
+        });
     },
 
     fillOrderReview(cart) {
@@ -310,6 +379,12 @@ const ZyraCheckout = {
             .then(data => {
                 this.appliedDiscount = data.pricing.discount;
                 this.appliedCouponCode = data.coupon.code;
+                localStorage.setItem('zyra_coupon', JSON.stringify({
+                    code: data.coupon.code,
+                    discount: data.pricing.discount,
+                    type: data.coupon.type,
+                    label: data.coupon.label
+                }));
                 if (window.ZyraApp) window.ZyraApp.showToast(data.message, 'success');
                 this.renderAppliedCoupon(data.coupon);
                 this.applyServerPricing(data.pricing);
@@ -317,7 +392,9 @@ const ZyraCheckout = {
             .catch(err => {
                 if (err.message) this.renderCouponMsg(err.message, 'danger');
             })
-            .finally(() => { applyBtn.disabled = false; });
+            .finally(() => {
+                if (!this.appliedCouponCode) applyBtn.disabled = false;
+            });
         };
 
         applyBtn.addEventListener('click', apply);
@@ -329,15 +406,25 @@ const ZyraCheckout = {
     renderCouponMsg(text, type = 'danger') {
         const el = document.getElementById('checkoutCouponMsg');
         if (!el) return;
-        el.innerHTML = `<span class="text-${type} fw-semibold">${text}</span>`;
+        el.innerHTML = text ? `<span class="text-${type} fw-semibold">${text}</span>` : '';
     },
 
     renderAppliedCoupon(coupon) {
         const msg = document.getElementById('checkoutCouponMsg');
+        const input = document.getElementById('checkoutCouponInput');
+        const applyBtn = document.getElementById('checkoutCouponApplyBtn');
+        if (input) {
+            input.value = coupon.code;
+            input.disabled = true;
+        }
+        if (applyBtn) {
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Applied';
+        }
         if (!msg) return;
         msg.innerHTML = `
             <span class="d-flex align-items-center justify-content-between">
-                <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>${coupon.code} applied</span>
+                <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>${coupon.code} applied (-₹${this.appliedDiscount})</span>
                 <button type="button" class="btn btn-link btn-sm p-0 text-danger" id="checkoutCouponRemoveBtn">
                     <i class="bi bi-x-circle"></i> Remove
                 </button>
@@ -356,7 +443,18 @@ const ZyraCheckout = {
             const data = await res.json().catch(() => ({}));
             this.appliedDiscount = 0;
             this.appliedCouponCode = null;
+            localStorage.removeItem('zyra_coupon');
             this.renderCouponMsg('');
+            const input = document.getElementById('checkoutCouponInput');
+            if (input) {
+                input.value = '';
+                input.disabled = false;
+            }
+            const applyBtn = document.getElementById('checkoutCouponApplyBtn');
+            if (applyBtn) {
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply';
+            }
             this.applyServerPricing(data.pricing);
             if (window.ZyraApp) window.ZyraApp.showToast('Coupon removed.', 'success');
         } catch (err) {
@@ -367,10 +465,12 @@ const ZyraCheckout = {
     applyServerPricing(pricing) {
         const subtotalEl = document.getElementById('checkoutSubtotal');
         const discountEl = document.getElementById('checkoutDiscount');
+        const discountCodeEl = document.getElementById('checkoutDiscountCode');
         const discountRowEl = document.getElementById('checkoutDiscountRow');
         const totalEl = document.getElementById('checkoutTotal');
         if (subtotalEl) subtotalEl.textContent = `₹${pricing.subtotal}`;
         if (discountEl) discountEl.textContent = `-₹${pricing.discount}`;
+        if (discountCodeEl) discountCodeEl.textContent = this.appliedCouponCode || '';
         if (discountRowEl) discountRowEl.style.display = pricing.discount > 0 ? 'flex' : 'none';
         if (totalEl) totalEl.textContent = `₹${pricing.total}`;
     },
