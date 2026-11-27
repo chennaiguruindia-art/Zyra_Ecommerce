@@ -315,6 +315,93 @@ const ZyraCart = {
         });
     },
 
+    updateLoyaltyUpsellWidgets(subtotal) {
+        // Targets:
+        // 1) >= 2500 and < 3000 -> Target 3000 (ZYRA300 gives ₹250 off next order)
+        // 2) >= 4500 and < 5000 -> Target 5000 (ZYRA500 gives ₹500 off next order)
+        // 3) >= 3000 and < 4500 -> Already unlocked ₹250 (ZYRA300)!
+        // 4) >= 5000 -> Unlocked ₹500 (ZYRA500) top reward!
+
+        const cartCard = document.getElementById('cartLoyaltyUpsellCard');
+        const miniCard = document.getElementById('miniCartLoyaltyUpsell');
+
+        let showWidget = false;
+        let icon = '🎁';
+        let msg = '';
+        let miniMsg = '';
+        let percent = 0;
+        let currentLabel = `Current: ₹${subtotal}`;
+        let targetLabel = '';
+
+        if (subtotal >= 2500 && subtotal < 3000) {
+            showWidget = true;
+            const diff = 3000 - subtotal;
+            percent = Math.min(100, Math.round((subtotal / 3000) * 100));
+            icon = '⚡';
+            msg = `Add items worth <strong class="text-danger fw-bold">₹${diff}</strong> more to unlock <strong class="text-success fw-bold">₹250 OFF Coupon (ZYRA300)</strong> on your next order!`;
+            miniMsg = `Add <strong class="text-danger">₹${diff}</strong> more for <strong>₹250 OFF</strong> coupon!`;
+            targetLabel = 'Goal: ₹3,000 (Unlock ₹250)';
+        } else if (subtotal >= 4500 && subtotal < 5000) {
+            showWidget = true;
+            const diff = 5000 - subtotal;
+            percent = Math.min(100, Math.round((subtotal / 5000) * 100));
+            icon = '🔥';
+            msg = `Add items worth <strong class="text-danger fw-bold">₹${diff}</strong> more to unlock <strong class="text-success fw-bold">₹500 OFF Coupon (ZYRA500)</strong> on your next order!`;
+            miniMsg = `Add <strong class="text-danger">₹${diff}</strong> more for <strong>₹500 OFF</strong> coupon!`;
+            targetLabel = 'Goal: ₹5,000 (Unlock ₹500)';
+        } else if (subtotal >= 3000 && subtotal < 4500) {
+            showWidget = true;
+            percent = 100;
+            icon = '🎉';
+            msg = `Great job! You have unlocked <strong class="text-success fw-bold">₹250 OFF (ZYRA300)</strong> for your next order! Add items up to ₹5,000 to unlock ₹500!`;
+            miniMsg = `🎉 <strong class="text-success">₹250 OFF</strong> unlocked for your next order!`;
+            targetLabel = 'Next Goal: ₹5,000 (₹500 OFF)';
+        } else if (subtotal >= 5000) {
+            showWidget = true;
+            percent = 100;
+            icon = '👑';
+            msg = `VIP Unlocked! You've qualified for the maximum <strong class="text-success fw-bold">₹500 OFF (ZYRA500)</strong> reward on your next order!`;
+            miniMsg = `👑 <strong class="text-success">₹500 OFF (VIP)</strong> unlocked!`;
+            targetLabel = 'Maximum Loyalty Reward Unlocked!';
+        }
+
+        // Update Cart Page Widget
+        if (cartCard) {
+            if (showWidget) {
+                cartCard.style.display = 'block';
+                const msgEl = document.getElementById('loyaltyUpsellMessage');
+                const iconEl = document.getElementById('loyaltyUpsellIcon');
+                const barEl = document.getElementById('loyaltyUpsellProgressBar');
+                const curEl = document.getElementById('loyaltyUpsellCurrent');
+                const tgtEl = document.getElementById('loyaltyUpsellTarget');
+
+                if (msgEl) msgEl.innerHTML = msg;
+                if (iconEl) iconEl.textContent = icon;
+                if (barEl) barEl.style.width = `${percent}%`;
+                if (curEl) curEl.textContent = currentLabel;
+                if (tgtEl) tgtEl.textContent = targetLabel;
+            } else {
+                cartCard.style.display = 'none';
+            }
+        }
+
+        // Update Mini Cart Widget
+        if (miniCard) {
+            if (showWidget) {
+                miniCard.style.display = 'block';
+                const miniText = document.getElementById('miniLoyaltyText');
+                const miniIcon = document.getElementById('miniLoyaltyIcon');
+                const miniBar = document.getElementById('miniLoyaltyProgressBar');
+
+                if (miniText) miniText.innerHTML = miniMsg;
+                if (miniIcon) miniIcon.textContent = icon;
+                if (miniBar) miniBar.style.width = `${percent}%`;
+            } else {
+                miniCard.style.display = 'none';
+            }
+        }
+    },
+
     renderMiniCart() {
         const container = document.getElementById('miniCartItemsContainer');
         const subtotalEl = document.getElementById('miniCartSubtotal');
@@ -366,9 +453,11 @@ const ZyraCart = {
         });
 
         container.innerHTML = html;
+        const subtotal = this.calculateSubtotal();
         if (subtotalEl) {
-            subtotalEl.textContent = `₹${this.calculateSubtotal()}`;
+            subtotalEl.textContent = `₹${subtotal}`;
         }
+        this.updateLoyaltyUpsellWidgets(subtotal);
     },
 
     renderCartPage() {
@@ -468,6 +557,8 @@ const ZyraCart = {
         const shipping = this.calculateShipping();
         const total = this.calculateTotal();
         const coupon = this.getAppliedCoupon();
+
+        this.updateLoyaltyUpsellWidgets(subtotal);
 
         const elSubtotal = document.getElementById('cartSummarySubtotal');
         const elDiscount = document.getElementById('cartSummaryDiscount');

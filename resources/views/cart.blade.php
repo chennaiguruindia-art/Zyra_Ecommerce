@@ -19,6 +19,33 @@
 
     <!-- Active Cart Content Section -->
     <div id="cartContentSection">
+        <!-- Daily Loyalty Upsell Progress Banner (Foxtale/Nykaa Style) -->
+        <div id="cartLoyaltyUpsellCard" class="card border-0 mb-4 shadow-sm rounded-3 overflow-hidden" style="display: none; background: linear-gradient(135deg, #FFF9F3 0%, #FFF3E6 100%); border-left: 4px solid #D48D3B !important;">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fs-4" id="loyaltyUpsellIcon">🎁</span>
+                        <div class="small">
+                            <span id="loyaltyUpsellMessage" class="fw-semibold text-dark">
+                                Add items to unlock exclusive coupon rewards on your next order!
+                            </span>
+                        </div>
+                    </div>
+                    <a href="{{ route('shop') }}" class="btn btn-dark btn-sm px-3 rounded-pill fw-semibold" id="loyaltyUpsellCtaBtn">
+                        Shop More &rarr;
+                    </a>
+                </div>
+                <!-- Progress Bar Container -->
+                <div class="progress" style="height: 8px; background-color: rgba(212, 141, 59, 0.2); border-radius: 10px;">
+                    <div id="loyaltyUpsellProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #D48D3B 0%, #7D1D32 100%); border-radius: 10px;"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-1 text-muted" style="font-size: 0.72rem;">
+                    <span id="loyaltyUpsellCurrent">Current: ₹0</span>
+                    <span id="loyaltyUpsellTarget" class="fw-semibold text-dark">Target: ₹3,000</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Friday Deal Notification Banner -->
         <div id="fridayDealBanner" style="display: none;" class="mb-4">
             <div class="alert alert-warning border-warning d-flex align-items-center justify-content-between p-3 rounded-3 shadow-sm">

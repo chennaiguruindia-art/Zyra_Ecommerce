@@ -65,6 +65,11 @@
                 <i class="bi bi-journal-check"></i> <span>Order History</span>
             </a>
         </li>
+        <li class="seller-nav-item">
+            <a href="{{ route('seller.accounts') }}" class="seller-nav-link {{ request()->routeIs('seller.accounts*') ? 'active' : '' }}">
+                <i class="bi bi-calculator"></i> <span>Accounts &amp; Profit Tally</span>
+            </a>
+        </li>
 
         {{-- ── Catalogue Section ── --}}
         <li class="seller-nav-section-label">

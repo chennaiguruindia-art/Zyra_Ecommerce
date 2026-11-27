@@ -10,11 +10,11 @@
     --zyra-secondary-light: #fbf0f2;
     --zyra-accent-gold: #d4af37;
     --zyra-accent-gold-light: #faf5e6;
-    --zyra-bg-light: #fdfbf7;
-    --zyra-bg-beige: #f8f5f0;
-    --zyra-bg-muted: #f4f0ea;
-    --zyra-border: #eee7dd;
-    --zyra-border-subtle: #f0ede8;
+    --zyra-bg-light: #FFFBF0;
+    --zyra-bg-beige: #FFF8E7;
+    --zyra-bg-muted: #FFF5DD;
+    --zyra-border: #F5ECD7;
+    --zyra-border-subtle: #FAF2E1;
     --zyra-text-main: #222222;
     --zyra-text-muted: #6c757d;
     --zyra-text-light: #8e959d;
@@ -165,8 +165,8 @@ img {
 
 /* Header & Navbar */
 .zyra-header {
-    background-color: var(--zyra-white);
-    box-shadow: var(--zyra-shadow-sm);
+    background-color: var(--zyra-bg-light);
+    box-shadow: 0 2px 10px rgba(180, 140, 50, 0.08);
     position: sticky;
     top: 0;
     z-index: 1020;

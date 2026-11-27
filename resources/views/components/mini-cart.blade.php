@@ -8,6 +8,19 @@
     </div>
     
     <div class="offcanvas-body d-flex flex-column">
+        <!-- Dynamic Mini-Cart Loyalty Upsell Bar -->
+        <div id="miniCartLoyaltyUpsell" class="p-3 mb-2 rounded-3 border-0" style="display: none; background: linear-gradient(135deg, #FFF9F3 0%, #FFF3E6 100%); border-left: 3px solid #D48D3B !important;">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span id="miniLoyaltyIcon" class="fs-5">🎁</span>
+                <span id="miniLoyaltyText" class="small fw-semibold text-dark lh-sm">
+                    Shop more to unlock coupons!
+                </span>
+            </div>
+            <div class="progress mt-2" style="height: 6px; background-color: rgba(212, 141, 59, 0.2); border-radius: 6px;">
+                <div id="miniLoyaltyProgressBar" class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #D48D3B 0%, #7D1D32 100%); border-radius: 6px;"></div>
+            </div>
+        </div>
+
         <!-- Dynamic Items Container populated by cart.js -->
         <div id="miniCartItemsContainer" class="flex-grow-1 overflow-auto pe-1">
             <!-- Will be populated via ZyraCart.renderMiniCart() -->

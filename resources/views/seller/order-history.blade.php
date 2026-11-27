@@ -13,67 +13,19 @@
 
 <div class="seller-page-header">
     <div>
-        <h1 class="h3 fw-bold mb-1">Order History &amp; Purchase Tally</h1>
-        <p class="text-muted mb-0">Audit customer purchases, track coupon discounts, compare original vs final prices, and reconcile revenue.</p>
+        <h1 class="h3 fw-bold mb-1">Customer Order History</h1>
+        <p class="text-muted mb-0">Audit past customer orders, items purchased, fulfillment status, and order details.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
+        <a href="{{ route('seller.accounts') }}" class="btn btn-outline-primary">
+            <i class="bi bi-calculator me-1"></i> View Accounts &amp; Profit Tally
+        </a>
         <a href="{{ route('seller.order.history.export.excel', request()->all()) }}" class="btn btn-outline-success">
             <i class="bi bi-file-earmark-excel me-1"></i> Download Excel
         </a>
         <a href="{{ route('seller.order.history.export.pdf', request()->all()) }}" target="_blank" class="btn btn-outline-dark">
             <i class="bi bi-printer me-1"></i> Download / Print PDF
         </a>
-    </div>
-</div>
-
-<!-- Financial Tally Summary KPI Cards -->
-<div class="row g-3 mb-4">
-    <!-- Gross Original Sales -->
-    <div class="col-6 col-xl-3">
-        <div class="seller-stat-card border-start border-primary border-3">
-            <div class="seller-stat-icon bg-primary-soft text-primary"><i class="bi bi-receipt"></i></div>
-            <div>
-                <div class="seller-stat-value fs-4 mb-0">₹{{ number_format($metrics['total_gross'], 2) }}</div>
-                <div class="text-muted small fw-semibold">Across {{ $metrics['total_orders'] }} order(s)</div>
-                <div class="seller-stat-label text-uppercase mt-1" style="font-size: 0.72rem;">Original Gross Sales</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Total Discounts Deducted -->
-    <div class="col-6 col-xl-3">
-        <div class="seller-stat-card border-start border-danger border-3">
-            <div class="seller-stat-icon bg-danger-soft text-danger"><i class="bi bi-tags"></i></div>
-            <div>
-                <div class="seller-stat-value fs-4 mb-0 text-danger">-₹{{ number_format($metrics['total_discount'], 2) }}</div>
-                <div class="text-muted small fw-semibold">Avg ₹{{ number_format($metrics['avg_discount'], 2) }} / coupon order</div>
-                <div class="seller-stat-label text-uppercase mt-1" style="font-size: 0.72rem;">Total Discounts Deducted</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Final Net Revenue Collected -->
-    <div class="col-6 col-xl-3">
-        <div class="seller-stat-card border-start border-success border-3">
-            <div class="seller-stat-icon bg-success-soft text-success"><i class="bi bi-currency-rupee"></i></div>
-            <div>
-                <div class="seller-stat-value fs-4 mb-0 text-success">₹{{ number_format($metrics['total_net'], 2) }}</div>
-                <div class="text-muted small fw-semibold">Gross - Discounts + Taxes</div>
-                <div class="seller-stat-label text-uppercase mt-1" style="font-size: 0.72rem;">Final Net Revenue</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Coupon Usage Ratio -->
-    <div class="col-6 col-xl-3">
-        <div class="seller-stat-card border-start border-warning border-3">
-            <div class="seller-stat-icon bg-gold-soft text-gold"><i class="bi bi-percent"></i></div>
-            <div>
-                <div class="seller-stat-value fs-4 mb-0">{{ $metrics['coupon_orders_count'] }} <span class="fs-6 text-muted fw-normal">/ {{ $metrics['total_orders'] }}</span></div>
-                <div class="text-muted small fw-semibold">{{ $metrics['coupon_rate'] }}% of orders used coupons</div>
-                <div class="seller-stat-label text-uppercase mt-1" style="font-size: 0.72rem;">Coupon Adoption Rate</div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -131,13 +83,11 @@
                     <tr>
                         <th>Order &amp; Date</th>
                         <th>Customer / Purchaser</th>
-                        <th>Items Summary</th>
-                        <th class="text-end">Original Price</th>
-                        <th class="text-center">Coupon Used?</th>
-                        <th>Coupon Code</th>
-                        <th class="text-end">Discount Deducted</th>
-                        <th class="text-end">Final Price Paid</th>
-                        <th>Payment &amp; Status</th>
+                        <th>Items Purchased</th>
+                        <th class="text-center">Coupon</th>
+                        <th class="text-end">Order Total</th>
+                        <th>Payment</th>
+                        <th>Fulfillment Status</th>
                         <th class="text-center">Action</th>
                     </tr>
                 </thead>
@@ -200,60 +150,41 @@
                             <td>
                                 <div class="small">
                                     <span class="badge bg-light text-dark border">{{ $o->items->sum('quantity') }} items</span>
-                                    <div class="text-muted text-truncate" style="max-width: 160px;" title="{{ $o->items->pluck('product_name')->implode(', ') }}">
+                                    <div class="text-muted text-truncate" style="max-width: 180px;" title="{{ $o->items->pluck('product_name')->implode(', ') }}">
                                         {{ $o->items->first()?->product_name ?? 'Item' }}{{ $o->items->count() > 1 ? ' +' . ($o->items->count() - 1) . ' more' : '' }}
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-end">
-                                <div class="fw-bold text-dark">₹{{ number_format($gross, 2) }}</div>
-                                <small class="text-muted">Original</small>
-                            </td>
                             <td class="text-center">
                                 @if($hasCoupon)
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                                        <i class="bi bi-tag-fill me-1"></i> YES
-                                    </span>
-                                @else
-                                    <span class="badge bg-light text-muted border px-2 py-1">NO</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($hasCoupon)
                                     <span class="badge bg-dark font-monospace px-2 py-1">{{ $o->coupon_code }}</span>
+                                    <div class="text-danger small" style="font-size: 0.7rem;">-₹{{ number_format($discount, 2) }}</div>
                                 @else
                                     <span class="text-muted small">—</span>
                                 @endif
                             </td>
                             <td class="text-end">
-                                @if($hasCoupon)
-                                    <div class="fw-bold text-danger">-₹{{ number_format($discount, 2) }}</div>
-                                    <small class="text-success fw-semibold">({{ $discountPct }}% off)</small>
-                                @else
-                                    <span class="text-muted small">₹0.00</span>
-                                @endif
-                            </td>
-                            <td class="text-end">
-                                <div class="fw-bold fs-6 text-dark">₹{{ number_format($final, 2) }}</div>
-                                <small class="text-muted" style="font-size: 0.72rem;">
-                                    ₹{{ number_format($gross, 2) }} - ₹{{ number_format($discount, 2) }}
-                                </small>
+                                <div class="fw-bold text-dark">₹{{ number_format($final, 2) }}</div>
                             </td>
                             <td>
-                                <div>
-                                    <span class="badge {{ $o->payment_status === 'paid' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-dark' }} border">
-                                        {{ ucfirst($o->payment_status) }} &bull; {{ strtoupper($o->payment_method) }}
-                                    </span>
-                                </div>
-                                <div class="mt-1">
-                                    <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">
-                                        {{ $o->order_status }}
-                                    </span>
-                                </div>
+                                <span class="badge {{ $o->payment_status === 'paid' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-dark' }} border">
+                                    {{ ucfirst($o->payment_status) }} &bull; {{ strtoupper($o->payment_method) }}
+                                </span>
+                            </td>
+                            <td>
+                                @if($o->order_status === 'Delivered')
+                                    <span class="badge bg-success-subtle text-success border border-success">Delivered</span>
+                                @elseif($o->order_status === 'Cancelled')
+                                    <span class="badge bg-danger-subtle text-danger border border-danger">Cancelled</span>
+                                @elseif($o->order_status === 'Shipped')
+                                    <span class="badge bg-info-subtle text-info border">Shipped</span>
+                                @else
+                                    <span class="badge bg-secondary">{{ $o->order_status }}</span>
+                                @endif
                             </td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-dark" onclick='openOrderTallyModal(@json($orderDataJson))' title="View Step-by-Step Tally Calculation">
-                                    <i class="bi bi-calculator me-1"></i> View Tally
+                                <button type="button" class="btn btn-sm btn-outline-dark" onclick='openOrderTallyModal(@json($orderDataJson))' title="View Complete Order Details">
+                                    <i class="bi bi-eye"></i> Details
                                 </button>
                             </td>
                         </tr>

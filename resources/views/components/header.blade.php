@@ -226,6 +226,11 @@
         }
     }
 
+    .zyra-header {
+        background-color: #FFFBF0 !important;
+        border-bottom: 1px solid #F5ECD7;
+    }
+
     .zyra-header-row {
         display: flex;
         align-items: center;
@@ -256,17 +261,18 @@
 
     .zyra-search-pill input {
         width: 100%;
-        border: 1px solid #e2ddd6;
+        border: 1px solid #ebdcc5;
         border-radius: 999px;
         padding: 10px 18px 10px 44px;
         font-size: .9rem;
-        background: #faf9f7;
+        background: #FFF8E7;
+        color: #2b2323;
         outline: none;
     }
 
     .zyra-search-pill input:focus {
         border-color: #8d5a5a;
-        background: #fff;
+        background: #ffffff;
     }
 
     .zyra-search-pill .zyra-search-icon {
@@ -299,7 +305,8 @@
     }
 
     .zyra-catnav {
-        border-top: 1px solid #f0ebe4;
+        border-top: 1px solid #F5ECD7;
+        background-color: #FFFBF0;
     }
 
     .zyra-catnav-inner {

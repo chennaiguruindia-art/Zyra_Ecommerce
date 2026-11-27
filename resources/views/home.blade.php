@@ -11,8 +11,7 @@
 
 @push('styles')
 {{-- Preload Largest Contentful Paint (LCP) Hero Banner for Instant Mobile & Desktop Render --}}
-<link rel="preload" as="image" href="{{ asset('images/banners/Banner 1-mobile.webp') }}" type="image/webp" media="(max-width: 768px)" fetchpriority="high">
-<link rel="preload" as="image" href="{{ asset('images/banners/Banner 1.webp') }}" type="image/webp" media="(min-width: 769px)" fetchpriority="high">
+<link rel="preload" as="image" href="{{ asset('images/banners/Banner 1.png') }}" fetchpriority="high">
 
 <style>
 /* ==========================================================================
@@ -23,13 +22,13 @@
 :root {
     --festive-burgundy: #7D1D32;
     --festive-burgundy-dark: #581020;
-    --festive-bg: #FAF6F2;
+    --festive-bg: #FFFDF5;
     --festive-card-bg: #FFFFFF;
-    --festive-cream: #FAF3EB;
-    --festive-peach: #FAF0E8;
+    --festive-cream: #FFF8E7;
+    --festive-peach: #FFF3DB;
     --festive-text: #1E1A18;
     --festive-muted: #6E6762;
-    --festive-border: #EFE4DA;
+    --festive-border: #F3E8CE;
     --festive-gold: #D48D3B;
 }
 
@@ -40,14 +39,14 @@
     padding-bottom: 3rem;
 }
 
-/* ── Hero Banner Carousel: Foxtale-Style Full-Width Edge-to-Edge Slider ── */
+/* ── Hero Banner Carousel: Full-Width Edge-to-Edge Slider ── */
 .festive-hero-fullwidth {
     width: 100%;
     margin: 0;
     padding: 0;
     position: relative;
     overflow: hidden;
-    background-color: #FAF6F2;
+    background-color: transparent;
     line-height: 0;
 }
 
@@ -56,16 +55,14 @@
     width: 100%;
     border-radius: 0;
     overflow: hidden;
-    background-color: #FAF6F2;
-    aspect-ratio: 1600 / 581;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    background-color: transparent;
+    box-shadow: none;
 }
 
 .festive-carousel-slide {
     position: relative;
     width: 100%;
     overflow: hidden;
-    aspect-ratio: 1600 / 581;
 }
 
 #zyraHeroCarousel .carousel-item {
@@ -76,7 +73,6 @@
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 1600 / 581;
     object-fit: cover;
     object-position: center;
     border-radius: 0;
@@ -576,22 +572,16 @@
                 </div>
             @endif
 
-            <!-- Carousel Slides (Next-Gen Responsive WebP + Instant Paint) -->
+            <!-- Carousel Slides (Responsive Banner Display) -->
             <div class="carousel-inner">
                 @foreach($bannerFiles as $idx => $b)
                     <div class="carousel-item {{ $idx === 0 ? 'active' : '' }} festive-carousel-slide">
                         <a href="{{ $b['link'] }}" class="d-block text-decoration-none" title="{{ $b['title'] }}">
-                            <picture>
-                                <source media="(max-width: 768px)" type="image/webp" srcset="{{ asset('images/banners/' . $b['file'] . '-mobile.webp') }}">
-                                <source type="image/webp" srcset="{{ asset('images/banners/' . $b['file'] . '.webp') }}">
-                                <img src="{{ asset('images/banners/' . $b['file'] . '.png') }}" 
-                                     alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
-                                     class="festive-hero-img w-100" 
-                                     width="1600"
-                                     height="581"
-                                     loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
-                                     @if($idx === 0) fetchpriority="high" decoding="sync" @else decoding="async" @endif>
-                            </picture>
+                            <img src="{{ asset('images/banners/' . $b['file'] . '.png') }}" 
+                                 alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
+                                 class="festive-hero-img w-100" 
+                                 loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
+                                 @if($idx === 0) fetchpriority="high" decoding="sync" @else decoding="async" @endif>
                         </a>
                     </div>
                 @endforeach

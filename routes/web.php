@@ -16,6 +16,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\GlobalSettingController;
 use App\Http\Controllers\InstagramController;
 use App\Http\Controllers\SellerController;
+use App\Http\Controllers\SellerAccountsController;
 use App\Http\Controllers\QueryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicStorageController;
@@ -85,6 +86,9 @@ Route::prefix('seller')->name('seller.')->middleware(['auth', 'seller'])->group(
     Route::get('/order-history', [OrderHistoryController::class, 'index'])->name('order.history');
     Route::get('/order-history/export/excel', [OrderHistoryController::class, 'exportExcel'])->name('order.history.export.excel');
     Route::get('/order-history/export/pdf', [OrderHistoryController::class, 'exportPdf'])->name('order.history.export.pdf');
+
+    Route::get('/accounts', [SellerAccountsController::class, 'index'])->name('accounts');
+    Route::get('/accounts/export', [SellerAccountsController::class, 'exportCsv'])->name('accounts.export');
 });
 
 Route::middleware(['auth', 'seller'])->group(function () {
