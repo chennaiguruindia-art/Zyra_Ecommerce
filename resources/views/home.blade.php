@@ -577,11 +577,15 @@
                 @foreach($bannerFiles as $idx => $b)
                     <div class="carousel-item {{ $idx === 0 ? 'active' : '' }} festive-carousel-slide">
                         <a href="{{ $b['link'] }}" class="d-block text-decoration-none" title="{{ $b['title'] }}">
-                            <img src="{{ asset('images/banners/' . $b['file'] . '.png') }}" 
-                                 alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
-                                 class="festive-hero-img w-100" 
-                                 loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
-                                 @if($idx === 0) fetchpriority="high" decoding="sync" @else decoding="async" @endif>
+                            <picture>
+                                <source media="(max-width: 768px)" srcset="{{ asset('images/banners/' . $b['file'] . '-mobile.webp') }}?v={{ time() }}">
+                                <source srcset="{{ asset('images/banners/' . $b['file'] . '.webp') }}?v={{ time() }}">
+                                <img src="{{ asset('images/banners/' . $b['file'] . '.png') }}?v={{ time() }}" 
+                                     alt="{{ $b['title'] }} - {{ $b['subtitle'] }}" 
+                                     class="festive-hero-img w-100" 
+                                     loading="{{ $idx === 0 ? 'eager' : 'lazy' }}" 
+                                     @if($idx === 0) fetchpriority="high" decoding="sync" @else decoding="async" @endif>
+                            </picture>
                         </a>
                     </div>
                 @endforeach
