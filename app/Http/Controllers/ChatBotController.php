@@ -503,32 +503,12 @@ class ChatBotController extends Controller
 
     protected function couponReply(): string
     {
-        $coupons = Coupon::query()
-            ->where('status', true)
-            ->where(function ($q) {
-                $q->whereNull('start_date')->orWhere('start_date', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('expiry_date')->orWhere('expiry_date', '>=', now());
-            })
-            ->orderByDesc('discount_value')
-            ->get();
-
-        if ($coupons->isEmpty()) {
-            return 'No coupon codes are active right now — but new offers drop often, so check back soon! <a href="/shop">Shop →</a>';
-        }
-
-        $lines = [];
-        foreach ($coupons as $c) {
-            $value = $c->discount_type === 'percent'
-                ? rtrim(rtrim((string) $c->discount_value, '0'), '.') . '% off'
-                : '₹' . number_format((float) $c->discount_value, 0) . ' off';
-            $cond = ((float) $c->min_order_amount > 0) ? ' (on orders above ₹' . number_format((float) $c->min_order_amount, 0) . ')' : '';
-            $cap = ($c->max_discount !== null && (float) $c->max_discount > 0) ? ', up to ₹' . number_format((float) $c->max_discount, 0) : '';
-            $lines[] = '• <b>' . e($c->code) . '</b> — ' . $value . $cond . $cap;
-        }
-
-        return 'Live offers right now:<br>' . implode('<br>', $lines) . '<br><br>Type the code in the coupon box at checkout. <a href="/shop">Start shopping →</a>';
+        return '🎁 <b>Here are our active offers &amp; coupons:</b><br><br>' .
+            '1. <b>FIRSTORDER</b> — Get <b>₹100 Flat OFF</b> on your very first order!<br><br>' .
+            '2. <b>ZYRA300</b> — Purchase for ₹3,000+ to win a <b>₹250 OFF coupon</b> for your next order!<br><br>' .
+            '3. <b>ZYRA500</b> — Purchase for ₹5,000+ to win a <b>₹500 OFF coupon</b> for your next order!<br><br>' .
+            '✨ <i>Special Friday Offer:</i> Buy any 2+ items on Friday and get 1 Short Kurti for just <b>₹500</b>!<br><br>' .
+            'Apply your code at checkout. <a href="/shop">Start shopping →</a>';
     }
 
     protected function orderStatus(): string
