@@ -317,10 +317,9 @@ const ZyraCart = {
 
     updateLoyaltyUpsellWidgets(subtotal) {
         // Targets:
-        // 1) >= 2500 and < 3000 -> Target 3000 (ZYRA300 gives ₹250 off next order)
-        // 2) >= 4500 and < 5000 -> Target 5000 (ZYRA500 gives ₹500 off next order)
-        // 3) >= 3000 and < 4500 -> Already unlocked ₹250 (ZYRA300)!
-        // 4) >= 5000 -> Unlocked ₹500 (ZYRA500) top reward!
+        // 1) > 0 and < 3000 -> Target 3000 (ZYRA300 gives ₹250 off next order)
+        // 2) >= 3000 and < 5000 -> Already unlocked ₹250 (ZYRA300)! Target 5000 for ₹500 off
+        // 3) >= 5000 -> Unlocked ₹500 (ZYRA500) top reward!
 
         const cartCard = document.getElementById('cartLoyaltyUpsellCard');
         const miniCard = document.getElementById('miniCartLoyaltyUpsell');
@@ -333,28 +332,21 @@ const ZyraCart = {
         let currentLabel = `Current: ₹${subtotal}`;
         let targetLabel = '';
 
-        if (subtotal >= 2500 && subtotal < 3000) {
+        if (subtotal > 0 && subtotal < 3000) {
             showWidget = true;
             const diff = 3000 - subtotal;
-            percent = Math.min(100, Math.round((subtotal / 3000) * 100));
+            percent = Math.max(8, Math.min(100, Math.round((subtotal / 3000) * 100)));
             icon = '⚡';
             msg = `Add items worth <strong class="text-danger fw-bold">₹${diff}</strong> more to unlock <strong class="text-success fw-bold">₹250 OFF Coupon (ZYRA300)</strong> on your next order!`;
             miniMsg = `Add <strong class="text-danger">₹${diff}</strong> more for <strong>₹250 OFF</strong> coupon!`;
             targetLabel = 'Goal: ₹3,000 (Unlock ₹250)';
-        } else if (subtotal >= 4500 && subtotal < 5000) {
+        } else if (subtotal >= 3000 && subtotal < 5000) {
             showWidget = true;
             const diff = 5000 - subtotal;
-            percent = Math.min(100, Math.round((subtotal / 5000) * 100));
-            icon = '🔥';
-            msg = `Add items worth <strong class="text-danger fw-bold">₹${diff}</strong> more to unlock <strong class="text-success fw-bold">₹500 OFF Coupon (ZYRA500)</strong> on your next order!`;
-            miniMsg = `Add <strong class="text-danger">₹${diff}</strong> more for <strong>₹500 OFF</strong> coupon!`;
-            targetLabel = 'Goal: ₹5,000 (Unlock ₹500)';
-        } else if (subtotal >= 3000 && subtotal < 4500) {
-            showWidget = true;
-            percent = 100;
+            percent = Math.max(60, Math.min(100, Math.round((subtotal / 5000) * 100)));
             icon = '🎉';
-            msg = `Great job! You have unlocked <strong class="text-success fw-bold">₹250 OFF (ZYRA300)</strong> for your next order! Add items up to ₹5,000 to unlock ₹500!`;
-            miniMsg = `🎉 <strong class="text-success">₹250 OFF</strong> unlocked for your next order!`;
+            msg = `Great job! You have unlocked <strong class="text-success fw-bold">₹250 OFF (ZYRA300)</strong>! Add items worth <strong class="text-danger fw-bold">₹${diff}</strong> more to unlock <strong class="text-success fw-bold">₹500 OFF (ZYRA500)</strong>!`;
+            miniMsg = `🎉 <strong class="text-success">₹250 OFF</strong> unlocked! Add <strong>₹${diff}</strong> for ₹500!`;
             targetLabel = 'Next Goal: ₹5,000 (₹500 OFF)';
         } else if (subtotal >= 5000) {
             showWidget = true;
@@ -424,6 +416,7 @@ const ZyraCart = {
             `;
             if (subtotalEl) subtotalEl.textContent = '₹0';
             if (checkoutBtn) checkoutBtn.classList.add('disabled');
+            this.updateLoyaltyUpsellWidgets(0);
             return;
         }
 
@@ -653,6 +646,13 @@ const ZyraCart = {
         }
         this.bindCheckoutLinks();
         this.syncCartToServer();
+
+        const miniCartDrawer = document.getElementById('zyraMiniCart');
+        if (miniCartDrawer) {
+            miniCartDrawer.addEventListener('show.bs.offcanvas', () => {
+                this.renderMiniCart();
+            });
+        }
     }
 };
 

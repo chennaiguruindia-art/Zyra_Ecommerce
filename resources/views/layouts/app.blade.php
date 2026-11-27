@@ -139,12 +139,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <!-- Application Modules -->
-    <script src="{{ asset('js/app.js') }}?v=20260913a"></script>
-    <script src="{{ asset('js/cart.js') }}?v=20260911c"></script>
-    <script src="{{ asset('js/wishlist.js') }}"></script>
-    <script src="{{ asset('js/checkout.js') }}?v=20260908d"></script>
-    <script src="{{ asset('js/search.js') }}?v=20260918a"></script>
-    <script src="{{ asset('js/analytics.js') }}?v=20260924a"></script>
+    <script src="{{ asset('js/app.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/cart.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/wishlist.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/checkout.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/search.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/analytics.js') }}?v={{ time() }}"></script>
 
     @stack('scripts')
 </body>
