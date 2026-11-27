@@ -391,7 +391,7 @@ class CartController extends Controller
         if (!$coupon) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid coupon code. Try FIRSTORDER, ZYRA300 or ZYRA500.',
+                'message' => 'தவறான கூப்பன் குறியீடு (Invalid coupon code). Try FIRSTORDER, ZYRA300 or ZYRA500.',
             ], 422);
         }
 
@@ -399,25 +399,25 @@ class CartController extends Controller
             if (Auth::id() && \App\Models\Order::where('user_id', Auth::id())->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'FIRSTORDER is valid only for your very first order. It looks like you already used it.',
+                    'message' => 'மன்னிக்குக! FIRSTORDER கூப்பன் உங்கள் முதல் ஆர்டருக்கு மட்டுமே செல்லும். நீங்கள் ஏற்கனவே ஆர்டர் செய்துள்ளீர்கள்.',
                 ], 422);
             }
             if (!Auth::id()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Please login to use the FIRSTORDER coupon. It is valid once for your very first order.',
+                    'message' => 'FIRSTORDER கூப்பனைப் பயன்படுத்த தயவுசெய்து லாகின் செய்யவும் (Please login to apply FIRSTORDER).',
                 ], 422);
             }
             return response()->json([
                 'success' => false,
-                'message' => 'FIRSTORDER gives ₹100 off on your very first order only.',
+                'message' => 'FIRSTORDER கூப்பன் முதல் ஆர்டருக்கு மட்டுமே செல்லும் (Valid for first order only).',
             ], 422);
         }
 
         if ($coupon->hasBeenUsedBy(Auth::id())) {
             return response()->json([
                 'success' => false,
-                'message' => 'You have already used "' . $coupon->code . '". Each coupon code can be used only once per customer.',
+                'message' => 'மன்னிக்குக! "' . $coupon->code . '" கூப்பனை நீங்கள் ஏற்கனவே பயன்படுத்திவிட்டீர்கள் (Each coupon is single-use).',
             ], 422);
         }
 
@@ -425,14 +425,14 @@ class CartController extends Controller
             $required = number_format((float) $coupon->before_purchase_amount);
             return response()->json([
                 'success' => false,
-                'message' => '"' . $coupon->code . '" is for returning customers: your last delivered order must be ₹' . $required . ' or more.',
+                'message' => 'மன்னிக்குக! "' . $coupon->code . '" கூப்பன் முந்தைய டெலிவரி செய்யப்பட்ட ஆர்டர் குறைந்தபட்சம் ₹' . $required . ' இருந்தால்தான் பொருந்தும்.',
             ], 422);
         }
 
         if (!$coupon->isValidFor($subtotal, Auth::id())) {
             return response()->json([
                 'success' => false,
-                'message' => 'This coupon cannot be applied to your current order.',
+                'message' => 'மன்னிக்குக! இந்த கூப்பன் உங்கள் தற்போதைய ஆர்டருக்கு பொருந்தாது (Coupon not applicable for this order).',
             ], 422);
         }
 

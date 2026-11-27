@@ -226,6 +226,12 @@ const ZyraCart = {
 
         const subtotal = this.calculateSubtotal();
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const feedbackEl = document.getElementById('miniCartCouponFeedback');
+
+        if (feedbackEl) {
+            feedbackEl.style.display = 'block';
+            feedbackEl.innerHTML = `<div class="text-muted small py-1"><i class="spinner-border spinner-border-sm me-1"></i> Checking coupon "${cleanCode}"...</div>`;
+        }
 
         fetch('/cart/apply-coupon', {
             method: 'POST',
@@ -236,40 +242,74 @@ const ZyraCart = {
             },
             body: JSON.stringify({ code: cleanCode, subtotal: subtotal })
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success && data.coupon) {
+        .then(async res => {
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success && data.coupon) {
                 localStorage.setItem(this.COUPON_KEY, JSON.stringify(data.coupon));
-                if (window.ZyraApp) {
-                    window.ZyraApp.showToast(data.message || `Coupon "${cleanCode}" applied!`, 'success');
-                }
+                this.renderMiniCart();
                 if (window.location.pathname.includes('/cart')) {
                     this.renderCartPage();
                 }
-            } else {
                 if (window.ZyraApp) {
-                    window.ZyraApp.showToast(data.message || 'Invalid coupon code.', 'danger');
+                    window.ZyraApp.showToast(data.message || `🎉 Coupon "${cleanCode}" applied! You saved ₹${this.calculateDiscount()}!`, 'success');
+                }
+            } else {
+                // Coupon invalid or condition not satisfied
+                const errorMsg = data.message || 'இந்த கூப்பன் உங்கள் ஆர்டருக்கு பொருந்தாது (Coupon not applicable).';
+                if (feedbackEl) {
+                    feedbackEl.style.display = 'block';
+                    feedbackEl.innerHTML = `
+                        <div class="alert alert-danger py-2 px-3 mb-0 small rounded-2 border-0" style="background: #FEE2E2; color: #991B1B;">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-x-circle-fill text-danger flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong>மன்னிக்குக, இந்த கூப்பன் உங்களுக்கு பொருந்தாது!</strong><br>
+                                    <span class="text-dark" style="font-size: 0.78rem;">${errorMsg}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                if (window.ZyraApp) {
+                    window.ZyraApp.showToast(`மன்னிக்குக, "${cleanCode}" கூப்பன் உங்களுக்கு பொருந்தாது: ${errorMsg}`, 'danger');
                 }
             }
         })
-        .catch(() => {
-            const fallbackCoupons = {
-                'FIRSTORDER': { discount: 100, type: 'fixed', label: '₹100 Off (FIRSTORDER)' },
-                'ZYRA300': { discount: 250, type: 'fixed', label: '₹250 Off (ZYRA300)' },
-                'ZYRA500': { discount: 500, type: 'fixed', label: '₹500 Off (ZYRA500)' }
-            };
-            if (fallbackCoupons[cleanCode]) {
-                localStorage.setItem(this.COUPON_KEY, JSON.stringify({
-                    code: cleanCode,
-                    ...fallbackCoupons[cleanCode]
-                }));
-                if (window.ZyraApp) window.ZyraApp.showToast(`Coupon "${cleanCode}" applied!`, 'success');
-                if (window.location.pathname.includes('/cart')) this.renderCartPage();
-            } else {
-                if (window.ZyraApp) window.ZyraApp.showToast('Invalid coupon code.', 'danger');
+        .catch(err => {
+            console.error(err);
+            if (feedbackEl) {
+                feedbackEl.style.display = 'block';
+                feedbackEl.innerHTML = `
+                    <div class="alert alert-danger py-2 px-3 mb-0 small rounded-2 border-0" style="background: #FEE2E2; color: #991B1B;">
+                        <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                        <strong>கூப்பன் அப்ளை செய்ய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.</strong>
+                    </div>
+                `;
+            }
+            if (window.ZyraApp) {
+                window.ZyraApp.showToast('கூப்பன் அப்ளை செய்வதில் பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.', 'danger');
             }
         });
         return true;
+    },
+
+    applyCouponFromMiniCart() {
+        const input = document.getElementById('miniCartCouponInput');
+        const code = input ? input.value : '';
+        if (!code || !code.trim()) {
+            const feedbackEl = document.getElementById('miniCartCouponFeedback');
+            if (feedbackEl) {
+                feedbackEl.style.display = 'block';
+                feedbackEl.innerHTML = `
+                    <div class="alert alert-warning py-1 px-2 mb-0 small rounded-2 border-0" style="background: #FEF3C7; color: #92400E;">
+                        தயவுசெய்து கூப்பன் குறியீட்டை உள்ளிடவும் (Please type a coupon code).
+                    </div>
+                `;
+            }
+            if (input) input.focus();
+            return;
+        }
+        this.applyCoupon(code);
     },
 
     removeCoupon() {
@@ -279,9 +319,17 @@ const ZyraCart = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
         }).catch(() => {});
+
+        const feedbackEl = document.getElementById('miniCartCouponFeedback');
+        if (feedbackEl) {
+            feedbackEl.innerHTML = '';
+            feedbackEl.style.display = 'none';
+        }
+
         if (window.ZyraApp) {
             window.ZyraApp.showToast('Coupon removed', 'info');
         }
+        this.renderMiniCart();
         if (window.location.pathname.includes('/cart')) {
             this.renderCartPage();
         }
@@ -291,7 +339,26 @@ const ZyraCart = {
         const subtotal = this.calculateSubtotal();
         const coupon = this.getAppliedCoupon();
         if (!coupon || subtotal === 0) return 0;
-        return Math.round((subtotal * coupon.discount) / 100);
+        if (coupon.type === 'percent') {
+            let discount = Math.round((subtotal * (Number(coupon.discount) || 0)) / 100);
+            if (coupon.max_discount) discount = Math.min(discount, Number(coupon.max_discount));
+            return discount;
+        }
+        // Fixed amount coupon (e.g. FIRSTORDER ₹100, ZYRA300 ₹250, ZYRA500 ₹500)
+        const fixedVal = coupon.amount !== undefined ? coupon.amount : coupon.discount;
+        return Math.min(subtotal, Math.round(Number(fixedVal) || 0));
+    },
+
+    calculateSavings() {
+        const cart = this.getCart();
+        let productSavings = 0;
+        cart.forEach(item => {
+            if (item.old_price && item.old_price > item.price) {
+                productSavings += (item.old_price - item.price) * item.quantity;
+            }
+        });
+        const couponDiscount = this.calculateDiscount();
+        return Math.round(productSavings + couponDiscount);
     },
 
     calculateShipping() {
@@ -384,10 +451,16 @@ const ZyraCart = {
                 const miniText = document.getElementById('miniLoyaltyText');
                 const miniIcon = document.getElementById('miniLoyaltyIcon');
                 const miniBar = document.getElementById('miniLoyaltyProgressBar');
+                const miniPill = document.getElementById('miniLoyaltyPill');
 
                 if (miniText) miniText.innerHTML = miniMsg;
                 if (miniIcon) miniIcon.textContent = icon;
                 if (miniBar) miniBar.style.width = `${percent}%`;
+                if (miniPill) {
+                    if (subtotal < 3000) miniPill.textContent = 'UNLOCK @ ₹3,000';
+                    else if (subtotal < 5000) miniPill.textContent = 'UNLOCK @ ₹5,000';
+                    else miniPill.textContent = 'VIP UNLOCKED';
+                }
             } else {
                 miniCard.style.display = 'none';
             }
@@ -397,12 +470,27 @@ const ZyraCart = {
     renderMiniCart() {
         const container = document.getElementById('miniCartItemsContainer');
         const subtotalEl = document.getElementById('miniCartSubtotal');
+        const origPriceEl = document.getElementById('miniCartOriginalPrice');
+        const discountBadgeEl = document.getElementById('miniCartDiscountBadge');
+        const savingsStripEl = document.getElementById('miniCartSavingsStrip');
+        const savingsValEl = document.getElementById('miniCartSavingsValue');
         const checkoutBtn = document.getElementById('miniCartCheckoutBtn');
         const viewCartBtn = document.getElementById('miniCartViewCartBtn');
+        const countBadge = document.getElementById('miniCartItemCountBadge');
+        const offersSection = document.getElementById('miniCartOffersSection');
+        const couponInput = document.getElementById('miniCartCouponInput');
+        const applyCouponBtn = document.getElementById('miniCartApplyCouponBtn');
+        const feedbackEl = document.getElementById('miniCartCouponFeedback');
 
         if (!container) return;
 
         const cart = this.getCart();
+        const totalQty = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 1), 0);
+
+        if (countBadge) {
+            countBadge.textContent = `${totalQty} ${totalQty === 1 ? 'item' : 'items'}`;
+        }
+
         if (cart.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-5">
@@ -411,31 +499,52 @@ const ZyraCart = {
                     </div>
                     <h6 class="fw-bold mb-2">Your Bag is Empty</h6>
                     <p class="text-muted small mb-4">Discover effortlessly chic styles to fill it up.</p>
-                    <a href="/shop" class="btn btn-sm btn-zyra-primary">Explore Shop</a>
+                    <a href="/shop" class="btn btn-sm text-white fw-bold px-3 py-2" style="background-color: #581C87; border-radius: 6px;">Explore Shop</a>
                 </div>
             `;
             if (subtotalEl) subtotalEl.textContent = '₹0';
+            if (origPriceEl) origPriceEl.style.display = 'none';
+            if (discountBadgeEl) discountBadgeEl.style.display = 'none';
+            if (savingsStripEl) savingsStripEl.style.display = 'none';
+            if (offersSection) offersSection.style.display = 'none';
             if (checkoutBtn) checkoutBtn.classList.add('disabled');
             this.updateLoyaltyUpsellWidgets(0);
             return;
         }
 
         if (checkoutBtn) checkoutBtn.classList.remove('disabled');
+        if (offersSection) offersSection.style.display = 'block';
 
         let html = '';
         cart.forEach((item, index) => {
             const dupLabel = item.dupatta === false
-                ? ' | <strong>Without Dupatta</strong>'
-                : (item.dupatta === true ? ' | <strong>With Dupatta</strong>' : '');
+                ? ' | Without Dupatta'
+                : (item.dupatta === true ? ' | With Dupatta' : '');
+            const itemPrice = parseFloat(item.price) || 0;
+            const itemOldPrice = item.old_price ? parseFloat(item.old_price) : 0;
+            const hasOldPrice = itemOldPrice > itemPrice;
+            const discountPct = hasOldPrice ? Math.round(((itemOldPrice - itemPrice) / itemOldPrice) * 100) : 0;
+
             html += `
                 <div class="zyra-mini-cart-item">
                     <img src="${item.image}" alt="${item.name}" class="mini-cart-thumb">
                     <div class="mini-cart-info">
-                        <h6 class="mini-cart-title">${item.name}</h6>
+                        <h6 class="mini-cart-title text-truncate" title="${item.name}">${item.name}</h6>
                         <div class="mini-cart-meta">Size: <strong>${item.size}</strong> | Color: <strong>${item.color}</strong>${dupLabel}</div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <span class="small text-muted">Qty: ${item.quantity}</span>
-                            <span class="mini-cart-price">₹${item.price * item.quantity}</span>
+                        <div class="mini-cart-price-wrap">
+                            <span class="mini-cart-price">₹${itemPrice * item.quantity}</span>
+                            ${hasOldPrice ? `<span class="mini-cart-old-price">₹${itemOldPrice * item.quantity}</span>` : ''}
+                            ${discountPct > 0 ? `<span class="mini-cart-discount-tag">(${discountPct}% OFF)</span>` : ''}
+                        </div>
+                        <div class="mini-cart-deal-badge">
+                            <i class="bi bi-stars me-1"></i>Special Deal Applied
+                        </div>
+                        <div>
+                            <div class="mini-cart-qty-stepper">
+                                <button type="button" class="stepper-btn" onclick="ZyraCart.updateQuantity(${index}, ${item.quantity - 1})" aria-label="Decrease">&minus;</button>
+                                <span class="stepper-val">${item.quantity}</span>
+                                <button type="button" class="stepper-btn" onclick="ZyraCart.updateQuantity(${index}, ${item.quantity + 1})" aria-label="Increase">&plus;</button>
+                            </div>
                         </div>
                     </div>
                     <button class="mini-cart-remove" onclick="ZyraCart.removeFromCart(${index})" title="Remove item">
@@ -446,10 +555,77 @@ const ZyraCart = {
         });
 
         container.innerHTML = html;
+
         const subtotal = this.calculateSubtotal();
-        if (subtotalEl) {
-            subtotalEl.textContent = `₹${subtotal}`;
+        const discount = this.calculateDiscount();
+        const finalTotal = this.calculateTotal();
+        const totalSavings = this.calculateSavings();
+        const appliedCoupon = this.getAppliedCoupon();
+
+        // Update Pricing Row in Drawer Footer
+        if (discount > 0) {
+            if (origPriceEl) {
+                origPriceEl.style.display = 'inline';
+                origPriceEl.textContent = `₹${subtotal}`;
+            }
+            if (subtotalEl) {
+                subtotalEl.textContent = `₹${finalTotal}`;
+            }
+            if (discountBadgeEl) {
+                discountBadgeEl.style.display = 'inline';
+                discountBadgeEl.textContent = `(-₹${discount})`;
+            }
+        } else {
+            if (origPriceEl) origPriceEl.style.display = 'none';
+            if (subtotalEl) subtotalEl.textContent = `₹${subtotal}`;
+            if (discountBadgeEl) discountBadgeEl.style.display = 'none';
         }
+
+        // Update Savings Strip
+        if (totalSavings > 0) {
+            if (savingsStripEl) savingsStripEl.style.display = 'block';
+            if (savingsValEl) savingsValEl.textContent = `₹${totalSavings}`;
+        } else {
+            if (savingsStripEl) savingsStripEl.style.display = 'none';
+        }
+
+        // Update Coupon Feedback State
+        if (appliedCoupon) {
+            if (couponInput) {
+                couponInput.value = appliedCoupon.code;
+                couponInput.disabled = true;
+            }
+            if (applyCouponBtn) {
+                applyCouponBtn.disabled = true;
+                applyCouponBtn.textContent = 'Applied';
+            }
+            if (feedbackEl) {
+                feedbackEl.style.display = 'block';
+                feedbackEl.innerHTML = `
+                    <div class="alert alert-success py-2 px-3 d-flex justify-content-between align-items-center mb-0 small rounded-2 border-0" style="background: #ECFDF5; color: #065F46;">
+                        <div>
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                            Coupon <strong>${appliedCoupon.code}</strong> applied! You saved <strong>₹${discount}</strong>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2 text-decoration-none fw-bold" onclick="ZyraCart.removeCoupon()">
+                            Remove
+                        </button>
+                    </div>
+                `;
+            }
+        } else {
+            if (couponInput) {
+                couponInput.disabled = false;
+            }
+            if (applyCouponBtn) {
+                applyCouponBtn.disabled = false;
+                applyCouponBtn.textContent = 'Apply';
+            }
+            if (feedbackEl && !feedbackEl.querySelector('.alert-danger')) {
+                feedbackEl.style.display = 'none';
+            }
+        }
+
         this.updateLoyaltyUpsellWidgets(subtotal);
     },
 
